@@ -18,7 +18,7 @@ for a=1:10
                     curr_sent_fname = strrep(curr_sent,' ','_');
                     curr_sent_fname = erase(curr_sent_fname,'.');
                     collect_fname{i,1} = [save_dir filesep curr_sent_fname '.txt'];
-                    collect_fname{i,1} = [curr_sent_fname '.txt'];
+                    collect_fname{i,2} = [curr_sent_fname '.txt'];
                     fid = fopen([save_dir filesep curr_sent_fname '.txt'],'w+');
                     fwrite(fid,curr_sent);
                     fclose(fid);
@@ -36,5 +36,5 @@ selected_save_dir = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Se
 randomnos = randi([1 100000],1,400);
 
 for r=1:400
-    copyfile(collect_fname{randomnos(r),1}, [selected_save_dir filesep collect_fname{randomnos(r),2}]);
+    copyfile(collect_fname{randomnos(r),1}, [selected_save_dir filesep collect_fname{randomnos(r),1}]);
 end
