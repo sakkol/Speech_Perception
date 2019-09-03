@@ -33,8 +33,8 @@ fprintf('\n')
 %% Randomly select 400
 selected_save_dir = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\Selected_Texts';
 
-randomnos = randi([1 100000],1,402);
+randomnos = randi([1 100000],1,400);
 
-for r=1:402
-    copyfile(collect_fname{randomnos(r),1}, [selected_save_dir filesep collect_fname{randomnos(r),2}]);
+for r=1:400
+    copyfile(collect_fname{randomnos(r),1}, [selected_save_dir filesep collect_fname{randomnos(r),1}]);
 end
