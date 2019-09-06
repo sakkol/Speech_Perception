@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 # set GOOGLE_APPLICATION_CREDENTIALS="C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\My First Project-dc1f01a6b01a.json"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\My First Project-dc1f01a6b01a.json"
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\My First Project-dc1f01a6b01a.json"
 # Explicitly use service account credentials by specifying the private key
 # file.
 #storage_client = storage.Client.from_service_account_json('My First Project-dc1f01a6b01a.json')
@@ -18,7 +18,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\user\Desktop\PROJECT MAN
 from google.cloud import texttospeech
 
 ## Instantiates a client
-client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\My First Project-dc1f01a6b01a.json"))
+client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/Speech_Perception_stim/graphite-ruler-251715-14c8870351bb.json"))
 
 
 ## DEFINE ALL PARAMETERS HERE
@@ -27,9 +27,9 @@ client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"C:\Use
 GENDER = 'M'
 # Either folder name with text files
 CORPUS = 'CST-Repeated'
-dirname = r'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation\Attention_Sentence'
+dirname = r'/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/Selected_Texts_4thGen'
 dirname = Path(dirname)
-outdirname = r'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation\GoogleTTS_M_Rate1.5'
+outdirname = r'/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/GoogleTTS_Rate1.3'
 outdirname = Path(outdirname)
 
 # Alter parameter dependent variables
@@ -44,7 +44,7 @@ elif GENDER == 'F':
 else:
     raise ValueError('Invalid gender entered')
 # Slow down speech to 90%
-rate = 1.5
+rate = 1.3
 
 # Build the voice request, select the language code ("en-US") and the ssml
 # voice gender ("neutral")

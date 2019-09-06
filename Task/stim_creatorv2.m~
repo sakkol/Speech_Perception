@@ -1,4 +1,4 @@
-function [stimulus,envelope]=stimuli_creator(cfg)
+function [stimulus,envelope]=stim_creatorv2(cfg)
 % In order to be able to make it very malleable, there is going to be some
 % subfields in cfg. Here are the possible subfields:
 % cfg.SNR = eg. -3.5, 2. Signal-to-noise ratio, that is going to be applied
@@ -17,8 +17,7 @@ function [stimulus,envelope]=stimuli_creator(cfg)
 % cfg.speech.file : speech file to be used. (also signal)
 %           .noise: same options as in prespeech (length and file).
 % cfg.postspeech  : same options as in prespeech (parts, length and file).
-% cfg.LvsR        : 'L','R' or 'both' (defaulft: 'both'). If not both,
-%                   speech signal is going to be given only from one ear.
+% cfg.LvsR        : 'L','R' (defaulft: error).
 % cfg.stim_save_filename    
 %    .plot_save_filename
 % 	 .envelope_save_filename
@@ -27,6 +26,13 @@ function [stimulus,envelope]=stimuli_creator(cfg)
 %                 frequency range (1-8Hz), 2.peaks in this normalized power
 %                 plot, 3.envelope of speech signal embedded in whole
 %                 stimulus.
+% cfg.delay       : when the speech envelope should start. If number (in
+%                 seconds), stimulation will be starting with this delay
+%                 relative to matrix sentence onset. If 'attention',
+%                 stimulation will start with Attention sentence onset. In
+%                 this condition, there should be 2 other inputs:
+%                 'frequency' in which the wave will be generated; 'phase',
+%                 to generate 'in'-phase or 'off'-phase.
 %
 % OUTPUT:
 % stimulus: one channel is for presenting to patient and the other channel
@@ -66,34 +72,37 @@ end
 if ~isfield(cfg,'LvsR')
     cfg.LvsR = 'both';
 end
+
 % Set sample rate same as the speech signal
 sound_info = audioinfo(cfg.speech.file);
 SampleRate = sound_info.SampleRate;
 
 %% Create speech part first
-% Rational is tto use the same modulation factor across noise for each part
+% Rational to start with speech is to use the same modulation factor across noise for each part
 
 curr_part = cfg.speech;
 
 % process speech signal
-[curr_speech, ~] = audioread(curr_part.file);
-if size(curr_speech,2)==2 % it may have two channels, get only one for now
-    curr_speech(:,2) = [];
+[speech_audio, ~] = audioread(curr_part.file);
+if size(speech_audio,2)==2 % it may have two channels, get only one for now
+    speech_audio(:,2) = [];
 end
-curr_part.length = length(curr_speech)/SampleRate;
 
 % remove zeros in the end, so that it will not affect power calculations
-curr_speech = curr_speech(1:find(curr_speech,1,'last'));
+speech_audio = speech_audio(1:find(speech_audio,1,'last'));
+
+curr_part.length = length(speech_audio)/SampleRate;
 
 
 % generate noise
 if strcmp(curr_part.noise,'silence')
-    curr_noise = zeros(curr_part.length*SampleRate,2);
+    curr_noise = zeros(curr_part.length*SampleRate,1);
 elseif any(strcmp(curr_part.noise,{'pink','white','brown','blue','purple'}))
-    cn = dsp.ColoredNoise('Color',curr_part.noise,'SamplesPerFrame',SampleRate,'NumChannels',2);
+    cn = dsp.ColoredNoise('Color',curr_part.noise,'SamplesPerFrame',SampleRate,'NumChannels',1);
     curr_noise = cn();
 elseif exist(curr_part.noise,'file')
-    [curr_noise, ~] = audioread(curr_part.noise);
+    [curr_noise, noise_SampleRate] = audioread(curr_part.noise);
+    curr_noise = resample(curr_noise,SampleRate,noise_SampleRate);
 else
     error('Unrecognized noise in speech!')
 end
@@ -101,12 +110,12 @@ if size(curr_noise,2)==2 % it may have two channels, get only one for now
     curr_noise(:,2) = [];
 end
 
-% chop/extend the noise to get desired length
-if length(curr_noise) > length(curr_speech)
-    curr_noise = curr_noise(1:curr_part.length*SampleRate,:);
-elseif length(curr_noise) <  length(curr_speech)
+% chop/extend the noise to get desired length (same with )
+if length(curr_noise) > length(speech_audio)
+    curr_noise = curr_noise(1:length(speech_audio),:);
+elseif length(curr_noise) <  length(speech_audio)
     long_curr_noise = [curr_noise;curr_noise;curr_noise;curr_noise;curr_noise;curr_noise;curr_noise];
-    curr_noise = long_curr_noise(1:length(curr_speech),:);
+    curr_noise = long_curr_noise(1:length(speech_audio),:);
     clear long_curr_noise
 end
 
@@ -114,27 +123,27 @@ end
 % Combine signal and noise according to given SNR (based on whole
 % segment power
 
-Npts = length(curr_speech); % Number of input time samples
+Npts = length(speech_audio); % Number of input time samples
 
-Signal_Power = sum(abs(curr_speech).*abs(curr_speech))/Npts;
+Signal_Power = sum(abs(speech_audio).*abs(speech_audio))/Npts;
 Noise_Power = sum(abs(curr_noise).*abs(curr_noise))/Npts;
 % Initial_SNR = 10*(log10(Signal_Power/Noise_Power))
 
-K = (Signal_Power/Noise_Power)*10^(-cfg.SNR/10);  % Scale factor
+K = (Signal_Power/Noise_Power)*10^(-cfg.SNR/10);  % Scale factor (this is going to be same across parts)
 
 modulated_curr_noise = sqrt(K)*curr_noise; % Change Noise level
 % New_Noise_Power = sum(abs(modulated_curr_noise).*abs(modulated_curr_noise))/Npts
 % New_SNR = 10*(log10(Signal_Power/New_Noise_Power))
 
-curr_stim = curr_speech + modulated_curr_noise;
+% Combine speech and noise
+curr_stim = speech_audio + modulated_curr_noise;
+
 
 % LvsR option
 if strcmp(cfg.LvsR,'L') 
     speech_stim = [curr_stim,modulated_curr_noise];
 elseif strcmp(cfg.LvsR,'R') 
     speech_stim = [modulated_curr_noise,curr_stim];
-elseif strcmp(cfg.LvsR,'both')
-    speech_stim = [curr_stim,curr_stim];
 end
 
 %% Second to-do: prespeech part
@@ -212,8 +221,6 @@ for pre_i = 1:length(fieldnames(cfg.prespeech))
         prespeech_stim = [prespeech_stim;[curr_stim,curr_noise]];
     elseif strcmp(cfg.LvsR,'R')
         prespeech_stim = [prespeech_stim;[curr_noise,curr_stim]];
-    elseif strcmp(cfg.LvsR,'both')
-        prespeech_stim = [prespeech_stim;[curr_stim,curr_stim]];
     end
     
 end
@@ -294,7 +301,38 @@ if isfield(cfg,'stim_save_filename')
         'Postspeech has ' num2str(length(post_fields)) 'part(s); '...
         'Audio is given to ' cfg.LvsR ' ear(s). Other is for stimulator'];
     audiowrite(cfg.stim_save_filename,stimulus,SampleRate,'Comment',information);
-end    
+end
+
+% Add delay and create second channel that goes to stimulator
+if isfield(cfg,'delay')
+    if isnumeric(cfg.delay)
+        stim_channel = [zeros(1,(length(prespeech_stim)+(cfg.delay*SampleRate))),speech_audio',zeros(1,(length(postspeech_stim)+(cfg.delay*SampleRate)))];
+    elseif strcmpi(cfg.delay, 'attention')
+        attention_onset = cfg.prespeech.(pre_fields{1}).length;
+        
+        if ~isfield(cfg,'frequency') || ~isfield(cfg,'phase'),error('Need to have frequency and phase inside, in order to generate sine wave'),end
+        % Create sine wave
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Need to create here %%%%%%%%%%%%%%%%
+        
+        
+        % stim_channel = zeros(1,length(attention_onset*SampleRate)), 
+                %           wave + zeros
+    else
+        error('Unrecognized delay input')
+    end
+else
+    stim_channel = [zeros(1,length(prespeech_stim)),speech_audio',zeros(1,length(postspeech_stim))];
+end
+
+% LvsR option: one side is stimulus, the other is only clean speech (will go into stimulator)
+if strcmp(cfg.LvsR,'L')
+    stimulus = [stimulus(:,1),stim_channel'];
+    presented_stim=stimulus(:,1);
+elseif strcmp(cfg.LvsR,'R')
+    stimulus = [stim_channel',stimulus(:,2)];
+    presented_stim=stimulus(:,2);
+end
+
 
 %% Create envelope of speech (Based on 2018_Kosem scripts)
 
@@ -302,7 +340,7 @@ end
 % 1. band pass filtering between 100 Hz and 4000 Hz
 filter_range = [100 4000];
 [b,a] = butter(2, filter_range/(SampleRate/2), 'bandpass');
-yfilt = filter(b,a,curr_speech);
+yfilt = filter(b,a,speech_audio);
 
 % 2. Compute Hilbert transform and take the absolute value to get the
 % amplitude of the envelope
@@ -310,19 +348,6 @@ amp = abs(hilbert(yfilt));
 
 % embed envelope inside whole stim length 
 envelope = [zeros(1,length(prespeech_stim)),amp',zeros(1,length(postspeech_stim))];
-clean_speech = [zeros(1,length(prespeech_stim)),curr_speech',zeros(1,length(postspeech_stim))];
-
-% LvsR option: one side is stimulus, the other is only clean speech (will go into stimulator)
-if strcmp(cfg.LvsR,'L')
-    stimulus = [stimulus(:,1),clean_speech'];
-    presented_stim=stimulus(:,1);
-elseif strcmp(cfg.LvsR,'R')
-    stimulus = [clean_speech',stimulus(:,2)];
-    presented_stim=stimulus(:,2);
-elseif strcmp(cfg.LvsR,'both')
-    stimulus = stimulus; %shouldn't change
-    presented_stim=stimulus(:,1); % either is same
-end
 
 % compute envelope's power spectrum
 
@@ -341,19 +366,8 @@ end
 
 if isfield(cfg,'plot_save_filename')
 h1=figure('Position', [50 50  1000 1200]);
-% Plot amplitude spectrum in first row
+% Plot findpeaks in first row
 subplot(4,1,1)
-hold on
-plot(freqf,pow/max(pow((freqf>0.7))),'b','linewidth',3) 
-set(gca, 'XTick',[1, 3, 5, 8],'fontname','arial'); 
-set(gca,'YTick',[0,0.1,0.2,.5,1],'fontname','arial'); 
-xlabel('Frequency (Hz)','fontname','arial')
-ylabel('Normalized power','fontname','arial')
-xlim([1 8])
-ylim([0,1])
-
-% plot findpeaks in 2nd row
-subplot(4,1,2)
 [pks,locs] = findpeaks(pow(freqf>0.7&freqf<20)/max(pow((freqf>0.7&freqf<20))),freqf(freqf>0.7&freqf<20));
 findpeaks(pow/max(pow((freqf>0.7))),freqf)
 text(locs+.02,pks,num2str(locs',3));
@@ -362,8 +376,8 @@ ylim([0,1])
 title(['Peaks in current sentence; speech is filtered in ' num2str(filter_range) 'Hz'])
 set(gca, 'fontname','arial'); 
 
-% plot envelope in 3rd row
-subplot(4,1,3)
+% plot envelope in 2nd row
+subplot(4,1,2)
 time_axis = 1/SampleRate:1/SampleRate:length(envelope)/1/SampleRate;
 plot(time_axis,envelope)
 xlim([0 length(envelope)/1/SampleRate])
@@ -371,14 +385,23 @@ xlabel('Time (s)')
 ylabel('Amplitude')
 title('Envelope of the speech in whole stimulus')
 
-% plot what patient hears in 4th row
-subplot(4,1,4)
-time_axis = 1/SampleRate:1/SampleRate:length(presented_stim)/1/SampleRate;
+% plot what patient hears in 3rd row
+subplot(4,1,3)
+time_axis = 1/SampleRate:1/SampleRate:length(envelope)/1/SampleRate;
 plot(time_axis,presented_stim)
-xlim([0 length(presented_stim)/1/SampleRate])
+xlim([0 length(envelope)/1/SampleRate])
 xlabel('Time (s)')
 ylabel('Amplitude')
 title('Presented stimulus: what goes in patients ear.')
+
+% plot what goes into stimulator in 4th row
+subplot(4,1,4)
+plot(time_axis,stim_channel)
+xlim([0 length(envelope)/1/SampleRate])
+xlabel('Time (s)')
+ylabel('Amplitude')
+title('Stimulator channel: what goes into stimulator.')
+
 
 [~,name,~] = fileparts(cfg.speech.file);
 name = replace(name,'_',' ');
