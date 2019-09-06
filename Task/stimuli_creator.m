@@ -28,7 +28,8 @@ function [stimulus,envelope]=stimuli_creator(cfg)
 %                 stimulus.
 %
 % OUTPUT:
-% stim: generated stimuli.
+% stimulus: one channel is for presenting to patient and the other channel
+% goes into stimulator, composed of only clean speech signal.
 % envelope: envelope of signal (speech) in the stimuli. If there is noise
 % before and/or after signal, those parts are going to stay zero.
 % 
@@ -100,11 +101,11 @@ if size(curr_noise,2)==2 % it may have two channels, get only one for now
 end
 
 % chop/extend the noise to get desired length
-if length(curr_noise) > curr_part.length*SampleRate
+if length(curr_noise) > length(curr_speech)
     curr_noise = curr_noise(1:curr_part.length*SampleRate,:);
-elseif length(curr_noise) < curr_part.length*SampleRate
+elseif length(curr_noise) <  length(curr_speech)
     long_curr_noise = [curr_noise;curr_noise;curr_noise;curr_noise;curr_noise;curr_noise;curr_noise];
-    curr_noise = long_curr_noise(1:curr_part.length*SampleRate,:);
+    curr_noise = long_curr_noise(1:length(curr_speech),:);
     clear long_curr_noise
 end
 
@@ -284,19 +285,21 @@ stimulus = [prespeech_stim;speech_stim;postspeech_stim];
 
 % Save (optional)
 if isfield(cfg,'stim_save_filename')
+    stimulus(stimulus<-1)=-1; % in order to be able to save without clipping
+    stimulus(stimulus>1)=1; 
     fprintf('\tStimulus is saved to: %s\n',cfg.stim_save_filename)
     information = ['SNR is ' num2str(cfg.SNR) 'dB; '...
         'Prespeech has ' num2str(length(pre_fields)) 'part(s); '...
         'Postspeech has ' num2str(length(post_fields)) 'part(s); '...
-        'Audio is given to ' cfg.LvsR ' ear(s).'];
+        'Audio is given to ' cfg.LvsR ' ear(s). Other is for stimulator'];
     audiowrite(cfg.stim_save_filename,stimulus,SampleRate,'Comment',information);
 end    
 
 %% Create envelope of speech (Based on 2018_Kosem scripts)
 
 %compute envelope of speech only
-% 1. band pass filtering between 1 Hz and 10 Hz
-filter_range = [1 10];
+% 1. band pass filtering between 100 Hz and 4000 Hz
+filter_range = [100 4000];
 [b,a] = butter(2, filter_range/(SampleRate/2), 'bandpass');
 yfilt = filter(b,a,curr_speech);
 
@@ -306,6 +309,19 @@ amp = abs(hilbert(yfilt));
 
 % embed envelope inside whole stim length 
 envelope = [zeros(1,length(prespeech_stim)),amp',zeros(1,length(postspeech_stim))];
+clean_speech = [zeros(1,length(prespeech_stim)),curr_speech',zeros(1,length(postspeech_stim))];
+
+% LvsR option: one side is stimulus, the other is only clean speech (will go into stimulator)
+if strcmp(cfg.LvsR,'L')
+    stimulus = [stimulus(:,1),clean_speech'];
+    presented_stim=stimulus(:,1);
+elseif strcmp(cfg.LvsR,'R')
+    stimulus = [clean_speech',stimulus(:,2)];
+    presented_stim=stimulus(:,2);
+elseif strcmp(cfg.LvsR,'both')
+    stimulus = stimulus; %shouldn't change
+    presented_stim=stimulus(:,1); % either is same
+end
 
 % compute envelope's power spectrum
 
@@ -323,32 +339,45 @@ end
 %% Make plot (optional)
 
 if isfield(cfg,'plot_save_filename')
-h1=figure('Position', [50 50  1000 1000]);
+h1=figure('Position', [50 50  1000 1200]);
 % Plot amplitude spectrum in first row
-subplot(3,1,1)
+subplot(4,1,1)
 hold on
 plot(freqf,pow/max(pow((freqf>0.7))),'b','linewidth',3) 
 set(gca, 'XTick',[1, 3, 5, 8],'fontname','arial'); 
-set(gca,'YTick',[0,0.1,0.2],'fontname','arial'); 
+set(gca,'YTick',[0,0.1,0.2,.5,1],'fontname','arial'); 
 xlabel('Frequency (Hz)','fontname','arial')
 ylabel('Normalized power','fontname','arial')
 xlim([1 8])
-ylim([0,.2])
+ylim([0,1])
 
 % plot findpeaks in 2nd row
-subplot(3,1,2)
+subplot(4,1,2)
 [pks,locs] = findpeaks(pow(freqf>0.7&freqf<20)/max(pow((freqf>0.7&freqf<20))),freqf(freqf>0.7&freqf<20));
 findpeaks(pow/max(pow((freqf>0.7))),freqf)
 text(locs+.02,pks,num2str(locs',3));
 xlim([1 8])
-ylim([0,.2])
+ylim([0,1])
 title(['Peaks in current sentence; speech is filtered in ' num2str(filter_range) 'Hz'])
 set(gca, 'fontname','arial'); 
 
 % plot envelope in 3rd row
-subplot(3,1,3)
-plot(envelope)
+subplot(4,1,3)
+time_axis = 1/SampleRate:1/SampleRate:length(envelope)/1/SampleRate;
+plot(time_axis,envelope)
+xlim([0 length(envelope)/1/SampleRate])
+xlabel('Time (s)')
+ylabel('Amplitude')
 title('Envelope of the speech in whole stimulus')
+
+% plot what patient hears in 4th row
+subplot(4,1,4)
+time_axis = 1/SampleRate:1/SampleRate:length(envelope)/1/SampleRate;
+plot(time_axis,presented_stim)
+xlim([0 length(envelope)/1/SampleRate])
+xlabel('Time (s)')
+ylabel('Amplitude')
+title('Presented stimulus: what goes in patients ear.')
 
 [~,name,~] = fileparts(cfg.speech.file);
 name = replace(name,'_',' ');
