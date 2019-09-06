@@ -3,7 +3,7 @@
 Note: ssml must be well-formed according to:
     https://www.w3.org/TR/speech-synthesis/
 """
-from google.cloud import storage
+#from google.cloud import storage
 import os
 from pathlib import Path
 
@@ -11,9 +11,9 @@ from pathlib import Path
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\My First Project-dc1f01a6b01a.json"
 # Explicitly use service account credentials by specifying the private key
 # file.
-storage_client = storage.Client.from_service_account_json('My First Project-dc1f01a6b01a.json')
-buckets = list(storage_client.list_buckets())
-print(buckets)
+#storage_client = storage.Client.from_service_account_json('My First Project-dc1f01a6b01a.json')
+#buckets = list(storage_client.list_buckets())
+#print(buckets)
 
 from google.cloud import texttospeech
 
@@ -27,9 +27,9 @@ client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"C:\Use
 GENDER = 'M'
 # Either folder name with text files
 CORPUS = 'CST-Repeated'
-dirname = r'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\Selected_Texts'
+dirname = r'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation\Attention_Sentence'
 dirname = Path(dirname)
-outdirname = r'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\GoogleTTS_M_0.9'
+outdirname = r'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation\GoogleTTS_M_Rate1.5'
 outdirname = Path(outdirname)
 
 # Alter parameter dependent variables
@@ -44,7 +44,7 @@ elif GENDER == 'F':
 else:
     raise ValueError('Invalid gender entered')
 # Slow down speech to 90%
-rate = 0.9 
+rate = 1.5
 
 # Build the voice request, select the language code ("en-US") and the ssml
 # voice gender ("neutral")

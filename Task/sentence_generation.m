@@ -30,11 +30,23 @@ for a=1:10
 end
 fprintf('\n')
 
-%% Randomly select 400
-selected_save_dir = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\Selected_Texts';
+%% Randomly select 404
+selected_save_dir = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\02nd_Generation\Selected_Texts_2ndGen';
 
-randomnos = randi([1 100000],1,402);
+randomnos = randi([1 100000],1,404);
 
-for r=1:402
+for r=1:810
     copyfile(collect_fname{randomnos(r),1}, [selected_save_dir filesep collect_fname{randomnos(r),2}]);
+end
+
+%% Randomly select 810 sentences directly from All_Texts
+all_text_dir = dir('C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\All_Texts\*.txt');
+selected_save_dir = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\04th_Generation\Selected_Texts_4thGen';
+
+randomnos = randi([1 100000],1,2000);
+
+for i=1:2000
+    to_copy = fullfile(all_text_dir(randomnos(i)).folder,all_text_dir(randomnos(i)).name);
+    to_save = fullfile(selected_save_dir,all_text_dir(randomnos(i)).name);
+    copyfile(to_copy,to_save)
 end
