@@ -30,26 +30,24 @@ end
 
 
 %% Create with v2 convention
+main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/';
 
 cfg=[];
 cfg.SNR = -4;
 cfg.prespeech.part1.length= 0.5;
 cfg.prespeech.part1.noise = 'pink';
+
 cfg.prespeech.part2.noise = 'pink';
-
-main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/';
-
 cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
 
 cfg.speech.noise = 'pink';
+cfg.speech.file = find_sentence(curr_sentence,main_stim_loc,speech_rate);
 
 cfg.postspeech.part1.length=2;
 cfg.postspeech.part1.noise = 'pink';
 
 cfg.LvsR = 'L';
 cfg.delay = 1;
-
-cfg.speech.file = find_sentence(curr_sentence,main_stim_loc,speech_rate);
 
 %     cfg.stim_save_filename = [stim_save_dir filesep curr_sentence 'LpatientRtdt.wav'];
 %     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];

@@ -26,6 +26,8 @@ function [stimulus,envelope]=stim_creatorv2(cfg)
 %                 frequency range (1-8Hz), 2.peaks in this normalized power
 %                 plot, 3.envelope of speech signal embedded in whole
 %                 stimulus.
+% cfg.nostim      : if it is a control condition, there is no output from
+%                 second channel.
 % cfg.delay       : when the speech envelope should start. If number (in
 %                 seconds), stimulation will be starting with this delay
 %                 relative to matrix sentence onset. If 'attention',
@@ -43,20 +45,21 @@ function [stimulus,envelope]=stim_creatorv2(cfg)
 % Example:
 % cfg=[];
 % cfg.SNR = -4;
-% cfg.prespeech.part1.length=0.5;
-% cfg.prespeech.part1.noise = 'silence';
-% cfg.prespeech.part2.length = 2;  % make sure to put length field if you really want to chop the signal. If not, whole length of signal will be used.
+% cfg.prespeech.part1.length= 0.5;
+% cfg.prespeech.part1.noise = 'pink';
 % cfg.prespeech.part2.noise = 'pink';
-% cfg.prespeech.part2.signal = 'babble.wav';
-% cfg.speech.file = 'example_speech.wav';
+% main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/';
+% cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
 % cfg.speech.noise = 'pink';
+% cfg.speech.file = find_sentence(curr_sentence,main_stim_loc,speech_rate);
 % cfg.postspeech.part1.length=2;
 % cfg.postspeech.part1.noise = 'pink';
 % cfg.LvsR = 'L';
+% cfg.delay = 0.05;
 % cfg.stim_save_filename = 'HBML/Desktop/stimuli001.wav';
+% cfg.envelope_save_filename = 'HBML/Desktop/stimuli001.jpeg';
 % cfg.plot_save_filename = 'HBML/Desktop/stimuli001.jpeg';
-% cfg.envelope_save_filename = 'HBML/Desktop/stimuli001_envelope.mat';
-% [stim,envelope]=stimuli_creator(cfg)
+% [stimulus,envelope]=stim_creatorv2(cfg);
 
 if ~isfield(cfg,'SNR')
     cfg.SNR = -3;
@@ -291,22 +294,13 @@ end
 %% Combine all parts of stimuli
 stimulus = [prespeech_stim;speech_stim;postspeech_stim];
 
-% Save (optional)
-if isfield(cfg,'stim_save_filename')
-    stimulus(stimulus<-1)=-1; % in order to be able to save without clipping
-    stimulus(stimulus>1)=1; 
-    fprintf('\tStimulus is saved to: %s\n',cfg.stim_save_filename)
-    information = ['SNR is ' num2str(cfg.SNR) 'dB; '...
-        'Prespeech has ' num2str(length(pre_fields)) 'part(s); '...
-        'Postspeech has ' num2str(length(post_fields)) 'part(s); '...
-        'Audio is given to ' cfg.LvsR ' ear(s). Other is for stimulator'];
-    audiowrite(cfg.stim_save_filename,stimulus,SampleRate,'Comment',information);
-end
-
+% If nostim, zeros anything in second channel. 
 % Add delay and create second channel that goes to stimulator
-if isfield(cfg,'delay')
+if isfield(cfg,'nostim')
+    stim_channel = [zeros(1,length(prespeech_stim)),zeros(1,length(speech_audio)),zeros(1,length(postspeech_stim))];
+elseif isfield(cfg,'delay')
     if isnumeric(cfg.delay)
-        stim_channel = [zeros(1,(length(prespeech_stim)+(cfg.delay*SampleRate))),speech_audio',zeros(1,(length(postspeech_stim)+(cfg.delay*SampleRate)))];
+        stim_channel = [zeros(1,(length(prespeech_stim)+(cfg.delay*SampleRate))),speech_audio',zeros(1,(length(postspeech_stim)-(cfg.delay*SampleRate)))];
     elseif strcmpi(cfg.delay, 'attention')
         attention_onset = cfg.prespeech.(pre_fields{1}).length;
         
@@ -325,12 +319,25 @@ else
 end
 
 % LvsR option: one side is stimulus, the other is only clean speech (will go into stimulator)
+% presented_stimulus is just for plotting. Main 
 if strcmp(cfg.LvsR,'L')
     stimulus = [stimulus(:,1),stim_channel'];
     presented_stim=stimulus(:,1);
 elseif strcmp(cfg.LvsR,'R')
     stimulus = [stim_channel',stimulus(:,2)];
     presented_stim=stimulus(:,2);
+end
+
+% Save (optional)
+if isfield(cfg,'stim_save_filename')
+    stimulus(stimulus<-1)=-1; % in order to be able to save without clipping
+    stimulus(stimulus>1)=1; 
+    fprintf('\tStimulus is saved to: %s\n',cfg.stim_save_filename)
+    information = ['SNR is ' num2str(cfg.SNR) 'dB; '...
+        'Prespeech has ' num2str(length(pre_fields)) 'part(s); '...
+        'Postspeech has ' num2str(length(post_fields)) 'part(s); '...
+        'Audio is given to ' cfg.LvsR ' ear(s). Other is for stimulator'];
+    audiowrite(cfg.stim_save_filename,stimulus,SampleRate,'Comment',information);
 end
 
 
@@ -408,7 +415,7 @@ name = replace(name,'_',' ');
 h1.NextPlot = 'add';
 a = axes;
 %// Set the title and get the handle to it
-ht = title(name);
+ht = title({name;''});
 %// Turn the visibility of the axes off
 a.Visible = 'off';
 %// Turn the visibility of the title on
