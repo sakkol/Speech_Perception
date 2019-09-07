@@ -3,6 +3,7 @@
 files = dir('*.wav');
 amp=[];
 amp{length(files),1}='';
+prominent_peaks=[];
 prominent_peaks{length(files),1}='';
 pow_avg=[];
 
@@ -100,7 +101,7 @@ print('-r300','-djpeg',['Envelopes' filesep 'Mean_envelope_power'])
 
 p=0;
 for i=1:length(prominent_peaks)
-    if prominent_peaks{i,2}>4.5 && prominent_peaks{i,2}<5.3
+    if prominent_peaks{i,2}>4.1 && prominent_peaks{i,2}<4.7
         p=p+1;
         in_range_sentences(p,:) = prominent_peaks(i,:);
     end
@@ -121,7 +122,7 @@ save('in_range_sentences(0.3).mat','in_range_sentences')
 pow_avg_in_range=[];
 p=0;
 for i = 1:length(files)
-    if prominent_peaks{i,2}>4.3 && prominent_peaks{i,2}<5.3
+    if prominent_peaks{i,2}>4.1 && prominent_peaks{i,2}<4.7
         p=p+1;
         pow_avg_in_range(p,:) = pow_avg(i,:);
     end
@@ -149,3 +150,23 @@ title(['Peaks in average; speech is filtered in ' num2str(filter_range) 'Hz'],'f
 
 if ~exist('Envelopes','dir'),mkdir Envelopes;end
 print('-r300','-djpeg',['Envelopes' filesep 'Mean_envelope_power_in_range'])
+
+
+%% After grouping
+
+for i=1:length(inrange09.in_range_sentences)
+    inrange09.in_range_sentences{i,3}=ismember(inrange09.in_range_sentences{i,1},inrange13.in_range_sentences(:,1));
+end
+
+n=1;
+for i=1:length(inrange09.in_range_sentences)
+    if inrange09.in_range_sentences{i,3} == 1
+        copyfile(inrange09.in_range_sentences{i,1},'/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/Sentences_Rate1.3')
+        fprintf('copied%d\n',i)
+%         temp = erase(inrange09.in_range_sentences{i,1},'-M.wav');
+%         sentence_to_use_list{n,1} = replace(temp,'_',' ');
+%         n=n+1;
+    end
+end
+
+sentence_to_use_list = inrange09.in_range_sentences{inrange09.in_range_sentences{:,3},1};

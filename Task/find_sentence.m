@@ -6,7 +6,7 @@ repl_sentence = replace(sentence,' ','_');
 repl_sentence = erase(repl_sentence,'.');
 sentence_file = [repl_sentence '-M.wav'];
 
-filename = fullfile(main_stim_loc,['GoogleTTS_Rate' num2str(speech_rate)],sentence_file);
+filename = fullfile(main_stim_loc,['Sentences_Rate' num2str(speech_rate)],sentence_file);
 
 end
 

@@ -43,20 +43,21 @@ function [stimulus,envelope]=stim_creatorv2(cfg)
 % Example:
 % cfg=[];
 % cfg.SNR = -4;
-% cfg.prespeech.part1.length=0.5;
-% cfg.prespeech.part1.noise = 'silence';
-% cfg.prespeech.part2.length = 2;  % make sure to put length field if you really want to chop the signal. If not, whole length of signal will be used.
+% cfg.prespeech.part1.length= 0.5;
+% cfg.prespeech.part1.noise = 'pink';
 % cfg.prespeech.part2.noise = 'pink';
-% cfg.prespeech.part2.signal = 'babble.wav';
-% cfg.speech.file = 'example_speech.wav';
+% main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/';
+% cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
 % cfg.speech.noise = 'pink';
+% cfg.speech.file = find_sentence(curr_sentence,main_stim_loc,speech_rate);
 % cfg.postspeech.part1.length=2;
 % cfg.postspeech.part1.noise = 'pink';
 % cfg.LvsR = 'L';
+% cfg.delay = 0.05;
 % cfg.stim_save_filename = 'HBML/Desktop/stimuli001.wav';
+% cfg.envelope_save_filename = 'HBML/Desktop/stimuli001.jpeg';
 % cfg.plot_save_filename = 'HBML/Desktop/stimuli001.jpeg';
-% cfg.envelope_save_filename = 'HBML/Desktop/stimuli001_envelope.mat';
-% [stim,envelope]=stimuli_creator(cfg)
+% [stimulus,envelope]=stim_creatorv2(cfg);
 
 if ~isfield(cfg,'SNR')
     cfg.SNR = -3;
