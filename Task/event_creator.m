@@ -1,5 +1,5 @@
 function events_cell = event_creator(main_stim_loc)
-% Input is only directory of where Sentences_Rate are. (eg. /home/sakkol/Documents/Speech_Perception_stim/4th_Generation)
+% Input is only the directory of where Sentences_Rate are. (eg. /home/sakkol/Documents/Speech_Perception_stim/4th_Generation)
 % events_cell, everything ready output:
 % first column is Code of sentence; second is Sentence itself; third and
 % fourth are Condition code and name; Fifth is stimulus which will be given
