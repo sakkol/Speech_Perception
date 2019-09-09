@@ -9,7 +9,7 @@ cfg.SNR = -4;
 cfg.prespeech.part1.length= 0.5;
 cfg.prespeech.part1.noise = 'pink';
 cfg.prespeech.part2.noise = 'pink';
-cfg.prespeech.part2.signal = '/home/sakkol/Documents/Speech_Perception_stim/02nd_Generation/Pre-stim-Attention-comma-M.wav';
+cfg.prespeech.part2.signal = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation\Pre-stim-Attention-comma-M-Rate0.9.wav';
 
 cfg.speech.noise = 'pink';
 cfg.postspeech.part1.length=2;
@@ -30,7 +30,8 @@ end
 
 
 %% Create with v2 convention
-main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/';
+main_stim_loc = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation';
+speech_rate = 0.9;
 
 cfg=[];
 cfg.SNR = -4;
@@ -38,7 +39,7 @@ cfg.prespeech.part1.length= 0.5;
 cfg.prespeech.part1.noise = 'pink';
 
 cfg.prespeech.part2.noise = 'pink';
-cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
+cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma-Rate0.9',main_stim_loc,0.9);
 
 cfg.speech.noise = 'pink';
 cfg.speech.file = find_sentence(curr_sentence,main_stim_loc,speech_rate);
@@ -51,7 +52,7 @@ cfg.delay = 1;
 
 %     cfg.stim_save_filename = [stim_save_dir filesep curr_sentence 'LpatientRtdt.wav'];
 %     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];
-%     cfg.plot_save_filename = [stim_save_dir filesep curr_sentence '.jpg'];
+    cfg.plot_save_filename = ['C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation\Sentences_Rate0.9' filesep curr_sentence '.jpg'];
 
 [stimulus,envelope]=stim_creatorv2(cfg);
     
