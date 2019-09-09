@@ -171,7 +171,7 @@ for pre_i = 1:length(fieldnames(cfg.prespeech))
     
     % generate noise
     if strcmp(curr_part.noise,'silence')
-        curr_noise = zeros(curr_part.length*SampleRate,1);
+        curr_noise = zeros(length(curr_signal),1);
     elseif any(strcmp(curr_part.noise,{'pink','white','brown','blue','purple'}))
         cn = dsp.ColoredNoise('Color',curr_part.noise,'SamplesPerFrame',SampleRate,'NumChannels',1);
         curr_noise = cn();
@@ -185,11 +185,11 @@ for pre_i = 1:length(fieldnames(cfg.prespeech))
     end
     
     % chop/extend the noise to get desired length
-    if length(curr_noise) > curr_part.length*SampleRate
-        curr_noise = curr_noise(1:curr_part.length*SampleRate,:);
-    elseif length(curr_noise) < curr_part.length*SampleRate
+    if length(curr_noise) > length(curr_signal)
+        curr_noise = curr_noise(1:length(curr_signal),:);
+    elseif length(curr_noise) < length(curr_signal)
         long_curr_noise = [curr_noise;curr_noise;curr_noise;curr_noise;curr_noise;curr_noise;curr_noise];
-        curr_noise = long_curr_noise(1:curr_part.length*SampleRate,:);
+        curr_noise = long_curr_noise(1:length(curr_signal),:);
         clear long_curr_noise
     end
     

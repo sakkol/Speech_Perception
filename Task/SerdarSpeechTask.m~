@@ -144,7 +144,7 @@ waitforDeviceStart = 1;                                                      % I
 if slowVSfast == 1
     adaption_sounds_dir = fullfile(main_stim_loc, 'adaptation_sounds_slow');
 elseif slowVSfast == 2
-    adaption_sounds_dir = fullfile(main_stim_loc, 'adaptation_sounds_fast');
+    adaption_sounds_dir = 'adaptation_sounds_fast';
 end
 list_adaptation_sound_files = dir([adaption_sounds_dir filesep '*.wav']);
 adaptation_sounds = cell(length(list_adaptation_sound_files),2);
@@ -183,9 +183,9 @@ end
 % Load all the stimuli for the 'Adaptation Phase' from directory
 % called 'adaptation_sounds'
 if slowVSfast == 1
-    threshold_sounds_dir = fullfile(main_stim_loc, 'threshold_sounds_slow');
+    threshold_sounds_dir = 'threshold_sounds_slow';
 elseif slowVSfast == 2
-    threshold_sounds_dir = fullfile(main_stim_loc, 'threshold_sounds_fast');
+    threshold_sounds_dir = 'threshold_sounds_fast';
 end
 list_threshold_sound_files = dir([threshold_sounds_dir filesep '*.wav']);
 threshold_sounds = cell(length(list_threshold_sound_files),2);
@@ -251,7 +251,7 @@ current_SNR = getThreshold(result,0.7)
 % first column is Code of sentence; second is Sentence itself; third and
 % fourth are Condition code and name; fifth is stimulus which will be given
 % and sixth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
-events_cell = event_creator(main_stim_loc,slowVSfast,current_SNR);
+events_cell = event_creator(main_stim_loc);
 
 %% Loop for events_cell
 % 1. Intro:
