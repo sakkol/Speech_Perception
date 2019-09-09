@@ -169,12 +169,67 @@ end
 % Probably same as adaptation, with set group of sentences with 3 different
 % SNR levels. If that is, we can use a similar loop as in previous section
 
+% Looping for threshold audio
+% Load all the stimuli for the 'Adaptation Phase' from directory
+% called 'adaptation_sounds'
+threshold_sounds_dir = 'threshold_sounds';
+list_threshold_sound_files = dir([threshold_sounds_dir filesep '*.wav']);
+threshold_sounds = cell(length(list_threshold_sound_files),2);
+for ss = 1:length(threshold_sounds)
+    threshold_sounds{ss,1} = list_threshold_sound_files(ss).name;
+    [y, ~] = audioread(fullfile(threshold_sounds_dir, list_threshold_sound_files(ss).name));
+    threshold_sounds{ss,2} = y;
+end
+
+threshold_intro_msg = ['Now, you will listen similar sentences embedded in noise\n\n'...
+    'Please try to catch the sentence coming after\n'...
+    '''Please pay attention and remember this sentence''\n\n'...
+    'When you are ready, press space bar to start each sentence'];
+
+DrawFormattedText(window, threshold_intro_msg,'center','center',par.text_color);
+Screen('Flip',window);
+KbWait(-1);
+
+Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+Screen('Flip',window);
+
+% Play the sounds
+for trialN = 1:length(adaptation_sounds)
+    PsychPortAudio('FillBuffer',pahandle, adaptation_sounds{trialN,2});
+    startTime = PsychPortAudio('Start', pahandle, repetitions, startCue, waitforDeviceStart);
+    send_ttl(255, port_handle);
+    status = PsychPortAudio('GetStatus', pahandle);
+    while GetSecs < status.EstimatedStopTime; continue; end; send_ttl(0, port_handle); WaitSecs(1); % Wait until audio ends and then wait another 1sec
+    [time_trial_end, key, ~] = KbWait(-1);
+    if strcmp(KbName(key), 'ESCAPE'); break; end
+end
+
+
+
+% Threshold estimation
+% Input accuracies for each SNR
+threshold_accr = inputdlg({'SNR = -8:','SNR = -5:','SNR = -1:'},'Please input how many words were correct for each SNR!');
+
+data_threshold =    [...
+    -8,   str2double(threshold_accr{1}),   50.0000;...
+    -5,   str2double(threshold_accr{2}),   50.0000;...
+    -1,   str2double(threshold_accr{3}),   50.0000];
+
+options             = [];   % initialize as an empty struct
+options.sigmoidName = 'norm';   % normal Gaussian curve as the sigmoid
+% options.expType     = '4AFC'; % ours is not forced choice, so  no input should be given
+options.threshPC       = .7;
+
+result = psignifit(data_threshold,options);
+plotPsych(result);
+current_SNR = getThreshold(result,0.7)
 
 %% Real deal
 % Creating events: description of output:
 % first column is Code of sentence; second is Sentence itself; third and
 % fourth are Condition code and name; fifth is stimulus which will be given
 % and sixth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
+main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation';
 events_cell = event_creator(main_stim_loc);
 
 %% Loop for events_cell
@@ -196,7 +251,7 @@ real_deal_msg = ['Now, you will listen similar sentences\n\n'...
    'Please try to attend and tell us what was the sentence\n\n'...
    'To start a new sentence, press space bar!'];
 
-DrawFormattedText(window, adaptation_intro_msg,'center','center',par.text_color);
+DrawFormattedText(window, real_deal_msg,'center','center',par.text_color);
 Screen('Flip',window);
 KbWait(-1);
 if strcmp(KbName(key), 'ESCAPE'); return; end
@@ -230,7 +285,7 @@ end
 %% End of task
 
 % Save everything
-save([save_dir filesep runID '_events_cell.mat'],'events_cell')
+save([save_dir filesep runID '_events_cell.mat'],'events_cell','result')
 save([save_filename '.mat'], 'par') 
 
 % Draw thank you msg
