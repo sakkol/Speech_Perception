@@ -8,5 +8,10 @@ sentence_file = [repl_sentence '-M.wav'];
 
 filename = fullfile(main_stim_loc,['Sentences_Rate' num2str(speech_rate)],sentence_file);
 
+if ~isfile(filename)
+    error_msg = sprintf('The file: "%s" could not be found!',filename);
+    errordlg(error_msh, 'File not found!');
+end
+
 end
 

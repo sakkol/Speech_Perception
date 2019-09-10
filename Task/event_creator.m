@@ -1,15 +1,23 @@
-function events_cell = event_creator(main_stim_loc)
-% Input is only directory of where Sentences_Rate are. (eg. /home/sakkol/Documents/Speech_Perception_stim/4th_Generation)
+function events_cell = event_creator(main_stim_loc,slowVSfast,SNR_input)
+% Input is only the directory of where Sentences_Rate are. (eg. /home/sakkol/Documents/Speech_Perception_stim/4th_Generation)
 % events_cell, everything ready output:
 % first column is Code of sentence; second is Sentence itself; third and
 % fourth are Condition code and name; Fifth is stimulus which will be given
 % and Fifth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
-
+% varargin = varargin;
 %% INPUTS
 % select speech rate
-speech_rate_input = questdlg('Slow is default!', ...
-	'Please select speech rate:', ...
-	'Slow (x0.9 = 2.95Hz)','Fast (x1.3 = 4.4Hz)','Slow (x0.9 = 2.95Hz)');
+if nargin > 1 && exist('slowVSfast','var')
+    if slowVSfast == 1
+        speech_rate_input = 'Slow (x0.9 = 2.95Hz)';
+    elseif slowVSfast == 2
+        speech_rate_input = 'Fast (x1.3 = 4.4Hz)';
+    end
+else
+    speech_rate_input = questdlg('Slow is default!', ...
+        'Please select speech rate:', ...
+        'Slow (x0.9 = 2.95Hz)','Fast (x1.3 = 4.4Hz)','Slow (x0.9 = 2.95Hz)');
+end
 
 % select ear to present speech
 LvsR_input = questdlg('You need to select one!', ...
@@ -25,8 +33,12 @@ end
 clear LvsR_input 
 
 % SNR input
-SNR = inputdlg('Please write SNR in dB!');
-SNR = str2double(SNR{1});
+if nargin > 2 && exist('SNR_input','var')
+    SNR = SNR_input;
+else
+    SNR = inputdlg('Please write SNR in dB!');
+    SNR = str2double(SNR{1});
+end
 
 % Condition list to select from, for this block
 cond_list = {'Control condition','HG - short delay','HG - long delay',...
@@ -106,7 +118,7 @@ for cond_i = 1:length(random_sentences)
     
     % sentence gets ready
     cfg.speech.file = find_sentence(events_cell{cond_i,2},main_stim_loc,speech_rate);
-    
+
     % clean cfg from previous loop
     if isfield(cfg,'delay'),cfg=rmfield(cfg,'delay');end
     if isfield(cfg,'nostim'),cfg=rmfield(cfg,'nostim');end
