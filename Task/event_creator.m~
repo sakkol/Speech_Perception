@@ -1,12 +1,15 @@
-function events_cell = event_creator(main_stim_loc)
-% Input is only directory of where Sentences_Rate are. (eg. /home/sakkol/Documents/Speech_Perception_stim/4th_Generation)
+function events_cell = event_creator(main_stim_loc,slowVSfast,SNR_input)
+% Input is only the directory of where Sentences_Rate are. (eg. /home/sakkol/Documents/Speech_Perception_stim/4th_Generation)
 % events_cell, everything ready output:
-% first column is Code of sentence; second is Sentence itself; third is
-% Condition name; Forth is stimulus which will be given and Fifth is cfg
-% input to stim_creatorv2 (saving this to be on the safer side.)
+% first column is Code of sentence; second is Sentence itself; third and
+% fourth are Condition code and name; Fifth is stimulus which will be given
+% and Fifth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
 
 %% INPUTS
 % select speech rate
+if nargin > 1
+    if slowVSfast == 1
+        'Slow (x0.9 = 2.95Hz)'
 speech_rate_input = questdlg('Slow is default!', ...
 	'Please select speech rate:', ...
 	'Slow (x0.9 = 2.95Hz)','Fast (x1.3 = 4.4Hz)','Slow (x0.9 = 2.95Hz)');
@@ -25,8 +28,12 @@ end
 clear LvsR_input 
 
 % SNR input
-SNR = inputdlg('Please write SNR in dB!');
-SNR = str2double(SNR{1});
+if nargin==2
+    SNR = SNR_input;
+else
+    SNR = inputdlg('Please write SNR in dB!');
+    SNR = str2double(SNR{1});
+end
 
 % Condition list to select from, for this block
 cond_list = {'Control condition','HG - short delay','HG - long delay',...
@@ -44,12 +51,13 @@ end
 if isempty(all_delays),error('Quiting, no input!'),end
 
 % Get delays
-use_cond_list = cond_list(cond_indx~=1);
+use_cond_list = cond_list(cond_indx(cond_indx~=1));
 for i=1:length(cond_list(cond_indx~=1))
     condname_erase = erase(use_cond_list{i},{' ','-'});
     eval([condname_erase ' = ' all_delays{i} '/1000;'])
 end
 
+%% Randomization section
 n_of_each_cond = 20;    % if you want to increase the number of trials per condition
 all_sentence_list = readtable([main_stim_loc filesep 'Sentence_to_use.xlsx']);
 

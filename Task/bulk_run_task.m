@@ -30,7 +30,7 @@ end
 
 
 %% Create with v2 convention
-main_stim_loc = 'C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\Matrix_Sentences\03rd_Generation';
+main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation';
 speech_rate = 0.9;
 
 cfg=[];
@@ -92,3 +92,32 @@ cfg.LvsR = 'both';
 [stimulus,envelope]=stimuli_creator(cfg);
 end
 
+%% Create example trials
+main_stim_loc = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation';
+speech_rate = 0.9;
+stim_save_dir = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/example_stimuli';
+
+for i=1:length(threshold_sentences)
+cfg=[];
+cfg.SNR = -4;
+cfg.prespeech.part1.length= 0.5;
+cfg.prespeech.part1.noise = 'pink';
+
+cfg.prespeech.part2.noise = 'pink';
+cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
+
+cfg.speech.noise = 'pink';
+cfg.speech.file = find_sentence(threshold_sentences{i},main_stim_loc,speech_rate);
+
+cfg.postspeech.part1.length=2;
+cfg.postspeech.part1.noise = 'pink';
+
+cfg.LvsR = 'L';
+cfg.delay = .1;
+
+    cfg.stim_save_filename = [stim_save_dir filesep threshold_sentences{i} 'LpatientRtdt_delay100ms.wav'];
+%     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];
+    cfg.plot_save_filename = [stim_save_dir filesep threshold_sentences{i} '.jpg'];
+
+[stimulus,envelope]=stim_creatorv2(cfg);
+end
