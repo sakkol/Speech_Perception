@@ -51,7 +51,7 @@ cond_list = {'Control condition','HG - short delay','HG - long delay',...
 
 % get delays for each condition which has delay
 if any(cond_indx~=1)
-    all_delays = inputdlg(cond_list(cond_indx(cond_indx~=1)),'Please inout delays in miliseconds',[1 55]);
+    all_delays = inputdlg(cond_list(cond_indx(cond_indx~=1)),'Please input delays in miliseconds',[1 55]);
 end
 if isempty(all_delays),error('Quiting, no input!'),end
 
@@ -67,7 +67,8 @@ n_of_each_cond = 20;    % if you want to increase the number of trials per condi
 all_sentence_list = readtable([main_stim_loc filesep 'Sentence_to_use.xlsx']);
 
 % random selection from main sentence repository
-random_no = randi([1 367],n_of_each_cond*length(cond_indx),1);
+random_no = randperm(367);
+random_no = random_no(1:n_of_each_cond*length(cond_indx));
 random_sentences = all_sentence_list.Sentence(random_no);
 random_codes = all_sentence_list.Code(random_no);
 
