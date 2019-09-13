@@ -46,10 +46,26 @@ epic_short_std = std(real2_response_table.Acc_word_count(real2_response_table.Co
 epic_long_mean = mean(real2_response_table.Acc_word_count(real2_response_table.Condition_Code==7));
 epic_long_std = std(real2_response_table.Acc_word_count(real2_response_table.Condition_Code==7));
 
-
 control_data = real2_response_table.Acc_word_count(real2_response_table.Condition_Code==1);
 epic_short_data = real2_response_table.Acc_word_count(real2_response_table.Condition_Code==6);
 epic_long_data = real2_response_table.Acc_word_count(real2_response_table.Condition_Code==7);
+
+control_corr_sth = ~ismember(real2_response_table{real2_response_table.Condition_Code==1,4:8},'0');
+STG_short_corr_sth = ~ismember(real2_response_table{real2_response_table.Condition_Code==6,4:8},'0');
+STG_long_corr_sth = ~ismember(real2_response_table{real2_response_table.Condition_Code==7,4:8},'0');
+
+subj_corr = ismember(real2_response_table{:,4},'1');
+verb_corr = ismember(real2_response_table{:,5},'1');
+num_corr = ismember(real2_response_table{:,6},'1');
+adj_corr = ismember(real2_response_table{:,7},'1');
+noun_corr = ismember(real2_response_table{:,8},'1');
+
+bar([sum(subj_corr(real2_response_table.Condition_Code==1)),sum(subj_corr(real2_response_table.Condition_Code==6)),sum(subj_corr(real2_response_table.Condition_Code==7));...
+    sum(verb_corr(real2_response_table.Condition_Code==1)),sum(verb_corr(real2_response_table.Condition_Code==6)),sum(verb_corr(real2_response_table.Condition_Code==7));...
+    sum(num_corr(real2_response_table.Condition_Code==1)),sum(num_corr(real2_response_table.Condition_Code==6)),sum(num_corr(real2_response_table.Condition_Code==7));...
+    sum(adj_corr(real2_response_table.Condition_Code==1)),sum(adj_corr(real2_response_table.Condition_Code==6)),sum(adj_corr(real2_response_table.Condition_Code==7));...
+    sum(noun_corr(real2_response_table.Condition_Code==1)),sum(noun_corr(real2_response_table.Condition_Code==6)),sum(noun_corr(real2_response_table.Condition_Code==7))])
+
 
 figure
 xlim([0.5 3.5])
