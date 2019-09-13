@@ -10,7 +10,7 @@ filename = fullfile(main_stim_loc,['Sentences_Rate' num2str(speech_rate)],senten
 
 if ~isfile(filename)
     error_msg = sprintf('The file: "%s" could not be found!',filename);
-    errordlg(error_msh, 'File not found!');
+    errordlg(error_msg, 'File not found!');
 end
 
 end

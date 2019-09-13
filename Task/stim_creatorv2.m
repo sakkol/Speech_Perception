@@ -99,7 +99,7 @@ curr_part.length = length(speech_audio)/SampleRate;
 
 % generate noise
 if strcmp(curr_part.noise,'silence')
-    curr_noise = zeros(curr_part.length*SampleRate,1);
+    curr_noise = zeros(length(speech_audio),1);
 elseif any(strcmp(curr_part.noise,{'pink','white','brown','blue','purple'}))
     cn = dsp.ColoredNoise('Color',curr_part.noise,'SamplesPerFrame',SampleRate,'NumChannels',1);
     curr_noise = cn();
@@ -133,6 +133,7 @@ Noise_Power = sum(abs(curr_noise).*abs(curr_noise))/Npts;
 % Initial_SNR = 10*(log10(Signal_Power/Noise_Power))
 
 K = (Signal_Power/Noise_Power)*10^(-cfg.SNR/10);  % Scale factor (this is going to be same across parts)
+if strcmp(cfg.speech.noise,'silence'),K=1;end
 
 modulated_curr_noise = sqrt(K)*curr_noise; % Change Noise level
 % New_Noise_Power = sum(abs(modulated_curr_noise).*abs(modulated_curr_noise))/Npts
@@ -238,7 +239,7 @@ for post_i = 1:length(fieldnames(cfg.postspeech))
     
     % generate noise
     if strcmp(curr_part.noise,'silence')
-        curr_noise = zeros(curr_part.length*SampleRate,2);
+        curr_noise = zeros(curr_part.length*SampleRate,1);
     elseif any(strcmp(curr_part.noise,{'pink','white','brown','blue','purple'}))
         cn = dsp.ColoredNoise('Color',curr_part.noise,'SamplesPerFrame',SampleRate,'NumChannels',1);
         curr_noise = cn();

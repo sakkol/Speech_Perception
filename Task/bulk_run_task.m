@@ -113,13 +113,13 @@ cfg.postspeech.part1.length=2;
 cfg.postspeech.part1.noise = 'pink';
 
 cfg.LvsR = 'L';
-cfg.delay = .1;
+cfg.delay = 0;
 
-    cfg.stim_save_filename = [stim_save_dir filesep threshold_sentences{i} 'LpatientRtdt_delay100ms.wav'];
+%     cfg.stim_save_filename = [stim_save_dir filesep threshold_sentences{i} 'LpatientRtdt_delay100ms.wav'];
 %     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];
-    cfg.plot_save_filename = [stim_save_dir filesep threshold_sentences{i} '.jpg'];
+%     cfg.plot_save_filename = [stim_save_dir filesep threshold_sentences{i} '.jpg'];
 
-[stimulus,envelope]=stim_creatorv2(cfg);
+[stimulus_pink,envelope]=stim_creatorv2(cfg);
 end
 
 
