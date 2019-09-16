@@ -98,7 +98,7 @@ cfg.prespeech.part1.length= 0.5;
 cfg.prespeech.part1.noise = 'pink';
 
 cfg.prespeech.part2.noise = 'pink';
-cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
+cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,speech_rate);
 
 cfg.speech.noise = 'pink';
 
