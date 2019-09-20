@@ -54,9 +54,9 @@ save(fullfile(params.directoryOUT, [params.filename '_ecog.mat']),'ecog');
 
 % Analog 2 digital of the noise channel
 refract_tpts = floor(10*ecog.analog.fs);
-thr_ampl = 0.05; % amplitude threshold
+thr_ampl = 0.01; % amplitude threshold
 noise_ch = ecog.analog.trial{1}(2,:);
-digital_trig_chan=analog2digital_trig(noise_ch,0.01,refract_tpts,0);
+digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
 
 % Get all events
 t=find(digital_trig_chan==1);
