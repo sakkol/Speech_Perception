@@ -314,6 +314,7 @@ elseif isfield(cfg,'delay')
         Amp=1;              % amplitude of sinusoid
         ts=1/SampleRate;    % sampling frequency
         T= (length(prespeech_stim)/SampleRate) - preattention_length + (length(speech_audio)/SampleRate); % length of sinusoid (in secs)
+        T = ceil(T*f)/f;
         t=0:ts:T;           % time axis
         
         if strcmpi(cfg.phase, 'in')
@@ -373,7 +374,6 @@ amp = abs(hilbert(yfilt));
 envelope = [zeros(1,length(prespeech_stim)),amp',zeros(1,length(postspeech_stim))];
 
 % compute envelope's power spectrum
-
 L = length(amp);
 NFFT = 2^nextpow2(L); % Next power of 2 from length of y
 Y = fft(amp,NFFT)/L;

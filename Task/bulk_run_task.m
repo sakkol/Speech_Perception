@@ -127,6 +127,7 @@ end
 main_stim_loc = '/home/sakkol/Documents/BACKUPS/Speech_Perception_BACKUP(2019.09.11)/Speech_Perception_stim/4th_Generation';
 speech_rate = 0.9;
 curr_sentence = 'Alan_brought_fifteen_dark_sofas';
+stim_save_dir = '/home/sakkol/Desktop/Sinusoidal';
 
 cfg=[];
 cfg.SNR = -4;
@@ -145,12 +146,12 @@ cfg.postspeech.part1.noise = 'pink';
 cfg.LvsR = 'L';
 
 cfg.delay = 'attention';
-cfg.frequency = 2.9;
-cfg.phase = 'out';
+cfg.frequency = 4.9;
+cfg.phase = 'in';
 
-%     cfg.stim_save_filename = [stim_save_dir filesep curr_sentence 'LpatientRtdt.wav'];
-%     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];
-    cfg.plot_save_filename = ['/home/sakkol/Desktop' filesep curr_sentence '.jpg'];
+cfg.stim_save_filename = [stim_save_dir filesep 'sinusoidal_' num2str(cfg.frequency) 'Hz_' cfg.phase 'phase_LpatientRtdt.wav'];
+% cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];
+cfg.plot_save_filename = [stim_save_dir filesep 'sinusoidal_' num2str(cfg.frequency) 'Hz_'  cfg.phase 'phase.jpg'];
 
 [stimulus,envelope]=stim_creatorv2(cfg);
 

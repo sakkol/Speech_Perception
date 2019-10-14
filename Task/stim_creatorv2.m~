@@ -316,14 +316,14 @@ elseif isfield(cfg,'delay')
         T= (length(prespeech_stim)/SampleRate) - preattention_length + (length(speech_audio)/SampleRate); % length of sinusoid (in secs)
         t=0:ts:T;           % time axis
         
-        if strcmpi(t = linspace(0,2*pi) ;
-x = sin(pi/4*t) ;
-plot(t,x,'r')
-hold on
-x = sin(pi/4*t+pi/2) ;  % phase shift by pi/2, which is same as cos 
-plot(t,x,'b'))
-        y=sin(2*pi*f*t);    % sinewave
-%         plot(t,y)
+        if strcmpi(cfg.phase, 'in')
+            y=sin(2*pi*f*t);    % sinewave
+        elseif strcmpi(cfg.phase, 'out')
+            y=sin(2*pi*f*t+pi);    % sinewave
+        else
+            error('Unrecognized cfg.phase!')
+        end
+%         plot(t,y1,'b');hold on;plot(t,y2,'r')
         
         post_length = length(stimulus)-length([preatt_period, y]); % to make sure that stimulus and stim_channel have same length when combining
         stim_channel = [zeros(1,length(preatt_period)),y,zeros(1,post_length)];
@@ -361,9 +361,9 @@ end
 
 %compute envelope of speech only
 % 1. band pass filtering between 100 Hz and 4000 Hz
-filter_range = [100 4000];
+filter_range = [4 9];
 [b,a] = butter(2, filter_range/(SampleRate/2), 'bandpass');
-yfilt = filter(b,a,speech_audio);
+yfilt = filter(b,a,stim_channel);
 
 % 2. Compute Hilbert transform and take the absolute value to get the
 % amplitude of the envelope
@@ -373,7 +373,6 @@ amp = abs(hilbert(yfilt));
 envelope = [zeros(1,length(prespeech_stim)),amp',zeros(1,length(postspeech_stim))];
 
 % compute envelope's power spectrum
-
 L = length(amp);
 NFFT = 2^nextpow2(L); % Next power of 2 from length of y
 Y = fft(amp,NFFT)/L;
