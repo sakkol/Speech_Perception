@@ -126,7 +126,7 @@ end
 %% Creating sinusoid
 main_stim_loc = '/home/sakkol/Documents/BACKUPS/Speech_Perception_BACKUP(2019.09.11)/Speech_Perception_stim/4th_Generation';
 speech_rate = 0.9;
-curr_sentence = 'Alan_brought_fifteen_dark_sofas';
+curr_sentence = 'Alan_brought_fifteen_large_desks';
 
 cfg=[];
 cfg.SNR = -4;
@@ -134,7 +134,7 @@ cfg.prespeech.part1.length= 0.5;
 cfg.prespeech.part1.noise = 'pink';
 
 cfg.prespeech.part2.noise = 'pink';
-cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
+cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma-Rate',main_stim_loc,0.9);
 
 cfg.speech.noise = 'pink';
 cfg.speech.file = find_sentence(curr_sentence,main_stim_loc,speech_rate);
@@ -146,7 +146,7 @@ cfg.LvsR = 'L';
 
 cfg.delay = 'attention';
 cfg.frequency = 2.9;
-cfg.phase = 'out';
+cfg.phase = 'in';
 
 %     cfg.stim_save_filename = [stim_save_dir filesep curr_sentence 'LpatientRtdt.wav'];
 %     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];

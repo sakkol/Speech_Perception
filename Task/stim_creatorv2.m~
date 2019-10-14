@@ -316,14 +316,14 @@ elseif isfield(cfg,'delay')
         T= (length(prespeech_stim)/SampleRate) - preattention_length + (length(speech_audio)/SampleRate); % length of sinusoid (in secs)
         t=0:ts:T;           % time axis
         
-        if strcmpi(cfg.phase, 'in')
-            y=sin(2*pi*f*t);    % sinewave
-        elseif strcmpi(cfg.phase, 'out')
-            y=sin(2*pi*f*t+pi);    % sinewave
-        else
-            error('Unrecognized cfg.phase!')
-        end
-%         plot(t,y1,'b');hold on;plot(t,y2,'r')
+        if strcmpi(t = linspace(0,2*pi) ;
+x = sin(pi/4*t) ;
+plot(t,x,'r')
+hold on
+x = sin(pi/4*t+pi/2) ;  % phase shift by pi/2, which is same as cos 
+plot(t,x,'b'))
+        y=sin(2*pi*f*t);    % sinewave
+%         plot(t,y)
         
         post_length = length(stimulus)-length([preatt_period, y]); % to make sure that stimulus and stim_channel have same length when combining
         stim_channel = [zeros(1,length(preatt_period)),y,zeros(1,post_length)];
