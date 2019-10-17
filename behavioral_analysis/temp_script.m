@@ -37,6 +37,7 @@ cont_table = [sum(sum(control_corr)), sum(sum(STG_long_corr));...
 [h,p,stats] = fishertest(cont_table)
 
 %% Real2
+real2_response_table = readtable('/media/sakkol/HDD1/HBML/PROJECTS_DATA/Speech_Perception/NS148_2/behavioral/B33/B33_response_table.xlsx');
 control_mean = mean(real2_response_table.Acc_word_count(real2_response_table.Condition_Code==1));
 control_std = std(real2_response_table.Acc_word_count(real2_response_table.Condition_Code==1));
 
@@ -53,6 +54,10 @@ epic_long_data = real2_response_table.Acc_word_count(real2_response_table.Condit
 control_corr_sth = ~ismember(real2_response_table{real2_response_table.Condition_Code==1,4:8},'0');
 STG_short_corr_sth = ~ismember(real2_response_table{real2_response_table.Condition_Code==6,4:8},'0');
 STG_long_corr_sth = ~ismember(real2_response_table{real2_response_table.Condition_Code==7,4:8},'0');
+
+figure
+bar([sum(control_data),sum(epic_short_data),sum(epic_long_data)])
+xticklabels({'Control','Epicranial - short delay','Epicranial - long delay'})
 
 subj_corr = ismember(real2_response_table{:,4},'1');
 verb_corr = ismember(real2_response_table{:,5},'1');
