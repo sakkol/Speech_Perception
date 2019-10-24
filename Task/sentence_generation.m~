@@ -84,17 +84,14 @@ for a=1:10
 end
 fprintf('\n')
 
-%% Randomly select 10000 sentences directly from All_Texts
+%% Randomly select 4000 sentences directly from All_Texts
 all_text_dir = dir('/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/All_Texts/*.txt');
-selected_save_dir = '/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/Selected_10000';
+selected_save_dir = '/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/Selected_Texts_4thGen';
 
-randomnos = randperm(100000,10000);
+randomnos = randi([1 100000],1,2000);
 
-fprintf('Iteration = 0000');
-for i=1:10000
-    fprintf('\b\b\b\b%4d',i)
+for i=1:2000
     to_copy = fullfile(all_text_dir(randomnos(i)).folder,all_text_dir(randomnos(i)).name);
     to_save = fullfile(selected_save_dir,all_text_dir(randomnos(i)).name);
     copyfile(to_copy,to_save)
 end
-fprintf('\n')
