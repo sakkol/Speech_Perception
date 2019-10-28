@@ -85,14 +85,14 @@ end
 fprintf('\n')
 
 %% Randomly select 10000 sentences directly from All_Texts
-all_text_dir = dir('/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/All_Texts/*.txt');
-selected_save_dir = '/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/Selected_10000';
+all_text_dir = dir('/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/All_Texts/*.txt');
+selected_save_dir = '/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/Selected_20000';
 
-randomnos = randperm(100000,10000);
+randomnos = randperm(100000,20000);
 
-fprintf('Iteration = 0000');
-for i=1:10000
-    fprintf('\b\b\b\b%4d',i)
+fprintf('Iteration = 00000');
+for i=1:20000
+    fprintf('\b\b\b\b\b%5d',i)
     to_copy = fullfile(all_text_dir(randomnos(i)).folder,all_text_dir(randomnos(i)).name);
     to_save = fullfile(selected_save_dir,all_text_dir(randomnos(i)).name);
     copyfile(to_copy,to_save)

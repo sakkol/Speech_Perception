@@ -24,9 +24,9 @@ client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/
 ## DEFINE ALL PARAMETERS HERE
 # Either folder name with text files
 CORPUS = 'CST-Repeated'
-dirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/Attention_Sentence'
+dirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/Selected_20000'
 dirname = Path(dirname)
-outdirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/Google_TTS_Rate1.3'
+outdirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/Google_TTS_Rate_20000_1.3'
 outdirname = Path(outdirname)
 
 # Define output voice gender
