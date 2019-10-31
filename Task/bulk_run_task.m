@@ -101,16 +101,16 @@ for i=1:length(threshold_sentences)
 cfg=[];
 cfg.SNR = -4;
 cfg.prespeech.part1.length= 0.5;
-cfg.prespeech.part1.noise = 'pink';
+cfg.prespeech.part1.noise = 'silence';
 
-cfg.prespeech.part2.noise = 'pink';
-cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
+cfg.prespeech.part2.noise = 'silence';
+cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,speech_rate);
 
-cfg.speech.noise = 'pink';
+cfg.speech.noise = 'silence';
 cfg.speech.file = find_sentence(threshold_sentences{i},main_stim_loc,speech_rate);
 
 cfg.postspeech.part1.length=2;
-cfg.postspeech.part1.noise = 'pink';
+cfg.postspeech.part1.noise = 'silence';
 
 cfg.LvsR = 'L';
 cfg.delay = 0;
@@ -119,7 +119,7 @@ cfg.delay = 0;
 %     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];
 %     cfg.plot_save_filename = [stim_save_dir filesep threshold_sentences{i} '.jpg'];
 
-[stimulus_pink,envelope]=stim_creatorv2(cfg);
+[stimulus_silence,envelope]=stim_creatorv2(cfg);
 end
 
 
