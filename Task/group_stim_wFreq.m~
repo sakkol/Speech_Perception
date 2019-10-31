@@ -119,24 +119,14 @@ end
 
 save('in_range_sentences(0.3).mat','in_range_sentences')
 
-inrange09 = load('in_range_sentences(0.3).mat')
-inrange13 = load('in_range_sentences(0.3).mat')
-
 %% Average of in_range_sentences
 
 pow_avg_in_range=[];
 p=0;
 for i = 1:length(files)
-    if prominent_peaks{i,2}>3 && prominent_peaks{i,2}<3.6
-        p=p+1;
-        pow_avg_in_range(p,:) = pow_avg(i,:);
-    end
-end
-p=0;
-for i=1:length(prominent_peaks)
     if prominent_peaks{i,2}>4.1 && prominent_peaks{i,2}<4.7
         p=p+1;
-        in_range_sentences(p,:) = prominent_peaks(i,:);
+        pow_avg_in_range(p,:) = pow_avg(i,:);
     end
 end
 

@@ -303,15 +303,31 @@ elseif isfield(cfg,'delay')
     if isnumeric(cfg.delay)
         stim_channel = [zeros(1,(length(prespeech_stim)+(cfg.delay*SampleRate))),speech_audio',zeros(1,(length(postspeech_stim)-(cfg.delay*SampleRate)))];
     elseif strcmpi(cfg.delay, 'attention')
-        attention_onset = cfg.prespeech.(pre_fields{1}).length;
+        if ~isfield(cfg,'frequency') || ~isfield(cfg,'phase')
+            error('Need to have frequency and phase inside, in order to generate sine wave')
+        end
+        preattention_length = cfg.prespeech.(pre_fields{1}).length;
+        preatt_period = zeros(1,preattention_length*SampleRate);
         
-        if ~isfield(cfg,'frequency') || ~isfield(cfg,'phase'),error('Need to have frequency and phase inside, in order to generate sine wave'),end
         % Create sine wave
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Need to create here %%%%%%%%%%%%%%%%
+        f=cfg.frequency;    % frequency of sinusoid
+        Amp=1;              % amplitude of sinusoid
+        ts=1/SampleRate;    % sampling frequency
+        T= (length(prespeech_stim)/SampleRate) - preattention_length + (length(speech_audio)/SampleRate); % length of sinusoid (in secs)
+        T = ceil(T*f)/f;
+        t=0:ts:T;           % time axis
         
+        if strcmpi(cfg.phase, 'in')
+            y=sin(2*pi*f*t);    % sinewave
+        elseif strcmpi(cfg.phase, 'out')
+            y=sin(2*pi*f*t+pi);    % sinewave
+        else
+            error('Unrecognized cfg.phase!')
+        end
+%         plot(t,y1,'b');hold on;plot(t,y2,'r')
         
-        % stim_channel = zeros(1,length(attention_onset*SampleRate)), 
-                %           wave + zeros
+        post_length = length(stimulus)-length([preatt_period, y]); % to make sure that stimulus and stim_channel have same length when combining
+        stim_channel = [zeros(1,length(preatt_period)),y,zeros(1,post_length)];
     else
         error('Unrecognized delay input')
     end
@@ -358,7 +374,6 @@ amp = abs(hilbert(yfilt));
 envelope = [zeros(1,length(prespeech_stim)),amp',zeros(1,length(postspeech_stim))];
 
 % compute envelope's power spectrum
-
 L = length(amp);
 NFFT = 2^nextpow2(L); % Next power of 2 from length of y
 Y = fft(amp,NFFT)/L;

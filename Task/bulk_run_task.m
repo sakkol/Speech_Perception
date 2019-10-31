@@ -121,15 +121,3 @@ cfg.delay = 0;
 
 [stimulus_silence,envelope]=stim_creatorv2(cfg);
 end
-
-
-%% Prepare for grant
-
-plot([1/24000:1/24000:length(stimulus_silence)/24000],stimulus_pink(:,1),'Color',[0.9 .9 .9])
-hold on
-plot([1/24000:1/24000:length(stimulus_silence)/24000],stimulus_silence(:,1),'Color',[1 .5 0])
-plot([1/24000:1/24000:length(stimulus_silence)/24000],stimulus_silence(:,2),'r')
-title('Example Stimulus: Peter sold three cheap rings')
-xlabel('Time (sec)')
-ylabel('Volume (normalized)')
-legend('What Patient Hears','Attention Sentence','Target Sentence')

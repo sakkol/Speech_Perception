@@ -18,38 +18,58 @@ from pathlib import Path
 from google.cloud import texttospeech
 
 ## Instantiates a client
-client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/Speech_Perception_stim/graphite-ruler-251715-14c8870351bb.json"))
+client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/My First Project-4597d3a51499.json"))
 
 
 ## DEFINE ALL PARAMETERS HERE
-# Define output voice gender
-# Either 'M' or 'F'
-GENDER = 'M'
 # Either folder name with text files
 CORPUS = 'CST-Repeated'
-dirname = r'/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/Selected_Texts_4thGen'
+dirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/Selected_20000'
 dirname = Path(dirname)
-outdirname = r'/home/sakkol/Documents/Speech_Perception_stim/4th_Generation/GoogleTTS_Rate1.3'
+outdirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/Google_TTS_Rate_20000_1.3'
 outdirname = Path(outdirname)
 
+# Define output voice gender
+# Either 'M' or 'F'
+GENDER = 'F'
+GENDER = 'M'
+
+# Define language here: Spanish or English
+lang = 'Spanish'
+lang = 'English'
+
+# Slow down speech to 90% or Speed up by %130
+rate = 0.9
+rate = 1.3
+
+
+
+
+
 # Alter parameter dependent variables
-if GENDER == 'M':
-    voice_name = 'en-US-Wavenet-D'
-    # Pitch down male by 3 semitones
-    pitch = -3.0
-elif GENDER == 'F':
-    voice_name = 'en-US-Wavenet-E'
+if lang == 'Spanish':
+    voice_name = 'es-ES-Standard-A'
+    lang_code = 'es-ES'
     # Pitch up female by 3 semitones
     pitch = 3.0
+elif lang == 'English':
+    lang_code = 'en-US'
+    if GENDER == 'F':
+        voice_name = 'en-US-Wavenet-E'
+        # Pitch up female by 3 semitones
+        pitch = 3.0
+    elif GENDER == 'M':
+        voice_name = 'en-US-Wavenet-D'
+        # Pitch down male by 3 semitones
+        pitch = -3.0
 else:
     raise ValueError('Invalid gender entered')
-# Slow down speech to 90%
-rate = 1.3
+
 
 # Build the voice request, select the language code ("en-US") and the ssml
 # voice gender ("neutral")
 voice = texttospeech.types.VoiceSelectionParams(
-    language_code='en-US',
+    language_code=lang_code,
     name=voice_name) # D for male, E for female (Wavenet voices)
 
 # Select the type of audio file you want returned
@@ -71,8 +91,12 @@ for names in items:
 # Iterate through text files, performing TTS and saving audio as we go
 for file in filelist:
     # Read in text
-    with open(Path(dirname,file), 'r') as text_file:
-        text = text_file.read()
+    if lang_code == 'es-ES':
+        with open(Path(dirname,file), 'r', encoding='latin-1') as text_file:
+            text = text_file.read()
+    else:
+        with open(Path(dirname,file), 'r') as text_file:
+            text = text_file.read()
 
     print(text)
 

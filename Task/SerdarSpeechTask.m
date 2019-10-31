@@ -224,8 +224,10 @@ options.sigmoidName = 'norm';   % normal Gaussian curve as the sigmoid
 options.threshPC       = .7;
 
 result = psignifit(data_threshold,options);
-plotPsych(result);
+p1=plotPsych(result);
+print([save_filename '.jpg'],'-djpeg','-r300')
 current_SNR = getThreshold(result,0.7)
+% close p1
 
 %% Real deal
 % Creating events: description of output:

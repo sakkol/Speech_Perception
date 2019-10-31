@@ -45,9 +45,12 @@ cond_list = {'Control condition','HG - short delay','HG - long delay',...
     'STG - short delay','STG - long delay',...
     'Epicranial - short delay','Epicranial - long delay'...
     'HG - sinewave - inphase','HG - sinewave - outphase',...
-    'STG - sinewave - inphase','STG - sinewave - outphase'};
+    'STG - sinewave - inphase','STG - sinewave - outphase',...
+    'Epicranial - sinewave - inphase','Epicranial - sinewave - outphase',...
+    'Epicranial - 100Hz - nonmodulated'};
 
 [cond_indx,~] = listdlg('ListString',cond_list);
+if sum(cond_indx)==0,error('Quiting, no input!'),end
 
 % get delays for each condition which has delay
 if any(cond_indx~=1)
@@ -84,10 +87,8 @@ cfg = [];
 % speech rate
 switch speech_rate_input
     case 'Slow (x0.9 = 2.95Hz)'
-        cfg.frequency = 2.95; % if needed in sinewave conditions
         speech_rate = '0.9';
     case 'Fast (x1.3 = 4.4Hz)'
-        cfg.frequency = 4.4;
         speech_rate = '1.3';
     case ''
         error('Quiting, no input!')
@@ -124,6 +125,17 @@ for cond_i = 1:length(random_sentences)
     if isfield(cfg,'delay'),cfg=rmfield(cfg,'delay');end
     if isfield(cfg,'nostim'),cfg=rmfield(cfg,'nostim');end
     if isfield(cfg,'phase'),cfg=rmfield(cfg,'phase');end
+    
+    % speech rate: need to do this in each loop so that if there is 100Hz,
+    % it will be renewed in the beginning of the loop
+    switch speech_rate_input
+        case 'Slow (x0.9 = 2.95Hz)'
+            cfg.frequency = 2.95; % if needed in sinewave conditions
+        case 'Fast (x1.3 = 4.4Hz)'
+            cfg.frequency = 4.4;
+        case ''
+            error('Quiting, no input!')
+    end
     
     % create cfg: input into stim_creatorv2
     if strcmp(random_conds_name{cond_i},'Control condition')
@@ -162,7 +174,21 @@ for cond_i = 1:length(random_sentences)
     elseif strcmp(random_conds_name{cond_i},'STG - sinewave - outphase')
         cfg.delay = 'attention';
         cfg.phase = 'out';
-    
+        
+    elseif strcmp(random_conds_name{cond_i},'Epicranial - sinewave - inphase')
+        cfg.delay = 'attention';
+        cfg.phase = 'in';
+        
+    elseif strcmp(random_conds_name{cond_i},'Epicranial - sinewave - outphase')
+        cfg.delay = 'attention';
+        cfg.phase = 'out';
+        
+    elseif strcmp(random_conds_name{cond_i},'Epicranial - 100Hz - nonmodulated')
+        cfg.delay = 'attention';
+        cfg.phase = 'in';
+        cfg.frequency = 100;
+
+        
     else
         error('There is a mismatch between cond_list and nested if names')
     end
