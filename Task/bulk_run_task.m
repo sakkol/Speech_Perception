@@ -101,16 +101,16 @@ for i=1:length(threshold_sentences)
 cfg=[];
 cfg.SNR = -4;
 cfg.prespeech.part1.length= 0.5;
-cfg.prespeech.part1.noise = 'pink';
+cfg.prespeech.part1.noise = 'silence';
 
-cfg.prespeech.part2.noise = 'pink';
-cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,0.9);
+cfg.prespeech.part2.noise = 'silence';
+cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,speech_rate);
 
-cfg.speech.noise = 'pink';
+cfg.speech.noise = 'silence';
 cfg.speech.file = find_sentence(threshold_sentences{i},main_stim_loc,speech_rate);
 
 cfg.postspeech.part1.length=2;
-cfg.postspeech.part1.noise = 'pink';
+cfg.postspeech.part1.noise = 'silence';
 
 cfg.LvsR = 'L';
 cfg.delay = 0;
@@ -119,7 +119,17 @@ cfg.delay = 0;
 %     cfg.envelope_save_filename = [stim_save_dir filesep curr_sentence '.mat'];
 %     cfg.plot_save_filename = [stim_save_dir filesep threshold_sentences{i} '.jpg'];
 
-[stimulus_pink,envelope]=stim_creatorv2(cfg);
+[stimulus_silence,envelope]=stim_creatorv2(cfg);
 end
 
 
+%% Prepare for grant
+
+plot([1/24000:1/24000:length(stimulus_silence)/24000],stimulus_pink(:,1),'Color',[0.9 .9 .9])
+hold on
+plot([1/24000:1/24000:length(stimulus_silence)/24000],stimulus_silence(:,1),'Color',[1 .5 0])
+plot([1/24000:1/24000:length(stimulus_silence)/24000],stimulus_silence(:,2),'r')
+title('Example Stimulus: Peter sold three cheap rings')
+xlabel('Time (sec)')
+ylabel('Volume (normalized)')
+legend('What Patient Hears','Attention Sentence','Target Sentence')
