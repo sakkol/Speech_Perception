@@ -44,30 +44,30 @@ for i = 1:length(files)
     prominent_peaks{i,2} = locs(1);
     
     % Plot amplitude spectrum for each stimuli: optional
-%     figure('Position', [50 50  1000 1000]);
-%     hold on
-%     subplot(2,1,1)
-%     plot(freqf,pow/max(pow((freqf>0.7))),'b','linewidth',3)
-%     set(gca, 'XTick',[1, 3, 5, 8],'fontname','arial');
-%     set(gca,'YTick',[0,0.1,0.2,.5,1],'fontname','arial');
-%     xlabel('Frequency (Hz)','fontname','arial')
-%     ylabel('Normalized power','fontname','arial')
-%     xlim([1 8])
-%     ylim([0,1])
-%     title(sprintf('Envelope power of: %s',filename))
-%     
-%     subplot(2,1,2)
-%     
-%     findpeaks(pow/max(pow((freqf>0.7))),freqf)
-%     text(locs+.02,pks,num2str(locs',3));
-%     xlim([1 8])
-%     ylim([0,1.1])
-%     title(['Peaks in current sentence; speech is filtered in ' num2str(filter_range) 'Hz'])
-%     set(gca, 'fontname','arial');
-%     
-%     if ~exist('Envelopes','dir'),mkdir Envelopes;end
-%     print('-r300','-djpeg',['Envelopes' filesep sprintf('Envelope_%s',erase(filename,'.wav'))])
-%     close all
+    figure('Position', [50 50  1000 1000]);
+    hold on
+    subplot(2,1,1)
+    plot(freqf,pow/max(pow((freqf>0.7))),'b','linewidth',3)
+    set(gca, 'XTick',[1, 3, 5, 8],'fontname','arial');
+    set(gca,'YTick',[0,0.1,0.2,.5,1],'fontname','arial');
+    xlabel('Frequency (Hz)','fontname','arial')
+    ylabel('Normalized power','fontname','arial')
+    xlim([1 8])
+    ylim([0,1])
+    title(sprintf('Envelope power of: %s',filename))
+    
+    subplot(2,1,2)
+    
+    findpeaks(pow/max(pow((freqf>0.7))),freqf)
+    text(locs+.02,pks,num2str(locs',3));
+    xlim([1 8])
+    ylim([0,1.1])
+    title(['Peaks in current sentence; speech is filtered in ' num2str(filter_range) 'Hz'])
+    set(gca, 'fontname','arial');
+    
+    if ~exist('Envelopes','dir'),mkdir Envelopes;end
+    print('-r300','-djpeg',['Envelopes' filesep sprintf('Envelope_%s',erase(filename,'.wav'))])
+    close all
     
     pow_avg(i,:) = pow;
 end
@@ -136,7 +136,7 @@ p=0;
 for i=1:length(prominent_peaks)
     if prominent_peaks{i,2}>4.1 && prominent_peaks{i,2}<4.7
         p=p+1;
-        in_range_sentences(p,:) = prominent_peaks(i,:);
+        pow_avg_in_range(p,:) = pow_avg(i,:);
     end
 end
 
@@ -173,7 +173,7 @@ end
 n=1;
 for i=1:length(inrange09.in_range_sentences)
     if inrange09.in_range_sentences{i,3} == 1
-        copyfile(inrange09.in_range_sentences{i,1},'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/Sentences_Rate0.9')
+        copyfile(inrange09.in_range_sentences{i,1},'/home/sakkol/Documents/Spanish_Matrix_Sentence/Preparations/Version_4/Sentences_Rate0.9')
         fprintf('copied%d\n',i)
 %         temp = erase(inrange09.in_range_sentences{i,1},'-M.wav');
 %         sentence_to_use_list{n,1} = replace(temp,'_',' ');
@@ -184,44 +184,124 @@ end
 
 %% Seelcting for adaptation and thresholding
 
-commons = readtable('/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/common_sentences.xlsx');
+commons = readtable('/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/common_sentences.xlsx');
+comm_noThresh = readtable('/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/common_sentences_noThresh.xlsx');
 
 % Thresholding: 30 sentences, need to be as much different as possible
-ufff=1;not_gogogo=1;
-while not_gogogo && ufff <100000
-    chosen_rand = randperm(398,30);
+ufff=1;not_gogogo=1;fprintf('Iteration = 000000');
+while not_gogogo && ufff <900000
+    fprintf('\b\b\b\b\b\b%6d',ufff)
+    chosen_rand = randperm(711,30);
     
-    [ii,jj,kk]=unique(commons.Name(chosen_rand,:));
+    [ii,jj,kk]=unique(comm_noThresh.Name(chosen_rand,:));
     Name_f=histc(kk,1:numel(jj)); % Frequencies corresponding to ii
-    [ii,jj,kk]=unique(commons.Verb(chosen_rand,:));
+    [ii,jj,kk]=unique(comm_noThresh.Verb(chosen_rand,:));
     Verb_f=histc(kk,1:numel(jj)); % Frequencies corresponding to ii
-    [ii,jj,kk]=unique(commons.Adjective(chosen_rand,:));
+    [ii,jj,kk]=unique(comm_noThresh.Adjective(chosen_rand,:));
     Adjective_f=histc(kk,1:numel(jj)); % Frequencies corresponding to ii
-    [ii,jj,kk]=unique(commons.Number(chosen_rand,:));
+    [ii,jj,kk]=unique(comm_noThresh.Numeral(chosen_rand,:));
     Number_f=histc(kk,1:numel(jj)); % Frequencies corresponding to ii
-    [ii,jj,kk]=unique(commons.Noun(chosen_rand,:));
+    [ii,jj,kk]=unique(comm_noThresh.Object(chosen_rand,:));
     Noun_f=histc(kk,1:numel(jj)); % Frequencies corresponding to ii
     
     
     if sum(Name_f==3) == 7 && ...
             sum(Noun_f==3) == 7 && ...
             sum(Verb_f==3) == 7 && ...
-            sum(Adjective_f==3) == 6 && ...
-            sum(Number_f==3) == 6 %&& ...
+            sum(Adjective_f==3) == 7 && ...
+            sum(Number_f==3) == 7 %&& ...
 %             size(unique(commons(chosen_rand,3:4)),1) > 15 && ...
 %             size(unique(commons(chosen_rand,5:6)),1) > 15 && ...
 %             size(unique(commons(chosen_rand,6:7)),1) > 15
             
             not_gogogo = 0;
-        threshold_sentences = commons(chosen_rand,:)
+        threshold_sentences = comm_noThresh(chosen_rand,:)
     end
     ufff=ufff+1;
 end
+fprintf('\n')
+
+% 
+word_list = readtable('/home/sakkol/Documents/Spanish_Matrix_Sentence/spanish_matrix_words.xlsx');
+ufff=1;not_gogogo=1;fprintf('Iteration = 0000000');
+% selc_sents={''};p=1;
+while not_gogogo && ufff <9000000
+    fprintf('\b\b\b\b\b\b\b%7d',ufff)
+%     rand5 = randperm(10,5);
+    c_name = word_list.Name(randi(10,1));
+    c_verb = word_list.Verb(randi(10,1));
+    c_numeral = word_list.Numeral(randi(10,1));
+    c_obj = word_list.Object(randi(10,1));
+    c_adj = word_list.Adjective(randi(10,1));
+    c_sentence = strjoin([c_name(:)',c_verb(:)',c_numeral(:)',c_obj(:)',c_adj(:)'],' ');
+    if ismember(c_sentence,comm_noThresh.Sentence) && ...
+            ~ismember(c_sentence,selc_sents) && ...
+            sum(contains(selc_sents,c_name))<4 && ...
+            sum(contains(selc_sents,c_verb))<4 && ...
+            sum(contains(selc_sents,c_numeral))<4 && ...
+            sum(contains(selc_sents,c_obj))<4 && ...
+            sum(contains(selc_sents,c_adj))<4
+        
+        selc_sents{p} = c_sentence;
+        p=p+1;
+        if p>30
+            not_gogogo=0;
+            selc_sents
+        end
+        
+    end
+    
+    ufff=ufff+1;
+end
+fprintf('\n')
+
+% I'm angry
+word_list = readtable('/home/sakkol/Documents/Spanish_Matrix_Sentence/spanish_matrix_words.xlsx');
+fprintf('Iteration = 0000000');
+selc_sents_angry={''};p=1;
+ufff=1;
+for i1=1:10
+    for i2=1:10
+        for i3=1:10
+            for i4=1:10
+                for i5=1:10
+                    fprintf('\b\b\b\b\b\b\b%7d',ufff)
+                    ufff=ufff+1;
+                    c_name = word_list.Name(i1);
+                    c_verb = word_list.Verb(i2);
+                    c_numeral = word_list.Numeral(i3);
+                    c_obj = word_list.Object(i4);
+                    c_adj = word_list.Adjective(i5);
+                    c_sentence = strjoin([c_name(:)',c_verb(:)',c_numeral(:)',c_obj(:)',c_adj(:)'],' ');
+                    if ismember(c_sentence,comm_noThresh.Sentence) && ...
+                            ~ismember(c_sentence,selc_sents_angry) && ...
+                            sum(contains(selc_sents_angry,c_name))<4 && ...
+                            sum(contains(selc_sents_angry,c_verb))<4 && ...
+                            sum(contains(selc_sents_angry,c_numeral))<3 && ...
+                            sum(contains(selc_sents_angry,c_obj))<4 && ...
+                            sum(contains(selc_sents_angry,c_adj))<3
+                        
+                        selc_sents_angry{p} = c_sentence;
+                        p=p+1;
+                        if p>30
+                            
+                            selc_sents
+                            break;
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+end
+fprintf('\n')
 
 % Adaptation: 30 sentences, no need to be very different from each other
-ufff=1;not_gogogo=1;
+ufff=1;not_gogogo=1;fprintf('Iteration = 000000');
 while not_gogogo && ufff <10000
-    chosen_rand = randperm(398,30);
+    fprintf('\b\b\b\b\b\b%6d',ufff)
+    chosen_rand = randperm(713,30);
     if length(unique(commons.Name(chosen_rand,:))) == 10 && ...
             length(unique(commons.Verb(chosen_rand,:))) == 10 && ...
             length(unique(commons.Number(chosen_rand,:))) == 10 && ...
@@ -233,6 +313,7 @@ while not_gogogo && ufff <10000
     end
     ufff=ufff+1;
 end
+fprintf('\n')
 
 % remove these adaptation and threshold from main list
 n=1;

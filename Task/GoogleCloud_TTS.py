@@ -18,15 +18,15 @@ from pathlib import Path
 from google.cloud import texttospeech
 
 ## Instantiates a client
-client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_1/My First Project-4597d3a51499.json"))
+client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/Spanish_Matrix_Sentence/Preparations/Version_4/My First Project-4597d3a51499.json"))
 
 
 ## DEFINE ALL PARAMETERS HERE
 # Either folder name with text files
 CORPUS = 'CST-Repeated'
-dirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/Selected_20000'
+dirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Preparations/Version_4/Attention_Sentence'
 dirname = Path(dirname)
-outdirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Version_2/Google_TTS_Rate_20000_1.3'
+outdirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Preparations/Version_4/Attention_Sentence/new'
 outdirname = Path(outdirname)
 
 # Define output voice gender
@@ -92,7 +92,7 @@ for names in items:
 for file in filelist:
     # Read in text
     if lang_code == 'es-ES':
-        with open(Path(dirname,file), 'r', encoding='latin-1') as text_file:
+        with open(Path(dirname,file), 'r', encoding='UTF-8') as text_file:
             text = text_file.read()
     else:
         with open(Path(dirname,file), 'r') as text_file:

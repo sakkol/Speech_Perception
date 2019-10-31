@@ -70,7 +70,11 @@ n_of_each_cond = 20;    % if you want to increase the number of trials per condi
 all_sentence_list = readtable([main_stim_loc filesep 'Sentence_to_use.xlsx']);
 
 % random selection from main sentence repository
-random_no = randperm(367);
+if contains(main_stim_loc,'Spanish')
+    random_no = randperm(350);
+else
+    random_no = randperm(367);
+end
 random_no = random_no(1:n_of_each_cond*length(cond_indx));
 random_sentences = all_sentence_list.Sentence(random_no);
 random_codes = all_sentence_list.Code(random_no);
@@ -99,7 +103,13 @@ cfg.prespeech.part1.length= 0.5;
 cfg.prespeech.part1.noise = 'pink';
 
 cfg.prespeech.part2.noise = 'pink';
-cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,speech_rate);
+
+if contains(main_stim_loc,'Spanish')
+    cfg.prespeech.part2.signal = find_sentence('Por_favor,_presta_atención_y_recuerda_esta_oración',main_stim_loc,speech_rate);
+else
+    cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,speech_rate);
+end
+
 
 cfg.speech.noise = 'pink';
 
