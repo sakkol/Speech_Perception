@@ -5,7 +5,7 @@ sbj_ID = 'NS144_2';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 %% Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{2}
+curr_block = Sbj_Metadata.BlockLists{1}
 params = create_Params(Sbj_Metadata,curr_block)
 
 % Import
