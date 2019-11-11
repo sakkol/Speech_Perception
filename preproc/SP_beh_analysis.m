@@ -4,6 +4,12 @@ function SP_beh_analysis(Sbj_Metadata,curr_block)
 % Load response table
 response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
 
+if iscell(response_table.Condition_Code)
+    for i=1:size(response_table,1)
+        coll(i,1) = str2double(cell2mat(response_table.Condition_Code(i)));
+    end
+    response_table.Condition_Code = coll;
+end
 % Read conditions:
 all_cond_codes = sort(unique(response_table.Condition_Code));
 for c=1:length(all_cond_codes)
