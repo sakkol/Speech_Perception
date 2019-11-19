@@ -30,10 +30,11 @@ end
 % Conditions in bar graph
 figure('Position',[0 0 1000 1000])
 bar([cond_corrects{:}]);
-title('Correct responses for each condition (/100)')
 set(gca,'xticklabels',all_cond_names(:),'FontSize',11)
+title('Correct responses for each condition (/100)','FontSize',15)
 ylim([0 100])
-text(1:length([cond_corrects{:}]),[cond_corrects{:}],num2str([cond_corrects{:}]'),'vert','bottom','horiz','center','Fontsize',18);
+grid on
+text(1:length([cond_corrects{:}]),[cond_corrects{:}],num2str([cond_corrects{:}]'),'vert','bottom','horiz','center','Fontsize',25);
 print(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_conditions.jpg']),'-djpeg','-r300')
 
 % Correct responses for each word
@@ -53,12 +54,12 @@ legend(all_cond_names{:})                                                  % Ret
 for k1 = 1:size(to_bar,2)
     ctr(k1,:) = bsxfun(@plus, hBar(1).XData, hBar(k1).XOffset');    % Note: ‘XOffset’ Is An Undocumented Feature, This Selects The ‘bar’ Centres
     ydt(k1,:) = hBar(k1).YData;                                     % Individual Bar Heights
-    text(ctr(k1,:), ydt(k1,:), sprintfc('%.0f', ydt(k1,:)), 'HorizontalAlignment','center', 'VerticalAlignment','bottom', 'FontSize',10, 'Color','k')
+    text(ctr(k1,:), ydt(k1,:), sprintfc('%.0f', ydt(k1,:)), 'HorizontalAlignment','center', 'VerticalAlignment','bottom', 'FontSize',18, 'Color','k')
 end
 print(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_words.jpg']),'-djpeg','-r300')
 
 % Change as block goes
-figure('Position',[200 200 1000 1000])
+% figure('Position',[200 200 1000 1000])
 
 
 
