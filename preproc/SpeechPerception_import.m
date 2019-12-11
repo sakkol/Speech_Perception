@@ -10,6 +10,9 @@ params = create_Params(Sbj_Metadata,curr_block)
 
 %% Import
 [ecog] = TDT2ecog(params);
+data=TDTbin2mat(params.directory);
+
+save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_TDT_data.mat']),'data','-v7.3');
 
 %% Find bad channels using PSD
 % find_bad_chans(ecog);
@@ -46,7 +49,7 @@ cfg = ft_databrowser(cfg, temp);
 %% Write the bad channels seen in this block
 ecog.bad_chans = [ecog.bad_chans; {'RPs15';'RFp2';'RFp3';'RFp4';'RHs11';'RHs13';'RPc13'}];%;'Second';'In Column Order'}];
 
-save(fullfile(params.directoryOUT, [params.filename '_ecog.mat']),'ecog');
+save(fullfile(params.directoryOUT, [params.filename '_ecog.mat']),'ecog','-v7.3');
 
 %% If needed: check for threshold
 % figure; plot(ecog.analog.trial{1}(2,:));
@@ -110,6 +113,7 @@ for i=1:length(prespeech_ends)
     stim_length(i,1) = length(beh_data.events_cell{i,5})/24000; % in secs
     trial_ends(i,1) = trial_onsets(i,1) + floor(stim_length(i,1)*ecog.ftrip.fsample);
 end
+
 %% Collect trial events
 fs = ecog.ftrip.fsample;
 trial_onsets = (trial_onsets)/fs;
@@ -176,7 +180,7 @@ cfg.corr_sheet = ecog.params.labelfile;
 info = create_info(cfg);
 save(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']),'info');
 
-save(fullfile(params.directoryOUT, [params.filename '_ecog.mat']),'ecog');
+save(fullfile(params.directoryOUT, [params.filename '_ecog.mat']),'ecog','-v7.3');
 %% Re-reference
 % Average ref
 plot_stuff=0;
