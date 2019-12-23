@@ -49,7 +49,7 @@ cfg = ft_databrowser(cfg, temp);
 %% Write the bad channels seen in this block
 ecog.bad_chans = [ecog.bad_chans; {'RPs15';'RFp2';'RFp3';'RFp4';'RHs11';'RHs13';'RPc13'}];%;'Second';'In Column Order'}];
 
-save(fullfile(params.directoryOUT, [params.filename '_ecog.mat']),'ecog','-v7.3');
+save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'ecog','-v7.3');
 
 %% If needed: check for threshold
 % figure; plot(ecog.analog.trial{1}(2,:));
