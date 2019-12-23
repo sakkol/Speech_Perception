@@ -8,6 +8,9 @@ Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stan
 curr_block = Sbj_Metadata.BlockLists{2}
 params = create_Params(Sbj_Metadata,curr_block)
 
+%% Run quick behavioral analysis
+SP_beh_analysis(Sbj_Metadata,curr_block)
+
 %% Import
 [ecog] = TDT2ecog(params);
 data=TDTbin2mat(params.directory);
