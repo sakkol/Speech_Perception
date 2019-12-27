@@ -225,8 +225,8 @@ options.threshPC       = .7;
 
 result = psignifit(data_threshold,options);
 p1=plotPsych(result);
-print([save_filename '.jpg'],'-djpeg','-r300')
-current_SNR = getThreshold(result,0.7)
+print([save_filename '_psignifit.jpg'],'-djpeg','-r300')
+current_SNR = getThreshold(result,0.5)
 % close p1
 
 %% Real deal

@@ -105,7 +105,7 @@ cfg.prespeech.part1.noise = 'pink';
 cfg.prespeech.part2.noise = 'pink';
 
 if contains(main_stim_loc,'Spanish')
-    cfg.prespeech.part2.signal = find_sentence('Por_favor,_presta_atención_y_recuerda_esta_oración',main_stim_loc,speech_rate);
+    cfg.prespeech.part2.signal = find_sentence('Por_favor,_presta_atenciï¿½n_y_recuerda_esta_oraciï¿½n',main_stim_loc,speech_rate);
 else
     cfg.prespeech.part2.signal = find_sentence('Pre-stim-Attention-comma',main_stim_loc,speech_rate);
 end
@@ -208,6 +208,5 @@ for cond_i = 1:length(random_sentences)
     events_cell{cond_i,6} = cfg;
     
 end
-
 
 end

@@ -122,8 +122,8 @@ for ss = 1:length(adaptation_sounds)
     adaptation_sounds{ss,2} = [y,y]'; % Because it is 1 column
 end
 
-adaptation_intro_msg = ['Escucharás oraciones simples,\ncompuestas de 5 palabras\n\n'...
-    'Cuando esté listo,\npresione la barra espaciadora\npara comenzar cada oración'];
+adaptation_intro_msg = ['Escucharï¿½s oraciones simples,\ncompuestas de 5 palabras\n\n'...
+    'Cuando estï¿½ listo,\npresione la barra espaciadora\npara comenzar cada oraciï¿½n'];
 
 DrawFormattedText(window, adaptation_intro_msg,'center','center',par.textcolor);
 Screen('Flip',window);
@@ -166,10 +166,10 @@ for ss = 1:length(threshold_sounds)
     threshold_sounds{ss,2} = y';
 end
 
-threshold_intro_msg = ['Ahora, escuchará oraciones similares,\nincrustadas en el ruido\n\n'...
-    'Por favor, trata de entender la frase que viene después\n'...
-    '''Presta atención y recuerda esta oración.''\n\n'...
-    'Cuando esté listo,\npresione la barra espaciadora\npara comenzar cada oración'];
+threshold_intro_msg = ['Ahora, escucharï¿½ oraciones similares,\nincrustadas en el ruido\n\n'...
+    'Por favor, trata de entender la frase que viene despuï¿½s\n'...
+    '''Presta atenciï¿½n y recuerda esta oraciï¿½n.''\n\n'...
+    'Cuando estï¿½ listo,\npresione la barra espaciadora\npara comenzar cada oraciï¿½n'];
 
 DrawFormattedText(window, threshold_intro_msg,'center','center',par.textcolor);
 Screen('Flip',window);
@@ -218,8 +218,8 @@ options.threshPC       = .7;
 
 result = psignifit(data_threshold,options);
 p1=plotPsych(result);
-print([save_filename '.jpg'],'-djpeg','-r300')
-current_SNR = getThreshold(result,0.7)
+print([save_filename '_psignifit.jpg'],'-djpeg','-r300')
+current_SNR = getThreshold(result,0.5)
 % close p1
 
 %% Real deal
@@ -245,9 +245,9 @@ events_cell = event_creator(main_stim_loc,slowVSfast,current_SNR);
 % 7. After loop ends, 'Thank you for your time!'
 startscreen_now;
 
-real_deal_msg = ['Ahora, escuchará oraciones similares.\n\n'...
-   'Por favor, intente asistir y díganos cuál es la oración.\n\n'...
-   'Para comenzar una nueva oración, presione la barra espaciadora.'];
+real_deal_msg = ['Ahora, escucharï¿½ oraciones similares.\n\n'...
+   'Por favor, intente asistir y dï¿½ganos cuï¿½l es la oraciï¿½n.\n\n'...
+   'Para comenzar una nueva oraciï¿½n, presione la barra espaciadora.'];
 
 DrawFormattedText(window, real_deal_msg,'center','center',par.textcolor);
 Screen('Flip',window);
@@ -275,7 +275,7 @@ for trialN = 1:length(events_cell)
     WaitSecs(0.25); % Wait until audio ends and then wait another 0.25sec
     
     % Prompt for answer from participant. Show message for 2sec
-    DrawFormattedText(window, '¿Cuál fue la oración?','center','center',par.textcolor);
+    DrawFormattedText(window, 'ï¿½Cuï¿½l fue la oraciï¿½n?','center','center',par.textcolor);
     Screen('DrawText',window,num2str(this_trial_code),winRect(3)/20,winRect(4)*0.9,par.textcolor);
     Screen('Flip',window);
     WaitSecs(2);
@@ -296,7 +296,7 @@ end
 %% End of task
 
 % Draw thank you msg
-end_msg = '¡Gracias por tu tiempo!';
+end_msg = 'ï¿½Gracias por tu tiempo!';
 DrawFormattedText(window, end_msg,'center','center',par.textcolor);
 Screen('Flip',window);
 WaitSecs(3);
