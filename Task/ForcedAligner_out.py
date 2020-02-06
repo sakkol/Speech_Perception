@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+`#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Dec 30 09:55:20 2019
@@ -7,6 +7,8 @@ Created on Mon Dec 30 09:55:20 2019
 """
 import os
 from pathlib import Path
+
+# Based on Penn Phonetics Lab Forced Aligner Toolkit (P2FA) for Python3 
 from p2fa import align
 
 txtdirname = r'/home/sakkol/Documents/Forced_Alignment/FORCE/Fast-English/txt'
