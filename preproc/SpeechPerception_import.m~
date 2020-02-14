@@ -5,7 +5,7 @@ sbj_ID = 'NS148';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{2}
+curr_block = Sbj_Metadata.BlockLists{1}
 params = create_Params(Sbj_Metadata,curr_block)
 
 %% Run quick behavioral analysis
@@ -50,9 +50,8 @@ cfg = ft_databrowser(cfg, temp);
 % if you don't want to be asked if you'd want to overwrite.
 [labelfile,ecog] = read_labelfile(params.labelfile,ecog,1); 
 
-% %% Write the bad channels seen in this block
+%% Write the bad channels seen in this block
 ecog.bad_chans = [ecog.bad_chans; {'RPs15';'RFp2';'RFp3';'RFp4';'RHs11';'RHs13';'RPc13'}];%;'Second';'In Column Order'}];
-select_bad_chans
 
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'ecog','-v7.3');
 
@@ -85,7 +84,7 @@ end
 
 % plot events
 figure('Units','normalized','Position', [0 0  1 .5]);
-plot(1/analog_fs:1/analog_fs:length(noise_ch)/analog_fs,noise_ch); hold on
+plot(noise_ch); hold on
 for i=1:length(trial_onsets_tpts)
     plot([trial_onsets_tpts(i) trial_onsets_tpts(i)],[-2 2])
 end
