@@ -191,3 +191,71 @@ end
 onset_table(1)=[];
 onset_table = struct2table(onset_table);
 save(fullfile(FORCE_dir,'English_onset_info.mat'), 'onset_table')
+
+%% Now add information about the syllables
+
+wsp_table = readtable('/home/sakkol/Documents/Forced_Alignment/word_phoneme_syllable.xlsx');
+onset_table = onset_table_orig;
+onset_table = table2struct(onset_table);
+
+for i=1:size(onset_table,1)
+    curr_sentence = onset_table(i).sentence;
+    sent_words = split(curr_sentence,' ');
+    pids=1;
+    syllable_info = struct;all_info = struct;
+    for w=1:length(sent_words)
+        
+        curr_wsp = wsp_table(strcmpi(sent_words{w},wsp_table.word),:);
+        curr_word_sylls = split(curr_wsp.syllables,',');
+        curr_word_phos = split(curr_wsp.phoneme,',');
+        curr_word_syll_ids = str2double(split(curr_wsp.syllable_ids,','));
+        curr_pho_info = onset_table(i).phoneme_info(pids:pids+length(curr_word_syll_ids)-1,:);
+        pids = pids+length(curr_word_syll_ids);
+        
+        for s=1:length(curr_word_sylls)
+            syllable_info(end+1).syllable = curr_word_sylls{s};
+            syllable_info(end).syllable_id = s;
+            syllable_info(end).onset = curr_pho_info.onset(min(find(curr_word_syll_ids==s)));
+            syllable_info(end).offset = curr_pho_info.offset(max(find(curr_word_syll_ids==s)));
+            
+            syllable_info(end).word = curr_wsp.word;
+            syllable_info(end).word_id = w;
+            syllable_info(end).phonemes = curr_word_phos(curr_word_syll_ids==s);
+            syllable_info(end).phoneme_info = curr_pho_info(curr_word_syll_ids==s,:);
+            
+            % all_info
+            for p = 1:size(syllable_info(end).phonemes,1)
+                all_info(end+1).word = curr_wsp.word;
+                all_info(end).word_id = w;
+                all_info(end).word_onset = onset_table(i).word_info.onset(w);
+                all_info(end).word_offset = onset_table(i).word_info.offset(w);
+                
+                all_info(end).syllable = curr_word_sylls{s};
+                all_info(end).syllable_id = s;
+                all_info(end).onset = curr_pho_info.onset(min(find(curr_word_syll_ids==s)));
+                all_info(end).offset = curr_pho_info.offset(max(find(curr_word_syll_ids==s)));
+                all_info(end).phos_of_syll = curr_word_phos(curr_word_syll_ids==s);
+                all_info(end).phos_info_of_syll = curr_pho_info(curr_word_syll_ids==s,:);
+                
+                all_info(end).phoneme = syllable_info(end).phonemes(p);
+                all_info(end).phoneme_id = p;
+                all_info(end).phoneme_onset = syllable_info(end).phoneme_info.onset(p);
+                all_info(end).phoneme_offset = syllable_info(end).phoneme_info.offset(p);
+                
+            end
+            
+            
+        end
+    end
+    syllable_info(1)=[];
+    syllable_info = struct2table(syllable_info);
+    onset_table(i).syllable_info = syllable_info;
+    
+    all_info(1)=[];
+    all_info = struct2table(all_info);
+    onset_table(i).all_info = all_info;
+    
+end
+
+all_info_table = struct2table(onset_table);
+save(fullfile(FORCE_dir,'English_all_info.mat'), 'all_info_table')
