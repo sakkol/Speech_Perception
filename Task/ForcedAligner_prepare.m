@@ -132,7 +132,7 @@ for l = 1% There is only English currently, Spanish doesn't have forced alignmen
         tgrids = dir(fullfile(FORCE_dir,[Rate{r} '-' lang{l}],'TextGrid','*.TextGrid'));
         
         for t = 1:length(tgrids)
-            curr_sent = erase(tgrids(t).name,'.TextGrid');
+            curr_sent = replace(erase(tgrids(t).name,'.TextGrid'),'_',' ');
             
             fid = fopen(fullfile(tgrids(t).folder,tgrids(t).name));
             clear A
@@ -180,7 +180,7 @@ for l = 1% There is only English currently, Spanish doesn't have forced alignmen
             
             % Gather all info
             onset_table(end+1).lang = lang{l};
-            onset_table(end).rate = Rate{l};
+            onset_table(end).rate = Rate{r};
             onset_table(end).sentence = curr_sent;
             onset_table(end).phoneme_info = phoneme_info;
             onset_table(end).word_info = word_info;
@@ -193,7 +193,9 @@ onset_table = struct2table(onset_table);
 save(fullfile(FORCE_dir,'English_onset_info.mat'), 'onset_table')
 
 %% Now add information about the syllables
-
+onset_table_orig = onset_table;
+%%
+FORCE_dir = '/home/sakkol/Documents/Forced_Alignment/FORCE';
 wsp_table = readtable('/home/sakkol/Documents/Forced_Alignment/word_phoneme_syllable.xlsx');
 onset_table = onset_table_orig;
 onset_table = table2struct(onset_table);

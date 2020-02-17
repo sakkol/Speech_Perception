@@ -132,7 +132,7 @@ speech_onsets = trial_onsets+repmat(prespeech_noise_length+prestim_att_length,si
 % word,syllable and phoneme onsets
 tmp = load('English_all_info.mat');all_info_table = tmp.all_info_table;clear tmp
 for t = 1:length(tmp_events)
-    
+    curr_onset_info = all_info_table(strcmpi(all_info_table.sentence,tmp_events.Sentences(t)),:);
     
     
     
