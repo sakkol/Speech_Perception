@@ -50,8 +50,8 @@ cfg = ft_databrowser(cfg, temp);
 % if you don't want to be asked if you'd want to overwrite.
 [labelfile,ecog] = read_labelfile(params.labelfile,ecog,1); 
 
-% %% Write the bad channels seen in this block
-ecog.bad_chans = [ecog.bad_chans; {'RPs15';'RFp2';'RFp3';'RFp4';'RHs11';'RHs13';'RPc13'}];%;'Second';'In Column Order'}];
+%% Write the bad channels seen in this block
+% ecog.bad_chans = [ecog.bad_chans; {'RPs15';'RFp2';'RFp3';'RFp4';'RHs11';'RHs13';'RPc13'}];%;'Second';'In Column Order'}];
 select_bad_chans
 
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'ecog','-v7.3');
@@ -76,8 +76,8 @@ analog_fs = ecog.analog.fs;
 % remove extra digital channel pulses based on sound length
 trial_onsets_tpts=find(digital_trig_chan==1);
 for i=1:length(tmp_events.Sentence_Codes)
-    curr_stimdur = length(tmp_events.Stimuli{i})/24000;
-    trial_dur = curr_stimdur*floor(ecog.analog.fs);
+    curr_stimdur = length(tmp_events.Stimuli{i})/24000; % in seconds; events file is 24KHz, recording may be different
+    trial_dur = curr_stimdur*floor(ecog.analog.fs); % according to recording time stamps
     trial_onsets_tpts(trial_onsets_tpts>trial_onsets_tpts(i) & trial_onsets_tpts<trial_onsets_tpts(i)+trial_dur) = [];
     trial_end_tpts(i,1) = trial_onsets_tpts(i) + trial_dur;
     trial_durs(i,1) = trial_dur;
@@ -87,9 +87,10 @@ end
 figure('Units','normalized','Position', [0 0  1 .5]);
 plot(1/analog_fs:1/analog_fs:length(noise_ch)/analog_fs,noise_ch); hold on
 for i=1:length(trial_onsets_tpts)
-    plot([trial_onsets_tpts(i) trial_onsets_tpts(i)],[-2 2])
+    plot([trial_onsets_tpts(i)/analog_fs trial_onsets_tpts(i)/analog_fs],[-2 2])
 end
 title([num2str(length(trial_onsets_tpts)) ' onsets found']);
+xlabel('Time (s)')
 print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
 
 
@@ -108,42 +109,43 @@ title([num2str(length(ev_code)) ' bursts found, with these burst lengths: ' num2
 print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
 
 %% Create each event point
-% trial onset
+% trial onsets and ends
 % convert event time from Accl recording to EEG recording sampling rate
-trial_onsets = floor((ev_start_tpt'/ecog.analog.fs)*ecog.ftrip.fsample);
+% (should be in column)
+trial_onsets = (trial_onsets_tpts'/ecog.analog.fs);
+trial_ends = (trial_end_tpts/ecog.analog.fs);
+trial_durs = trial_ends-trial_onsets;
 
-% prespeech end (first if it is slow or fast)
+
+% prespeech part lengths (depending on if it is slow or fast)
 % (this may be needed, because there may be delay before speech starts)
-BlockInfo = readtable(fullfile(Sbj_Metadata.project_root,[Sbj_Metadata.project_name '_BlockInfo.xlsx']));
-curr_blockinfo = BlockInfo((strcmp(BlockInfo.sbj_ID,Sbj_Metadata.sbj_ID) & strcmp(BlockInfo.BlockList,curr_block)),:);
-slowVSfast = BlockInfo.EEGDAT((strcmp(BlockInfo.sbj_ID,Sbj_Metadata.sbj_ID) & strcmp(BlockInfo.BlockList,curr_block)),:);
+prespeech_noise_length = 0.5; % in seconds
+curr_blockinfo = params.CurrBlockInfo;
 if strcmp(curr_blockinfo.slowVSfast,'slow')
     prestim_att_length = 73093/24000; % in secs
 elseif strcmp(curr_blockinfo.slowVSfast,'fast')
     prestim_att_length = 50848/24000; % in secs
 end
 
-prespeech_noise_length = 0.5; % in seconds
-prespeech_ends = trial_onsets+floor((prespeech_noise_length+prestim_att_length)*ecog.ftrip.fsample);
+speech_onsets = trial_onsets+repmat(prespeech_noise_length+prestim_att_length,size(trial_onsets));
 
-% speech onset
-% if present, add delays
-for i=1:length(prespeech_ends)
-    curr_trial = beh_data.events_cell{i,6};
-    if isfield(curr_trial,'nostim') % if control condition
-        speech_onsets(i,1) = prespeech_ends(i,1);
-    else
-        speech_onsets(i,1) = prespeech_ends(i,1)+floor(curr_trial.delay*ecog.ftrip.fsample);
-    end
+% word,syllable and phoneme onsets
+tmp = load('English_all_info.mat');all_info_table = tmp.all_info_table;clear tmp
+for t = 1:length(tmp_events)
     
-    % stim end
-    stim_length(i,1) = length(beh_data.events_cell{i,5})/24000; % in secs
-    trial_ends(i,1) = trial_onsets(i,1) + floor(stim_length(i,1)*ecog.ftrip.fsample);
+    
+    
+    
+    
+    
+    
+    
+    
 end
+
 
 %% Collect trial events
 fs = ecog.ftrip.fsample;
-trial_onsets = (trial_onsets)/fs;
 prespeech_ends = (prespeech_ends)/fs;
 trial_ends = trial_ends/fs;
 speech_onsets = speech_onsets/fs;
