@@ -60,11 +60,10 @@ save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'eco
 % figure; plot(ecog.analog.trial{1}(2,:));
 % title('Check for threshold');
 
-%% Event onsets
-% load behavioral
+% Event onsets: load behavioral
 beh_data = load(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '.mat']));
 tmp_events = cell2table(beh_data.events_cell);
-tmp_events.Properties.VariableNames(1:end) = {'Sentence_Codes','Sentences','Cond_code','Condition','Stimuli','cfg'};
+tmp_events.Properties.VariableNames(1:end) = {'Sentence_Codes','Sentences','Cond_code','Condition','Stimuli','trial_details'};
 
 % Analog 2 digital of the noise channel
 refract_tpts = floor(10*ecog.analog.fs);
@@ -116,7 +115,6 @@ trial_onsets = (trial_onsets_tpts'/ecog.analog.fs);
 trial_ends = (trial_end_tpts/ecog.analog.fs);
 trial_durs = trial_ends-trial_onsets;
 
-
 % prespeech part lengths (depending on if it is slow or fast)
 % (this may be needed, because there may be delay before speech starts)
 prespeech_noise_length = 0.5; % in seconds
@@ -127,31 +125,30 @@ elseif strcmp(curr_blockinfo.slowVSfast,'fast')
     prestim_att_length = 50848/24000; % in secs
 end
 
+att_sent_onset = trial_onsets+repmat(prespeech_noise_length,size(trial_onsets));
 speech_onsets = trial_onsets+repmat(prespeech_noise_length+prestim_att_length,size(trial_onsets));
 
-% word,syllable and phoneme onsets
+% word,syllable and phoneme onsets and gather Responses
 tmp = load('English_all_info.mat');all_info_table = tmp.all_info_table;clear tmp
-for t = 1:length(tmp_events)
-    curr_onset_info = all_info_table(strcmpi(all_info_table.sentence,tmp_events.Sentences(t)),:);
-    
-    
-    
-    
-    
-    
-    
-    
-end
+response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
 
+timing_info=all_info_table;timing_info(:,:)=[];
+accuracy = response_table(:,9);
+for t = 1:size(tmp_events,1)
+    timing_info(t,:) = all_info_table(strcmpi(all_info_table.sentence,tmp_events.Sentences(t)) & ...
+        strcmpi(all_info_table.rate,curr_blockinfo.slowVSfast),:);
+    
+    timing_info.word_info{t}(:,4)=response_table{t,4:8}';
+    timing_info.word_info{t}.Properties.VariableNames(4) = {'response'};
+end
 
 %% Collect trial events
 fs = ecog.ftrip.fsample;
-prespeech_ends = (prespeech_ends)/fs;
-trial_ends = trial_ends/fs;
-speech_onsets = speech_onsets/fs;
-events = tmp_events(:,[3,4,1,2]);
-events = [events,array2table(trial_onsets),array2table(prespeech_ends),...
-    array2table(speech_onsets),array2table(trial_ends),array2table(stim_length)];
+event_ids = (1:size(tmp_events,1))';
+events = tmp_events(:,[3,4,1,5,6]);
+events = [array2table(event_ids),events,array2table(trial_onsets),array2table(att_sent_onset),...
+    array2table(speech_onsets),array2table(trial_ends),array2table(trial_durs),...
+    timing_info,accuracy];
 
 ecog.events = events;
 
@@ -180,6 +177,7 @@ trials_all  = ft_redefinetrial(cfg,cont_notched);
 cfg=[];
 cfg.method = 'summary';
 cfg.keepchannel = 'yes';
+good_chns = get_good_chans(ecog,2);
 cfg.channel = good_chns; % assuming bad channels are the same across blocks!!
 cfg.metric = 'zvalue';
 cfg.keeptrial = 'no';
@@ -192,20 +190,13 @@ good_trials_idx = all_idx(~ismember(all_idx,bad_trials_idx));
 events = events(good_trials_idx,:);
 
 %% Create info.mat file
-
-% run if corr sheet doesn't include elecInfo:
-% cfg=[];
-% cfg.subj_folder = '/media/sakkol/HDD1/HBML/DERIVATIVES/freesurfer/NS148';
-% cfg.fsaverage_dir = '/media/sakkol/HDD1/HBML/DERIVATIVES/freesurfer/fsaverage';
-% cfg.FS_atlas_info = '/media/sakkol/HDD1/HBML/DERIVATIVES/freesurfer/Freesurfer_Atlas_Labels.xlsx';
-% sbj_name = 'NS148';
-% create_elecInfo(sbj_name, cfg)
+% run create_elecInfo if corr sheet doesn't include elecInfo:
 
 % create info variable:
 cfg=[];
 cfg.events = events;
 cfg.ecog = ecog;
-cfg.corr_sheet = ecog.params.labelfile;
+cfg.elecInfo = ecog.params.labelfile;
 info = create_info(cfg);
 save(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']),'info');
 
