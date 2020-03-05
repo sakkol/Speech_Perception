@@ -49,10 +49,18 @@ for b = 1:length(control_blocks)
     
 end
 
-%% Separate fourierspectrums of correct responses and others
-corr_rspn_fft = {0};
-no_rspn_fft = {0};
-wrng_rspn_fft = {0};
+%% Separate fourier spectrums of correct responses and others
+corr_rspn_fft_word = {0};
+no_rspn_fft_word = {0};
+wrng_rspn_fft_word = {0};
+
+corr_rspn_fft_syll = {0};
+no_rspn_fft_syll = {0};
+wrng_rspn_fft_syll = {0};
+
+corr_rspn_fft_pho = {0};
+no_rspn_fft_pho = {0};
+wrng_rspn_fft_pho = {0};
 
 % Which freq bands
 freq_bands = {[1 4], [4 8],[8 12]};
@@ -62,39 +70,98 @@ for f = 1:length(freq_bands)
     cl_freqs = [nearest(control_wlt.freq, freq_bands{f}(1)), ...
         nearest(control_wlt.freq,freq_bands{f}(2))];
     
-    corr_ind = 1;
-    no_ind = 1;
-    wrng_ind = 1;
-    
+    wcorr_ind = 1;
+    wno_ind = 1;
+    wwrng_ind = 1;
+    scorr_ind = 1;
+    sno_ind = 1;
+    swrng_ind = 1;
+    pcorr_ind = 1;
+    pno_ind = 1;
+    pwrng_ind = 1;
     
     for t = 1:size(control_events,1)
         
         for w = 1:5
             % Separate words
             % Check if correct
-            % Collect fft in a cell structure?
+            % Collect fft in a cell structure
             if strcmp(control_events.word_info{t}.response{w},'1')
                 % find closest timepoint
                 cl_times = [nearest(control_wlt.time, control_events.word_info{t}.onset(w))...
                     nearest(control_wlt.time,control_events.word_info{t}.offset(w))];
-                corr_rspn_fft{corr_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
-                corr_ind = corr_ind+1;
+                corr_rspn_fft_word{wcorr_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                wcorr_ind = wcorr_ind+1;
             elseif strcmp(control_events.word_info{t}.response{w},'0')
                 % find closest timepoint
                 cl_times = [nearest(control_wlt.time, control_events.word_info{t}.onset(w))...
                     nearest(control_wlt.time,control_events.word_info{t}.offset(w))];
-                no_rspn_fft{no_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
-                no_ind = no_ind+1;
+                no_rspn_fft_word{wno_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                wno_ind = wno_ind+1;
                 
-            else
+            else % wrong responses
                 % find closest timepoint
                 cl_times = [nearest(control_wlt.time, control_events.word_info{t}.onset(w))...
                     nearest(control_wlt.time,control_events.word_info{t}.offset(w))];
-                wrng_rspn_fft{wrng_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
-                wrng_ind = wrng_ind+1;
+                wrng_rspn_fft_word{wwrng_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                wwrng_ind = wwrng_ind+1;
                 
             end
             
+        end
+        
+        for s = 1:size(control_events.syllable_info{t},1)
+            % Separate syllables like different trials
+            % Check if correct
+            % Collect fft in a cell structure
+            if strcmp(control_events.word_info{t}.response{control_events.syllable_info{t}.word_id(s)},'1')
+                % find closest timepoint
+                cl_times = [nearest(control_wlt.time, control_events.syllable_info{t}.onset(s))...
+                    nearest(control_wlt.time,control_events.syllable_info{t}.offset(s))];
+                corr_rspn_fft_syll{scorr_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                scorr_ind = scorr_ind+1;
+            elseif strcmp(control_events.word_info{t}.response{control_events.syllable_info{t}.word_id(s)},'0')
+                % find closest timepoint
+                cl_times = [nearest(control_wlt.time, control_events.syllable_info{t}.onset(s))...
+                    nearest(control_wlt.time,control_events.syllable_info{t}.offset(s))];
+                no_rspn_fft_syll{sno_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                sno_ind = sno_ind+1;
+                
+            else % wrong responses
+                % find closest timepoint
+                cl_times = [nearest(control_wlt.time, control_events.syllable_info{t}.onset(s))...
+                    nearest(control_wlt.time,control_events.syllable_info{t}.offset(s))];
+                wrng_rspn_fft_syll{swrng_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                swrng_ind = swrng_ind+1;
+                
+            end
+        end
+        
+        for p = 1:size(control_events.all_info{t},1)
+            % Separate phonemes like different trials
+            % Check if correct
+            % Collect fft in a cell structure
+            if strcmp(control_events.word_info{t}.response{control_events.all_info{t}.word_id(p)},'1')
+                % find closest timepoint
+                cl_times = [nearest(control_wlt.time, control_events.syllable_info{t}.onset(s))...
+                    nearest(control_wlt.time,control_events.syllable_info{t}.offset(s))];
+                corr_rspn_fft_pho{pcorr_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                pcorr_ind = pcorr_ind+1;
+            elseif strcmp(control_events.word_info{t}.response{control_events.all_info{t}.word_id(p)},'0')
+                % find closest timepoint
+                cl_times = [nearest(control_wlt.time, control_events.syllable_info{t}.onset(s))...
+                    nearest(control_wlt.time,control_events.syllable_info{t}.offset(s))];
+                no_rspn_fft_pho{pno_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                pno_ind = pno_ind+1;
+                
+            else % wrong responses
+                % find closest timepoint
+                cl_times = [nearest(control_wlt.time, control_events.all_info{t}.onset(s))...
+                    nearest(control_wlt.time,control_events.syllable_info{t}.offset(s))];
+                wrng_rspn_fft_pho{pwrng_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                pwrng_ind = pwrng_ind+1;
+                
+            end
         end
     end
 end
@@ -109,93 +176,161 @@ fft_of_words.freq_band_dtls{2} = control_wlt.freq(nearest(control_wlt.freq, freq
 fft_of_words.freq_band_dtls{3} = control_wlt.freq(nearest(control_wlt.freq, freq_bands{3}(1)):...
     nearest(control_wlt.freq,freq_bands{3}(2)));
 
-fft_of_words.corr_rspn_fft = corr_rspn_fft;
-fft_of_words.no_rspn_fft = no_rspn_fft;
-fft_of_words.wrng_rspn_fft = wrng_rspn_fft;
+fft_of_words.corr_rspn_fft_word = corr_rspn_fft_word;
+fft_of_words.no_rspn_fft_word = no_rspn_fft_word;
+fft_of_words.wrng_rspn_fft_word = wrng_rspn_fft_word;
 
-save(fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_ctrl_word_fft.mat']),'fft_of_words','-v7.3');
+fft_of_words.corr_rspn_fft_syll = corr_rspn_fft_syll;
+fft_of_words.no_rspn_fft_syll = no_rspn_fft_syll;
+fft_of_words.wrng_rspn_fft_syll = wrng_rspn_fft_syll;
+
+fft_of_words.corr_rspn_fft_pho = corr_rspn_fft_pho;
+fft_of_words.no_rspn_fft_pho = no_rspn_fft_pho;
+fft_of_words.wrng_rspn_fft_pho = wrng_rspn_fft_pho;
+
+if ~exist(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_')),'dir'),mkdir(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'))),end
+save(fullfile(Sbj_Metadata.results,strjoin(control_blocks,'_'), [strjoin(control_blocks,'_') '_ctrl_word_fft.mat']),'fft_of_words','-v7.3');
 
 %% Compare angles
-comp_angle_res{size(corr_rspn_fft{1},1),size(corr_rspn_fft,2)} = [];
-for el = 1:size(corr_rspn_fft{1},1) % loop electrode
-    for f = 1:size(corr_rspn_fft,2) % loop frequency band
+comp_angle_res{size(corr_rspn_fft_word{1},1),size(corr_rspn_fft_word,2)} = [];
+
+for el = 81:96%1:size(corr_rspn_fft_word{1},1) % loop electrode
+    clear noncorr_angles corr_angles
+    %% First work on word level
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_word,2) % loop frequency band
         % average frequency and time dimension per trial
-        for i=1:size(corr_rspn_fft,1)
-            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft{i,f}(1,:,:)),[2 3]));
+        for i=1:size(corr_rspn_fft_word,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_word{i,f}(el,:,:)),[2 3]));
         end
         
-        for i=1:size(no_rspn_fft,1)
-            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft{i,f}(1,:,:)),[2 3]));
+        for i=1:size(no_rspn_fft_word,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_word{i,f}(el,:,:)),[2 3]));
         end
-        for i=1:size(wrng_rspn_fft,1)
+        for i=1:size(wrng_rspn_fft_word,1)
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_word{i,f}(el,:,:)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        comp_angle_res{el,f}.wwtest_word_pval = pval;
+        comp_angle_res{el,f}.wwtest_word_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_word,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) word report circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) word report circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_word,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_words.jpeg']),'-djpeg','-r300')
+    close all
+    
+    clear noncorr_angles corr_angles
+    %% Second work on Syllables
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_syll,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_syll,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_syll{i,f}(el,:,:)),[2 3]));
+        end
+        
+        for i=1:size(no_rspn_fft_syll,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_syll{i,f}(el,:,:)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_syll,1)
             
-            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft{i,f}(1,:,:)),[2 3]));
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_syll{i,f}(el,:,:)),[2 3]));
         end
         
         % Test for difference in angles
         [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
         
-        comp_angle_res{el,f}.pval = pval;
-        comp_angle_res{el,f}.table = table;
+        comp_angle_res{el,f}.wwtest_syll_pval = pval;
+        comp_angle_res{el,f}.wwtest_syll_table = table;
         
         % plot rose plot
-        figure('Units','normalized','Position', [0 0  .5 .5]);
-        subplot(1,2,1)
+        subplot(size(corr_rspn_fft_syll,2),2,2*f-1)
         circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
-        subplot(1,2,2)
-        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
         
         if pval > 0.05
-            sgtitle({['Blocks: ' strjoin(control_blocks,' & ')];...
-                ['Correct vs Non-correct (wrong+unheard) word report circular stats p-value: ' num2str(pval)]})
+            title(['Correct vs Non-correct (wrong+unheard) syllable report circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
         else
-            sgtitle({['Blocks: ' strjoin(control_blocks,' & ')];...
-                ['Correct vs Non-correct (wrong+unheard) word report circular stats p-value: ' num2str(pval)]},'Color','r')
+            title(['Correct vs Non-correct (wrong+unheard) syllable report circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_syll,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_syll.jpeg']),'-djpeg','-r300')
+    close all
+    clear noncorr_angles corr_angles
+    
+    %% Third: work on phonemes
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_pho,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_pho,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_pho{i,f}(el,:,:)),[2 3]));
         end
         
-        print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
+        for i=1:size(no_rspn_fft_pho,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_pho{i,f}(el,:,:)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_pho,1)
+            
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_pho{i,f}(el,:,:)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        
+        comp_angle_res{el,f}.wwtest_pho_pval = pval;
+        comp_angle_res{el,f}.wwtest_pho_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_pho,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) phoneme report circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) phoneme report circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_pho,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
     end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_phonemes.jpeg']),'-djpeg','-r300')
+    close all
+    
 end
 
-
-% Stats:
-% First normality:
-[p,~] = rayleigh(angle(bl_data(chn_i,:))');
-eval([plotconds_toname{conds}.BlockList{plot_i} ' = [];']);
-eval([plotconds_toname{conds}.BlockList{plot_i} '.bl_rayleigh.p = p;']);
-
-[p,~] = rayleigh(angle(post_data(chn_i,:))');
-eval([plotconds_toname{conds}.BlockList{plot_i} ' = [];']);
-eval([plotconds_toname{conds}.BlockList{plot_i} '.post_rayleigh.p = p;']);
-
-[pval, table] = circ_wwtest(angle(bl_data(chn_i,:))', angle(post_data(chn_i,:))');
-eval([plotconds_toname{conds}.BlockList{plot_i} '.ttest.p = pval;']);
-eval([plotconds_toname{conds}.BlockList{plot_i} '.ttest.table = table;']);
-
-
-% 2 roseplots for PLVs
-subtightplot(3,plot_width,[2*plot_i-1, 2*plot_i],[0.1 0.01],0.1,0.02);
-
-circ_plot(angle(bl_data(chn_i,:)),'hist',[],90,true,true,'linewidth',2,'color','r');
-
-if pval > 0.05
-    title({['Block: ' plotconds{conds}.BlockList{plot_i} '; Stim:' num2str(plotconds{conds}.trainFreq(plot_i)) 'Hz'];...
-        ['Pre vs post circular stats p-value: ' num2str(pval)];'';'Prestim PLV roseplot'})
-else
-    title({['Block: ' plotconds{conds}.BlockList{plot_i} '; Stim:' num2str(plotconds{conds}.trainFreq(plot_i)) 'Hz'];...
-        ['Pre vs post circular stats p-value: ' num2str(pval)];'';'Prestim PLV roseplot'},'Color','r')
-end
-
-subtightplot(3,plot_width,[2*plot_i+plot_width-1, 2*plot_i+plot_width],[0.1 0.01],0.1,0.02);
-
-circ_plot(angle(post_data(chn_i,:)),'hist',[],90,true,true,'linewidth',2,'color','r');
-
-title({'Prestim PLV roseplot'})
-
-
-
-
-
+save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_stats.jpeg']),'comp_angle_res')
 
 
 
