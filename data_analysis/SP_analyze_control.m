@@ -191,10 +191,10 @@ fft_of_words.wrng_rspn_fft_pho = wrng_rspn_fft_pho;
 if ~exist(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_')),'dir'),mkdir(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'))),end
 save(fullfile(Sbj_Metadata.results,strjoin(control_blocks,'_'), [strjoin(control_blocks,'_') '_ctrl_word_fft.mat']),'fft_of_words','-v7.3');
 
-%% Compare angles
+%% Compare angles of whole segment
 comp_angle_res{size(corr_rspn_fft_word{1},1),size(corr_rspn_fft_word,2)} = [];
 
-for el = 81:96%1:size(corr_rspn_fft_word{1},1) % loop electrode
+for el = 81:96 %1:size(corr_rspn_fft_word{1},1) % loop electrode
     clear noncorr_angles corr_angles
     %% First work on word level
     figure('Units','normalized','Position', [0 0  .5 1]);
@@ -330,7 +330,289 @@ for el = 81:96%1:size(corr_rspn_fft_word{1},1) % loop electrode
     
 end
 
-save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_stats.jpeg']),'comp_angle_res')
+save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_stats.mat']),'comp_angle_res')
 
 
+%% Compare angles of 20 ms response
+clear comp_angle_res
+comp_angle_res{size(corr_rspn_fft_word{1},1),size(corr_rspn_fft_word,2)} = [];
 
+for el = 81:96 %1:size(corr_rspn_fft_word{1},1) % loop electrode
+    clear noncorr_angles corr_angles
+    %% First work on word level
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_word,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_word,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_word{i,f}(el,:,3)),[2 3]));
+        end
+        
+        for i=1:size(no_rspn_fft_word,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_word{i,f}(el,:,3)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_word,1)
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_word{i,f}(el,:,3)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        comp_angle_res{el,f}.wwtest_word_pval = pval;
+        comp_angle_res{el,f}.wwtest_word_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_word,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) word report (20ms) circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) word report (20ms) circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_word,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_words_20ms.jpeg']),'-djpeg','-r300')
+    close all
+    
+    clear noncorr_angles corr_angles
+    %% Second work on Syllables
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_syll,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_syll,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_syll{i,f}(el,:,3)),[2 3]));
+        end
+        
+        for i=1:size(no_rspn_fft_syll,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_syll{i,f}(el,:,3)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_syll,1)
+            
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_syll{i,f}(el,:,3)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        
+        comp_angle_res{el,f}.wwtest_syll_pval = pval;
+        comp_angle_res{el,f}.wwtest_syll_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_syll,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) syllable (20ms) report circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) syllable (20ms) report circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_syll,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_syll_20ms.jpeg']),'-djpeg','-r300')
+    close all
+    clear noncorr_angles corr_angles
+    
+    %% Third: work on phonemes
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_pho,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_pho,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_pho{i,f}(el,:,3)),[2 3]));
+        end
+        
+        for i=1:size(no_rspn_fft_pho,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_pho{i,f}(el,:,3)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_pho,1)
+            
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_pho{i,f}(el,:,3)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        
+        comp_angle_res{el,f}.wwtest_pho_pval = pval;
+        comp_angle_res{el,f}.wwtest_pho_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_pho,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) phoneme (20ms) report circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) phoneme (20ms) report circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_pho,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_phonemes_20ms.jpeg']),'-djpeg','-r300')
+    close all
+    
+end
+
+save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_stats_20ms.mat']),'comp_angle_res')
+
+%% Compare angles of 0 ms response
+clear comp_angle_res
+comp_angle_res{size(corr_rspn_fft_word{1},1),size(corr_rspn_fft_word,2)} = [];
+
+for el = 81:96 %1:size(corr_rspn_fft_word{1},1) % loop electrode
+    clear noncorr_angles corr_angles
+    %% First work on word level
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_word,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_word,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_word{i,f}(el,:,1)),[2 3]));
+        end
+        
+        for i=1:size(no_rspn_fft_word,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_word{i,f}(el,:,1)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_word,1)
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_word{i,f}(el,:,1)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        comp_angle_res{el,f}.wwtest_word_pval = pval;
+        comp_angle_res{el,f}.wwtest_word_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_word,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) word report (0ms) circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) word report (0ms) circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_word,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_words_0ms.jpeg']),'-djpeg','-r300')
+    close all
+    
+    clear noncorr_angles corr_angles
+    %% Second work on Syllables
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_syll,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_syll,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_syll{i,f}(el,:,1)),[2 3]));
+        end
+        
+        for i=1:size(no_rspn_fft_syll,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_syll{i,f}(el,:,1)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_syll,1)
+            
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_syll{i,f}(el,:,1)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        
+        comp_angle_res{el,f}.wwtest_syll_pval = pval;
+        comp_angle_res{el,f}.wwtest_syll_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_syll,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) syllable (0ms) report circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) syllable (0ms) report circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_syll,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_syll_0ms.jpeg']),'-djpeg','-r300')
+    close all
+    clear noncorr_angles corr_angles
+    
+    %% Third: work on phonemes
+    figure('Units','normalized','Position', [0 0  .5 1]);
+    for f = 1:size(corr_rspn_fft_pho,2) % loop frequency band
+        % average frequency and time dimension per trial
+        for i=1:size(corr_rspn_fft_pho,1)
+            corr_angles(i) = squeeze(mean(angle(corr_rspn_fft_pho{i,f}(el,:,1)),[2 3]));
+        end
+        
+        for i=1:size(no_rspn_fft_pho,1)
+            noncorr_angles(i) = squeeze(mean(angle(no_rspn_fft_pho{i,f}(el,:,1)),[2 3]));
+        end
+        for i=1:size(wrng_rspn_fft_pho,1)
+            
+            noncorr_angles(end+1) = squeeze(mean(angle(wrng_rspn_fft_pho{i,f}(el,:,1)),[2 3]));
+        end
+        
+        % Test for difference in angles
+        [pval, table] = circ_wwtest(corr_angles', noncorr_angles');
+        
+        comp_angle_res{el,f}.wwtest_pho_pval = pval;
+        comp_angle_res{el,f}.wwtest_pho_table = table;
+        
+        % plot rose plot
+        subplot(size(corr_rspn_fft_pho,2),2,2*f-1)
+        circ_plot(corr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        hold on
+        ylabel([num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold')
+        %         text(0,0.5,[num2str(freq_bands{f}(1)),'-',num2str(freq_bands{f}(2)), ' Hz range'],'FontSize',15,'FontWeight','bold','Units','normalized','HorizontalAlignment', 'left', ...
+        %             'VerticalAlignment', 'middle','BackgroundColor', 'white','Rotation',90)
+        
+        if pval > 0.05
+            title(['Correct vs Non-correct (wrong+unheard) phoneme (0ms) report circular stats p-value: ' num2str(pval)],'HorizontalAlignment','left')
+        else
+            title(['Correct vs Non-correct (wrong+unheard) phoneme (0ms) report circular stats p-value: ' num2str(pval)],'Color','r','HorizontalAlignment','left')
+        end
+        subplot(size(corr_rspn_fft_pho,2),2,2*f)
+        circ_plot(noncorr_angles,'hist',[],90,true,true,'linewidth',2,'color','r');
+        
+    end
+    
+    sgtitle(['Electrode label: ' control_wlt.label{el}])
+    print(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_phonemes_0ms.jpeg']),'-djpeg','-r300')
+    close all
+    
+end
+
+save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[control_wlt.label{el} , 'angle_comp_stats_0ms.mat']),'comp_angle_res')

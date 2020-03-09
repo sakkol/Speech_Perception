@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS148';
+sbj_ID = 'NS144_2';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -13,7 +13,6 @@ SP_beh_analysis(Sbj_Metadata,curr_block)
 
 %% Import
 [ecog] = TDT2ecog(params);
-ecog.params=params;
 % data=TDTbin2mat(params.directory);
 % 
 % save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_TDT_data.mat']),'data','-v7.3');
@@ -114,13 +113,19 @@ att_sent_onset = trial_onsets+repmat(prespeech_noise_length,size(trial_onsets));
 speech_onsets = trial_onsets+repmat(prespeech_noise_length+prestim_att_length,size(trial_onsets));
 
 % word,syllable and phoneme onsets and gather Responses
-tmp = load('English_all_info.mat');all_info_table = tmp.all_info_table;clear tmp
+if strcmp(curr_blockinfo.Language, 'English')
+    tmp = load('English_all_info.mat');
+elseif strcmp(curr_blockinfo.Language, 'Spanish')
+%     tmp = load('Spanish_all_info.mat');
+end
+
+all_info_table = tmp.all_info_table;clear tmp
 response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
 
 timing_info=all_info_table;timing_info(:,:)=[];
 accuracy = response_table(:,9);
 for t = 1:size(tmp_events,1)
-    timing_info(t,:) = all_info_table(strcmpi(all_info_table.sentence,tmp_events.Sentences(t)) & ...
+    timing_info(t,:) = all_info_table(strcmpi(all_info_table.sentence,tmp_events.Sentences{t}) & ...
         strcmpi(all_info_table.rate,curr_blockinfo.slowVSfast),:);
     
     timing_info.word_info{t}(:,4)=response_table{t,4:8}';
@@ -149,7 +154,7 @@ cfg.bsfreq         = [59 61; 119 121; 179 181];
 cont_notched = ft_preprocessing(cfg,ecog.ftrip);
 
 % speech onset locked
-pre = 4; % seconds (prespeech part is 3.5455 seconds)
+pre = 4; % seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
 post = 6; % seconds (longest trial is ~8.5 seconds)
 trl_trg           = [];
 trl_trg(:,1)      = floor( events.speech_onsets*fs - fs*pre );
