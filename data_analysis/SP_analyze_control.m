@@ -9,11 +9,11 @@ sbj_ID = 'NS148';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Select blocks to import
-blocklistsheet = [char(Sbj_Metadata.project_root) filesep char(Sbj_Metadata.project_name) '_BlockInfo.xlsx']; % "F:\HBML\PROJECTS_DATA\CL_Train\CL_Train_BlockLists.xlsx";
-blocklistall = readtable(blocklistsheet);
-control_blocks = blocklistall.BlockList(strcmpi(blocklistall.sbj_ID,Sbj_Metadata.sbj_ID) & contains(blocklistall.conditions_code,'1'));
-
-clear blocklistall blocklistsheet
+vars=who;
+if ~ismember(vars,'control_blocks')
+    control_blocks = select_cont_blocks(Sbj_Metadata);
+end
+clear vars
 
 %% bring in these blocks and combine only the control events
 
@@ -63,7 +63,7 @@ no_rspn_fft_pho = {0};
 wrng_rspn_fft_pho = {0};
 
 % Which freq bands
-freq_bands = {[1 4], [4 8],[8 12]};
+freq_bands = {[1 4], [4 8],[8 12],[70 150]};
 
 
 for f = 1:length(freq_bands)

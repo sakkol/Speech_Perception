@@ -1,11 +1,11 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS144_2';
+sbj_ID = 'NS148';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{1}
+curr_block = Sbj_Metadata.BlockLists{2}
 params = create_Params(Sbj_Metadata,curr_block)
 
 %% Run quick behavioral analysis
@@ -226,7 +226,7 @@ poststim_s = 3;
 
 % Make trial structure
 % speech onset locked
-pre = 4; % seconds (prespeech part is 3.5455 seconds)
+pre = 4; % seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
 post = 6; % seconds (longest trial is ~8.5 seconds)
 trl           = [];
 trl(:,1)      = floor( events.speech_onsets*fs - fs*pre );
