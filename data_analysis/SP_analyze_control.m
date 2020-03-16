@@ -20,9 +20,10 @@ clear vars
 for b = 1:length(control_blocks)
     curr_block = control_blocks{b};
     
-    % Load iEEG
+    % Load iEEG and events
     load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']))
-    events = epoched_wlt.events;
+    load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
+    events = info.events;
     
     % Select only control events
     control_idx = events.Cond_code == 1;
@@ -47,6 +48,7 @@ for b = 1:length(control_blocks)
         control_events = [control_events;events];
     end
     
+    clear epoched_wlt info
 end
 
 %% Separate fourier spectrums of correct responses and others

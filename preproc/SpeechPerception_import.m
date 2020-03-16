@@ -141,8 +141,6 @@ events = [array2table(sbjID),array2table(block),array2table(event_ids),events,ar
     array2table(speech_onsets),array2table(trial_ends),array2table(trial_durs),...
     timing_info,accuracy];
 
-ecog.events = events;
-
 %% trial based rejection
 fs = ecog.ftrip.fsample;
 % Notch filter, demean
@@ -211,8 +209,9 @@ save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']),'
 
 %% Wavelet analysis
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_avg.mat']))
+load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
 ecog = ecog_avg; clear ecog_avg
-events = ecog.events;
+events = info.events; clear info
 
 % First resample for saving space and memory
 cfg             = [];
@@ -271,6 +270,5 @@ epoched_wlt.wlt       = ft_freqanalysis(cfg,epoched_wlt);
 % epoched_wlt.wlt       = addRayleigh_to_ft(epoched_wlt.wlt); Rayleigh can
 % be added for control only. But because it combines all trials, it is not
 % clever to do it here.
-epoched_wlt.events    = events;
 
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','-v7.3');
