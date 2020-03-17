@@ -1,4 +1,4 @@
-function SP_word_evoked(Sbj_Metadata,control_blocks)
+function SP_word_evoked(Sbj_Metadata,control_blocks,HFAvsERP)
 % This is to get the mean of evoked responses (ERP and/or HFA) word heard
 % vs others. (HFAvsERP; 1:HFA only, 2:ERP only, 3:both).
 
@@ -6,6 +6,9 @@ function SP_word_evoked(Sbj_Metadata,control_blocks)
 vars=who;
 if ~ismember(vars,'control_blocks')
     control_blocks = select_cont_blocks(Sbj_Metadata);
+end
+if ~ismember(vars,'HFAvsERP')
+    HFAvsERP = 3;
 end
 clear vars
 
@@ -34,7 +37,7 @@ for b = 1:length(control_blocks)
     cfg.output='abs';
     cfg.keeptrials = 'yes';
     epoched_wlt.wlt=ft_freqdescriptives(cfg,epoched_wlt.wlt);
-    
+
     % Select events
     events = events(control_idx,:);
     
@@ -82,7 +85,7 @@ pno_ind = 1;
 pwrng_ind = 1;
 fprintf('\nCurrent event:')
 cl_freqs = [nearest(control_wlt.freq, 70), ...
-    nearest(control_wlt.freq,150)];
+        nearest(control_wlt.freq,150)];
 for t = 1:size(control_events,1)
     
     fprintf('-%d',t)
@@ -201,7 +204,6 @@ fprintf('\n')
 
 %% Average word evoked activity in different conditions overlaying with single trials
 save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'word_evoked');
-if ~exist(save_folder,'dir'),mkdir(save_folder),end
 
 for el = 1:size(corr_rspn_ERP_word{1},1)
     % 3x2 plot, one side HFA, one side ERP, 3 conditions (corr, no, wrng)
@@ -313,16 +315,21 @@ for el = 1:size(corr_rspn_ERP_word{1},1)
     xticklabels({'0.2','0.4','0.6'})
     xlabel('Time (s)')
     
-    sgtitle({[control_ERP.label{el}, ' - word onset locked ERP and HFA'];...
-        'Baseline corrected to prespeech only noise part ([-3.45 -3.05]sec of sentence onset)';...
+    sgtitle({[control_ERP.label{el}, ' - word onset locked ERP and HFA'];'Baseline corrected to prespeech only noise part (0.5sec)';...
         ['from ' num2str(length(control_blocks)) ' blocks']})
     
-    % Save the figure
-    fprintf('\t-Saving electrode #%d-%s, out of %d\n',el,control_ERP.label{el},size(control_ERP.label,1))
-    print(fullfile(save_folder,[control_wlt.label{el} , '_words_only.jpg']),'-djpeg','-r300')
+    
+    print(fullfile(save_folder,[control_wlt.label{el} , '_word.jpg']),'-djpeg','-r300')
+    
     close all
+    
+    
+    
+    
     
 end
 
 
+
 end
+    
