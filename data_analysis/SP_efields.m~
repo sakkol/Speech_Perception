@@ -71,8 +71,7 @@ efields_sterr = zeros(length(stim_epochs.label),1);
 for el = 1:length(stim_epochs.label) % Loop electrode pairs
     tmp = zeros(length(stim_epochs.trial),1);
     for t = 1:length(stim_epochs.trial) % loop trials
-%         tmp(t,1) = mean(stim_epochs.trial{t}(el,:));
-        tmp(t,1) = max(stim_epochs.trial{t}(el,:)) - min(stim_epochs.trial{t}(el,:));
+        tmp(t,1) = mean(stim_epochs.trial{t}(el,:));
     end
     efields_mean(el,1) = mean(tmp);
     efields_sterr(el,1) = stderr(tmp);
