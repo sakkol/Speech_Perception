@@ -1,6 +1,7 @@
 function SP_efields(Sbj_Metadata,curr_block)
 
 % Load bipolar
+fprintf('Loading bipolar data from: %s\n',fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']))
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']))
 % Load events
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block,[curr_block '_info.mat']))
@@ -26,12 +27,12 @@ cfg.trl     = trl;
 stim_epochs = ft_redefinetrial(cfg,ecog_bp.ftrip);
 
 % Find the locations of electrodes
-elecInfoFname=fullfile(Sbj_Metadata.freesurfer,'elec_recon',[Sbj_Metadata.sbj_ID '.electrodeNames']);
+elecInfoFname=fullfile(Sbj_Metadata.freesurfer,'elec_recon',[Sbj_Metadata.fsname '.electrodeNames']);
 elecInfo=csv2Cell(elecInfoFname,' ',2);
 elec_toplot_names = elecInfo(:,1);
 
 % Load electrode coordinates from LEPTO
-elecCoordFname=fullfile(Sbj_Metadata.freesurfer,'elec_recon',[Sbj_Metadata.sbj_ID '.PIAL']);
+elecCoordFname=fullfile(Sbj_Metadata.freesurfer,'elec_recon',[Sbj_Metadata.fsname '.PIAL']);
 elecCoordCsv=csv2Cell(elecCoordFname,' ',2);
 fullElecCoord=zeros(size(elecCoordCsv));
 % Convert coordinates from string to #
@@ -72,7 +73,7 @@ for el = 1:length(stim_epochs.label) % Loop electrode pairs
     tmp = zeros(length(stim_epochs.trial),1);
     for t = 1:length(stim_epochs.trial) % loop trials
 %         tmp(t,1) = mean(stim_epochs.trial{t}(el,:));
-        tmp(t,1) = max(stim_epochs.trial{t}(el,:)) - min(stim_epochs.trial{t}(el,:));
+        tmp(t,1) = max([max(stim_epochs.trial{t}(el,:)), -min(stim_epochs.trial{t}(el,:))]);
     end
     efields_mean(el,1) = mean(tmp);
     efields_sterr(el,1) = stderr(tmp);
@@ -83,7 +84,7 @@ stim_elecs = strsplit(ecog_bp.params.CurrBlockInfo.StimCh_anode{1},',');
 stim_elecs = [stim_elecs strsplit(ecog_bp.params.CurrBlockInfo.StimCh_cathode{1},',')];
 for i=1:length(elec_toplot_names)
     if ~strcmp(elec_toplot_names{i},stim_elecs)
-        elec_col(i,:) = [0 0 0];
+        elec_col(i,:) = [1 0 1];
     elseif any(strcmp(elec_toplot_names{i},strsplit(ecog_bp.params.CurrBlockInfo.StimCh_anode{1},',')))
         elec_col(i,:) = [1 0 0];
     elseif any(strcmp(elec_toplot_names{i},strsplit(ecog_bp.params.CurrBlockInfo.StimCh_cathode{1},',')))
@@ -105,23 +106,35 @@ for el = 1:length(stim_epochs.label) % Loop electrode pairs
         pairs{end,4} = elecInfo{strcmp(labelss{el,1},elec_toplot_names),3};
     end
 end
-pairs(1,:) = [];
-bwr = load('bwr_cmap.mat');
-all_int = interp1(linspace(min(efields_mean_toplot),max(efields_mean_toplot),length(bwr.rgb_vals)),bwr.rgb_vals,efields_mean_toplot);
-for i = 1:length(pairs)
-    pairs{i,3} = all_int(i,:);
+pairs(1,:) = [];efields_mean_toplot(1) = [];
+
+
+% bwr = load('bwr_cmap.mat');
+% p=bwr.rgb_vals;
+p=hot(256);
+x=efields_mean_toplot; %data to be plotted
+ran=range(x); %finding range of data
+min_val=min(x);%finding maximum value of data
+y=floor(((x-min_val)/ran)*length(p))+1; 
+% col=zeros(length(efields_mean_toplot),3);
+
+for i=1:length(efields_mean_toplot)
+  a=y(i);y(y==257)=256;
+%   col(i,:)=p(a,:);
+  pairs{i,3}=p(a,:);
+%   stem3(i,i,x(i),'Color',col(i,:))
+%   hold on
 end
 
-% Plot
+%% Plot
 cfg=[];
 cfg.ignoreDepthElec = 'n';
 cfg.elecCoord = 'PIAL';
 cfg.elecNames = elec_toplot_names;
 cfg.elecColors = elec_col;
-cfg.elecCbar = 'y';
-cfg.elecColorScale = [min(efields_mean_toplot),max(efields_mean_toplot)];
+cfg.elecCbar = 'n';
 cfg.pullOut = 0;
-cfg.fsurfSubDir = erase(Sbj_Metadata.freesurfer,Sbj_Metadata.sbj_ID);
+cfg.fsurfSubDir = erase(Sbj_Metadata.freesurfer,Sbj_Metadata.fsname);
 if any(strcmpi(pairs(:,4),'R')) && any(strcmpi(pairs(:,4),'L'))
     cfg.view='omni';
 elseif any(strcmpi(pairs(:,4),'L')) && ~any(strcmpi(pairs(:,4),'R'))
@@ -131,20 +144,37 @@ elseif ~any(strcmpi(pairs(:,4),'L')) && any(strcmpi(pairs(:,4),'R'))
 end
 cfg.pairs=pairs;
 cfg.showLabels='n';
-cfg.opaqueness = 0.5;
+cfg.opaqueness = 0.4;
 cfg.elecShape = 'sphere';
 cfg.elecSize = .7;
 cfg.lineWidth = 5;
 cfg.title = [Sbj_Metadata.sbj_ID '; Stimulation type: ' ecog_bp.params.CurrBlockInfo.Stim_type{1}...
     '; Location: ' ecog_bp.params.CurrBlockInfo.Location{1}...
     '; Max stim amp: ' ecog_bp.params.CurrBlockInfo.max_Amp{1} '; Anode(red):' ecog_bp.params.CurrBlockInfo.StimCh_anode{1} '; Cathode(blue):' ecog_bp.params.CurrBlockInfo.StimCh_cathode{1}];
-plotPialSurf(Sbj_Metadata.sbj_ID,cfg);
+plotPialSurf(Sbj_Metadata.fsname,cfg);
+
+% Create and delete new axes to plot colorbar
+ax = axes; 
+colormap(p);
+cmaph = colorbar(ax);
+cmaph.Ticks = linspace(0,1,8);
+cmaph.TickLabels = num2cell(linspace(min(efields_mean_toplot), max(efields_mean_toplot),8));
+cmaph.FontSize = 13;
+cmaph.LineWidth = 1.5;
+colorTitleHandle = get(cmaph,'Title');
+set(colorTitleHandle ,'String','Electric field (V/m)','FontSize',15);
+a=get(cmaph); %gets properties of colorbar
+a = a.Position; %gets the positon and size of the color bar
+set(cmaph,'Position',[a(1) a(2) 0.03 0.8])% To change size
+ax.Visible = 'off';
 set(gcf,'Units','normalized');
 set(gcf,'Position', [0 0 1 1]);
 
-% Print
+% Save plot and data
 to_print_folder = fullfile(Sbj_Metadata.results,'Efields',curr_block);
 if ~exist(to_print_folder,'dir'),mkdir(to_print_folder),end
-print(fullfile(to_print_folder,[curr_block, '_efield.jpg']),'-djpeg','-r300')
+fprintf('\n\tSaving data and plot to: %s\n',to_print_folder)
+save(fullfile(to_print_folder,[curr_block, '_efield_data.mat']),'efields_mean','efields_sterr','pairs')
+print(fullfile(to_print_folder,[curr_block, '_efield_plot.jpg']),'-djpeg','-r300')
 
 end
