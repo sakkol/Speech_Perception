@@ -40,7 +40,7 @@ fprintf('Newly assigned SOZ channels: %s\n',strjoin(new_SOZs,', '))
 
 % Put it back
 ecog.bad_chans = ecog.ftrip.label([newData{:,2}]);
-ecog.spike_id = ecog.ftrip.label([newData{:,3}]);
-ecog.soz_id = ecog.ftrip.label([newData{:,4}]);
+ecog.spike_chans = ecog.ftrip.label([newData{:,3}]);
+ecog.szr_onset_chans = ecog.ftrip.label([newData{:,4}]);
 
 clear new_bads new_spikes new_SOZs newData uit h soz_id bad_id spike_id d
