@@ -8,25 +8,40 @@ load(fullfile(Sbj_Metadata.iEEG_data, curr_block,[curr_block '_info.mat']))
 events = info.events;
 
 % Select events with stimulation
-control_idx = find(events.Cond_code ~= 1);
+noncontrol_idx = find(events.Cond_code ~= 1);
 
 % Generate trial structure
 trl = [];
-for i = 1:length(control_idx)
-    trl(i,1) = events.speech_onsets(control_idx(i)) + events.trial_details{control_idx(i)}.delay;
-    trl(i,2) = trl(i,1) + events.word_info{control_idx(i)}.offset(end);
+for i = 1:length(noncontrol_idx)
+    trl(i,1) = events.speech_onsets(noncontrol_idx(i)) + events.trial_details{noncontrol_idx(i)}.delay;
+    trl(i,2) = trl(i,1) + events.word_info{noncontrol_idx(i)}.offset(end);
     trl(i,3) = 0;
 end
 
 % Put events with different lengths
 trl = floor(trl*ecog_bp.ftrip.fsample);
 
-% Epoch
+% Remove pairs that include artefact channels (both artifact_patient and artifact_block from info.channelinfo)
+el_id = zeros(length(ecog_bp.ftrip.label),1);
+for el = 1:length(ecog_bp.ftrip.label)
+    if ~any(ismember(strsplit(ecog_bp.ftrip.label{el},'-'),info.channelinfo.Label(info.channelinfo.artifact_patient==1 | info.channelinfo.artifact_block==1)))
+        el_id(el,1) = 1;
+    else
+        el_id(el,1) = 0;
+    end
+end
+
+% Epoch without bad channels
+cfg         = [];
+cfg.channel = ecog_bp.ftrip.label(logical(el_id));
+tmp         = ft_preprocessing(cfg,ecog_bp.ftrip);
+
 cfg         = [];
 cfg.trl     = trl;
-stim_epochs = ft_redefinetrial(cfg,ecog_bp.ftrip);
+stim_epochs = ft_redefinetrial(cfg,tmp);
+clear tmp
 
-% Find the locations of electrodes
+%% Find the locations of electrodes
 elecInfoFname=fullfile(Sbj_Metadata.freesurfer,'elec_recon',[Sbj_Metadata.fsname '.electrodeNames']);
 elecInfo=csv2Cell(elecInfoFname,' ',2);
 elec_toplot_names = elecInfo(:,1);
@@ -46,7 +61,7 @@ if length(fullElecCoord) ~= length(elec_toplot_names)
     error('There is a problem with number of elec names and elec coords, please load and check!\n')
 end
 
-% Find distances based on bipolar pairs
+%% Find distances based on bipolar pairs
 distances = zeros(length(stim_epochs.label),1);
 labelss = [];labelss{length(stim_epochs.label),2} = '';
 for el = 1:length(stim_epochs.label)
@@ -66,7 +81,7 @@ for el = 1:length(stim_epochs.label)
     distances(el,1) = norm(loc(2,:) -  loc(1,:));
 end
 
-% Calculate electric fields
+%% Calculate electric fields
 efields_mean = zeros(length(stim_epochs.label),1);
 efields_sterr = zeros(length(stim_epochs.label),1);
 for el = 1:length(stim_epochs.label) % Loop electrode pairs
@@ -79,7 +94,7 @@ for el = 1:length(stim_epochs.label) % Loop electrode pairs
     efields_sterr(el,1) = stderr(tmp);
 end
 
-% Put colors of stim elecs differently
+%% Put colors of stim elecs differently
 stim_elecs = strsplit(ecog_bp.params.CurrBlockInfo.StimCh_anode{1},',');
 stim_elecs = [stim_elecs strsplit(ecog_bp.params.CurrBlockInfo.StimCh_cathode{1},',')];
 for i=1:length(elec_toplot_names)
@@ -94,7 +109,7 @@ for i=1:length(elec_toplot_names)
     end
 end
 
-% Prepare pairs cell
+%% Prepare pairs cell for plotPialSurf input
 pairs=[];pairs{1,4}='';
 efields_mean_toplot = 0;
 for el = 1:length(stim_epochs.label) % Loop electrode pairs
@@ -165,12 +180,12 @@ colorTitleHandle = get(cmaph,'Title');
 set(colorTitleHandle ,'String','Electric field (V/m)','FontSize',15);
 a=get(cmaph); %gets properties of colorbar
 a = a.Position; %gets the positon and size of the color bar
-set(cmaph,'Position',[a(1) a(2) 0.03 0.8])% To change size
+set(cmaph,'Position',[a(1)+0.05 a(2) 0.03 0.8])% To change size
 ax.Visible = 'off';
 set(gcf,'Units','normalized');
 set(gcf,'Position', [0 0 1 1]);
 
-% Save plot and data
+%% Save plot and data
 to_print_folder = fullfile(Sbj_Metadata.results,'Efields',curr_block);
 if ~exist(to_print_folder,'dir'),mkdir(to_print_folder),end
 fprintf('\n\tSaving data and plot to: %s\n',to_print_folder)
