@@ -1,11 +1,11 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS148_2';
+sbj_ID = 'NS150';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{1}
+curr_block = Sbj_Metadata.BlockLists{2}
 params = create_Params(Sbj_Metadata,curr_block)
 
 %% Run quick behavioral analysis
@@ -85,10 +85,11 @@ end
 figure('Units','normalized','Position', [0 0  1 .5]);
 plot(1/analog_fs:1/analog_fs:length(noise_ch)/analog_fs,noise_ch); hold on
 for i=1:length(trial_onsets_tpts)
-    plot([trial_onsets_tpts(i)/analog_fs trial_onsets_tpts(i)/analog_fs],[-2 2])
+    plot([trial_onsets_tpts(i)/analog_fs trial_onsets_tpts(i)/analog_fs],[-1.5 1.5])
 end
 title([num2str(length(trial_onsets_tpts)) ' onsets found']);
 xlabel('Time (s)')
+xlim([1/analog_fs length(noise_ch)/analog_fs])
 print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
 
 %% Create each event point
@@ -210,18 +211,13 @@ save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']),'
 %% Wavelet analysis
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_avg.mat']))
 load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
-ecog = ecog_avg; clear ecog_avg
 events = info.events; clear info
 
 % First resample for saving space and memory
 cfg             = [];
 cfg.resamplefs  = 1000;
-ecog.ftrip      = ft_resampledata(cfg,ecog.ftrip);
-fs              = ecog.ftrip.fsample;
-
-% define pre and post (beginning and the end of each trial)
-prestim_s  = 3;
-poststim_s = 3;
+ecog_avg.ftrip  = ft_resampledata(cfg,ecog_avg.ftrip);
+fs              = ecog_avg.ftrip.fsample;
 
 % Make trial structure
 % speech onset locked
@@ -235,7 +231,7 @@ trl(:,3)      = floor( -pre*fs );
 % Epoch
 cfg      = [];
 cfg.trl  = trl;
-epoched_wlt    = ft_redefinetrial(cfg,ecog.ftrip);
+epoched_wlt    = ft_redefinetrial(cfg,ecog_avg.ftrip);
 % replace NaNs with zeros in first trial (if trial started fast)
 epoched_wlt.trial{1}(isnan(epoched_wlt.trial{1})) = 0;
 
