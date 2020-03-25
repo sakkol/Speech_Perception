@@ -1,9 +1,4 @@
 function SP_efields(Sbj_Metadata,curr_block,aroundPeak)
-vars=who;
-if ~ismember(vars,'aroundPeak')
-    aroundPeak = 0;
-end
-clear vars
 
 % Load bipolar
 fprintf('Loading bipolar data from: %s\n',fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']))
@@ -22,13 +17,11 @@ for i = 1:length(noncontrol_idx)
         trl(i,1) = events.speech_onsets(noncontrol_idx(i)) + events.trial_details{noncontrol_idx(i)}.delay;
         trl(i,2) = trl(i,1) + events.word_info{noncontrol_idx(i)}.offset(end);
         trl(i,3) = 0;
-        to_print_name = '';
     else
         [~,l] = max(events.Stimuli{noncontrol_idx(i)}(:,2));
         trl(i,1) = events.trial_onsets(noncontrol_idx(i)) + l/24000 -0.02; % 20ms around the peak e-stim
-        trl(i,2) = events.trial_onsets(noncontrol_idx(i)) + l/24000 +0.02;
+        trl(i,2) = events.trial_onsets(noncontrol_idx(i)) + l/24000 0.02;
         trl(i,3) = 0;
-        to_print_name = '_aroundPeak';
     end
 end
 
@@ -203,7 +196,7 @@ set(gcf,'Position', [0 0 1 1]);
 to_print_folder = fullfile(Sbj_Metadata.results,'Efields',curr_block);
 if ~exist(to_print_folder,'dir'),mkdir(to_print_folder),end
 fprintf('\n\tSaving data and plot to: %s\n',to_print_folder)
-save(fullfile(to_print_folder,[curr_block, '_efield_data' to_print_name '.mat']),'efields_mean','efields_sterr','pairs')
-print(fullfile(to_print_folder,[curr_block, '_efield_plot' to_print_name '.jpg']),'-djpeg','-r300')
+save(fullfile(to_print_folder,[curr_block, '_efield_data.mat']),'efields_mean','efields_sterr','pairs')
+print(fullfile(to_print_folder,[curr_block, '_efield_plot.jpg']),'-djpeg','-r300')
 
 end
