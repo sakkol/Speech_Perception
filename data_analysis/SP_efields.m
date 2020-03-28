@@ -60,7 +60,7 @@ elecInfoFname=fullfile(Sbj_Metadata.freesurfer,'elec_recon',[Sbj_Metadata.fsname
 elecInfo=csv2Cell(elecInfoFname,' ',2);
 elec_toplot_names = elecInfo(:,1);
 
-% Load electrode coordinates from LEPTO
+% Load electrode coordinates from PIAL
 elecCoordFname=fullfile(Sbj_Metadata.freesurfer,'elec_recon',[Sbj_Metadata.fsname '.PIAL']);
 elecCoordCsv=csv2Cell(elecCoordFname,' ',2);
 fullElecCoord=zeros(size(elecCoordCsv));
