@@ -36,7 +36,7 @@ SP_res = fullfile(SP_root,'Collected_Results','Efields');
 if ~exist(SP_res,'dir'),mkdir(SP_res),end
 
 AllBlockInfo = readtable(fullfile(SP_root,[project_name '_BlockInfo.xlsx']));
-aroundPeak = 0;
+aroundPeak = 1;
 
 sbj_IDs = unique(AllBlockInfo.sbj_ID(~ismember(AllBlockInfo.sbj_ID,'NS144_2')));
 for s = 1:length(sbj_IDs)
