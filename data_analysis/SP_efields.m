@@ -48,6 +48,7 @@ end
 % Epoch without bad channels
 cfg         = [];
 cfg.channel = ecog_bp.ftrip.label(logical(el_id));
+cfg.detrend = 'yes';
 tmp         = ft_preprocessing(cfg,ecog_bp.ftrip);
 
 cfg         = [];
@@ -158,7 +159,7 @@ end
 %% Plot
 cfg=[];
 cfg.ignoreDepthElec = 'n';
-cfg.elecCoord = 'PIAL';
+cfg.elecCoord = 'LEPTO';
 cfg.elecNames = elec_toplot_names;
 cfg.elecColors = elec_col;
 cfg.elecCbar = 'n';
