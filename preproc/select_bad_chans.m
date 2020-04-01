@@ -30,9 +30,14 @@ waitfor(h)
 
 
 % Vocalize the results
-new_bads = ecog.ftrip.label(~ismember(ecog.ftrip.label([newData{:,2}]),ecog.bad_chans));
-new_spikes = ecog.ftrip.label(~ismember(ecog.ftrip.label([newData{:,3}]),ecog.spike_chans));
-new_SOZs = ecog.ftrip.label(~ismember(ecog.ftrip.label([newData{:,4}]),ecog.szr_onset_chans));
+already_nonbad = ecog.ftrip.label(~ismember(ecog.ftrip.label,ecog.bad_chans));
+new_bads = already_nonbad(ismember(already_nonbad,ecog.ftrip.label([newData{:,2}])));
+
+already_nonsp = ecog.ftrip.label(~ismember(ecog.ftrip.label,ecog.spike_chans));
+new_spikes = already_nonsp(ismember(already_nonsp,ecog.ftrip.label([newData{:,3}])));
+
+already_nonSOZ = ecog.ftrip.label(~ismember(ecog.ftrip.label,ecog.szr_onset_chans));
+new_SOZs = already_nonSOZ(ismember(already_nonSOZ,ecog.ftrip.label([newData{:,4}])));
 
 fprintf('Newly assigned bad channels: %s\n',strjoin(new_bads,', '))
 fprintf('Newly assigned spikey channels: %s\n',strjoin(new_spikes,', '))
@@ -43,4 +48,4 @@ ecog.bad_chans = ecog.ftrip.label([newData{:,2}]);
 ecog.spike_chans = ecog.ftrip.label([newData{:,3}]);
 ecog.szr_onset_chans = ecog.ftrip.label([newData{:,4}]);
 
-clear new_bads new_spikes new_SOZs newData uit h soz_id bad_id spike_id d
+clear new_bads new_spikes new_SOZs newData uit h soz_id bad_id spike_id d already_nonbad already_nonsp already_nonSOZ
