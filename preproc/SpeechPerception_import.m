@@ -1,11 +1,11 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS150';
+sbj_ID = 'NS148_2';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{2}
+curr_block = Sbj_Metadata.BlockLists{1}
 params = create_Params(Sbj_Metadata,curr_block)
 
 %% Run quick behavioral analysis
