@@ -1,6 +1,6 @@
 function SP_word_evoked(Sbj_Metadata,control_blocks)
-% This is to get the mean of evoked responses (ERP and/or HFA) word heard
-% vs others. (HFAvsERP; 1:HFA only, 2:ERP only, 3:both).
+% This is to get the mean of evoked responses (ERP and HFA) word heard
+% vs others.
 
 %% Select blocks to import
 vars=who;

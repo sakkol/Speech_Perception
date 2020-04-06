@@ -36,7 +36,7 @@ SP_res = fullfile(SP_root,'Collected_Results','Efields');
 if ~exist(SP_res,'dir'),mkdir(SP_res),end
 
 AllBlockInfo = readtable(fullfile(SP_root,[project_name '_BlockInfo.xlsx']));
-aroundPeak = 0;
+aroundPeak = 1;
 
 sbj_IDs = unique(AllBlockInfo.sbj_ID(~ismember(AllBlockInfo.sbj_ID,'NS144_2')));
 for s = 1:length(sbj_IDs)
@@ -49,9 +49,9 @@ for s = 1:length(sbj_IDs)
         EA_efields(Sbj_Metadata,curr_block,aroundPeak)
         to_print_folder = fullfile(Sbj_Metadata.results,'Efields',curr_block);
         if ~aroundPeak
-            copyfile(fullfile(to_print_folder,[curr_block, '_efield_plot.jpg']),fullfile(EA_res,[sbj_ID '_' curr_block '_efield_plot.jpg']));
+            copyfile(fullfile(to_print_folder,[curr_block, '_efield_plot.jpg']),fullfile(SP_res,[sbj_ID '_' curr_block '_efield_plot.jpg']));
         else
-            copyfile(fullfile(to_print_folder,[curr_block, '_efield_plot_aroundPeak.jpg']),fullfile(EA_res,[sbj_ID '_' curr_block '_efield_plot_aroundPeak.jpg']));
+            copyfile(fullfile(to_print_folder,[curr_block, '_efield_plot_aroundPeak.jpg']),fullfile(SP_res,[sbj_ID '_' curr_block '_efield_plot_aroundPeak.jpg']));
         end
         close all
     end
