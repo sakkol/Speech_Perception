@@ -57,3 +57,10 @@ for s = 1:length(sbj_IDs)
     end
 end
 
+%% Bulk run separate fourier v2
+freq_bands = {[1 4],[4 8],[8 12]};
+for s = 1:length(indx)
+    sbj_ID = subjects{indx(s)};
+    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+    SP_separate_event_fourier_v2(Sbj_Metadata,freq_bands)
+end
