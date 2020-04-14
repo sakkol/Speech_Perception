@@ -14,7 +14,7 @@ clear vars
 control_blocks = select_cont_blocks(Sbj_Metadata);
 
 %% bring in these blocks and combine only the control events
-fprintf('These blocks are going to be used:%s\n',strjoin(control_blocks,', '))
+fprintf('For subject %s, these blocks are going to be used:%s\n',Sbj_Metadata.sbj_ID,strjoin(control_blocks,', '))
 for b = 1:length(control_blocks)
     curr_block = control_blocks{b};
     fprintf('...loading:%s\n',curr_block)
@@ -49,23 +49,31 @@ for b = 1:length(control_blocks)
 end
 
 %% Separate fourier spectrums of correct responses and others
-corr_rspn_fouri_word = {0};
-no_rspn_fouri_word = {0};
-wrng_rspn_fouri_word = {0};
+fouri_of_words = [];
+fouri_of_words.freq_bands = freq_bands;
 
-corr_rspn_fouri_syll = {0};
-no_rspn_fouri_syll = {0};
-wrng_rspn_fouri_syll = {0};
+fouri_of_words.corr_rspn_fouri_word = {[]};
+fouri_of_words.no_rspn_fouri_word = {[]};
+fouri_of_words.wrng_rspn_fouri_word = {[]};
 
-corr_rspn_fouri_pho = {0};
-no_rspn_fouri_pho = {0};
-wrng_rspn_fouri_pho = {0};
+fouri_of_words.corr_rspn_fouri_syll = {[]};
+fouri_of_words.no_rspn_fouri_syll = {[]};
+fouri_of_words.wrng_rspn_fouri_syll = {[]};
+
+fouri_of_words.corr_rspn_fouri_pho = {[]};
+fouri_of_words.no_rspn_fouri_pho = {[]};
+fouri_of_words.wrng_rspn_fouri_pho = {[]};
+
 
 fprintf('There are total of %d events\n',size(control_events,1))
 for f = 1:length(freq_bands)
     fprintf('Separating data for frequency range: %d-%dHz\n',freq_bands{f}(1),freq_bands{f}(2))
-    cl_freqs = [nearest(control_wlt.freq, freq_bands{f}(1)), ...
-        nearest(control_wlt.freq,freq_bands{f}(2))];
+    
+    for ii = freq_bands{1}(1):freq_bands{1}(2)
+        cl_freqs(ii) = nearest(control_wlt.freq, ii);
+    end
+    
+    fouri_of_words.freq_band_dtls{f} = control_wlt.freq(cl_freqs);
     
     wcorr_ind = 1;
     wno_ind = 1;
@@ -84,17 +92,17 @@ for f = 1:length(freq_bands)
             % Collect fouri in a cell structure
             
             % find closest timepoint
-            cl_times = [nearest(control_wlt.time, control_events.word_info{t}.onset(w)-0.1)...
-                nearest(control_wlt.time,control_events.word_info{t}.onset(w)+.9)];
+            cl_times = [nearest(control_wlt.time, control_events.word_info{t}.onset(w)-0.05)...
+                nearest(control_wlt.time,control_events.word_info{t}.onset(w)+.7)];
             if strcmp(control_events.word_info{t}.response{w},'1')
-                corr_rspn_fouri_word{wcorr_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.corr_rspn_fouri_word{1,f}(wcorr_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 wcorr_ind = wcorr_ind+1;
             elseif strcmp(control_events.word_info{t}.response{w},'0')
-                no_rspn_fouri_word{wno_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.no_rspn_fouri_word{1,f}(wno_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 wno_ind = wno_ind+1;
                 
             else % wrong responses
-                wrng_rspn_fouri_word{wwrng_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.wrng_rspn_fouri_word{1,f}(wwrng_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 wwrng_ind = wwrng_ind+1;
                 
             end
@@ -105,16 +113,16 @@ for f = 1:length(freq_bands)
             % Separate syllables like different trials
             % Collect fouri in a cell structure
             % find closest timepoint
-            cl_times = [nearest(control_wlt.time, control_events.syllable_info{t}.onset(s)-0.1)...
-                nearest(control_wlt.time,control_events.syllable_info{t}.onset(s)+.9)];
+            cl_times = [nearest(control_wlt.time, control_events.syllable_info{t}.onset(s)-0.05)...
+                nearest(control_wlt.time,control_events.syllable_info{t}.onset(s)+.7)];
             if strcmp(control_events.word_info{t}.response{control_events.syllable_info{t}.word_id(s)},'1')
-                corr_rspn_fouri_syll{scorr_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.corr_rspn_fouri_syll{1,f}(scorr_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 scorr_ind = scorr_ind+1;
             elseif strcmp(control_events.word_info{t}.response{control_events.syllable_info{t}.word_id(s)},'0')
-                no_rspn_fouri_syll{sno_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.no_rspn_fouri_syll{1,f}(sno_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 sno_ind = sno_ind+1;
             else % wrong responses
-                wrng_rspn_fouri_syll{swrng_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.wrng_rspn_fouri_syll{1,f}(swrng_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 swrng_ind = swrng_ind+1;
                 
             end
@@ -124,16 +132,16 @@ for f = 1:length(freq_bands)
             % Separate phonemes like different trials
             % Collect fouri in a cell structure
             % find closest timepoint
-            cl_times = [nearest(control_wlt.time, control_events.all_info{t}.phoneme_onset(p)-0.1)...
-                nearest(control_wlt.time,control_events.all_info{t}.phoneme_onset(p)+.9)];
+            cl_times = [nearest(control_wlt.time, control_events.all_info{t}.phoneme_onset(p)-0.05)...
+                nearest(control_wlt.time,control_events.all_info{t}.phoneme_onset(p)+.7)];
             if strcmp(control_events.word_info{t}.response{control_events.all_info{t}.word_id(p)},'1')
-                corr_rspn_fouri_pho{pcorr_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.corr_rspn_fouri_pho{1,f}(pcorr_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 pcorr_ind = pcorr_ind+1;
             elseif strcmp(control_events.word_info{t}.response{control_events.all_info{t}.word_id(p)},'0')
-                no_rspn_fouri_pho{pno_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.no_rspn_fouri_pho{1,f}(pno_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 pno_ind = pno_ind+1;
             else % wrong responses
-                wrng_rspn_fouri_pho{pwrng_ind,f} = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs(1):cl_freqs(2),cl_times(1):cl_times(2)));
+                fouri_of_words.wrng_rspn_fouri_pho{1,f}(pwrng_ind,:,:,:) = squeeze(control_wlt.fourierspctrm(t,:,cl_freqs,cl_times(1):cl_times(2)));
                 pwrng_ind = pwrng_ind+1;
                 
             end
@@ -142,28 +150,7 @@ for f = 1:length(freq_bands)
     fprintf('\n\n')
 end
 
-fouri_of_words = [];
-
-fouri_of_words.freq_bands = freq_bands;
-fouri_of_words.freq_band_dtls{1} = control_wlt.freq(nearest(control_wlt.freq, freq_bands{1}(1)):...
-    nearest(control_wlt.freq,freq_bands{1}(2)));
-fouri_of_words.freq_band_dtls{2} = control_wlt.freq(nearest(control_wlt.freq, freq_bands{2}(1)):...
-    nearest(control_wlt.freq,freq_bands{2}(2)));
-fouri_of_words.freq_band_dtls{3} = control_wlt.freq(nearest(control_wlt.freq, freq_bands{3}(1)):...
-    nearest(control_wlt.freq,freq_bands{3}(2)));
-
-fouri_of_words.corr_rspn_fouri_word = corr_rspn_fouri_word;
-fouri_of_words.no_rspn_fouri_word = no_rspn_fouri_word;
-fouri_of_words.wrng_rspn_fouri_word = wrng_rspn_fouri_word;
-
-fouri_of_words.corr_rspn_fouri_syll = corr_rspn_fouri_syll;
-fouri_of_words.no_rspn_fouri_syll = no_rspn_fouri_syll;
-fouri_of_words.wrng_rspn_fouri_syll = wrng_rspn_fouri_syll;
-
-fouri_of_words.corr_rspn_fouri_pho = corr_rspn_fouri_pho;
-fouri_of_words.no_rspn_fouri_pho = no_rspn_fouri_pho;
-fouri_of_words.wrng_rspn_fouri_pho = wrng_rspn_fouri_pho;
-
+fouri_of_words.time_dtls = control_wlt.time(cl_times(1):cl_times(2));
 %% Save v2
 save_dir = fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_v2']);
 if ~exist(save_dir,'dir'),mkdir(save_dir),end
