@@ -1,11 +1,11 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS148';
+sbj_ID = 'NS150';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{1}
+curr_block = Sbj_Metadata.BlockLists{3}
 params = create_Params(Sbj_Metadata,curr_block)
 
 %% Run quick behavioral analysis
@@ -250,6 +250,10 @@ epoched_wlt                     = ft_preprocessing(cfg_preproc, epoched_wlt);
 cfg             = [];
 cfg.keeptrials  = 'yes';
 epoched_wlt           = ft_timelockanalysis(cfg,epoched_wlt);
+
+if sum(sum(sum(isnan(epoched_wlt.trial))))
+    warning('\n\n\n\t\t\tTHERE ARE %s TRIALS THAT HAVE NANs',sum(sum(sum(isnan(epoched_wlt.trial)))))
+end
 
 % Wavelet
 cfg                   = [];
