@@ -13,21 +13,17 @@ time = linspace(-0.05,0.7,76);
 save_dir = fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_v2'],'PICS');
 if ~exist(save_dir,'dir'),mkdir(save_dir),end
 
-bwr = load('bwr_cmap.mat');
-p=bwr.rgb_vals;
+% bwr = load('bwr_cmap.mat');
 
 itpc = [];
 for cond = 1:3
     % get data
     if cond == 1
         curr_fouri_all = fouri_of_words.corr_rspn_fouri_word{1};
-        totitle = 'Correct responses';
     elseif cond == 2
         curr_fouri_all = fouri_of_words.no_rspn_fouri_word{1};
-        totitle = 'No responses';
     else
         curr_fouri_all = fouri_of_words.wrng_rspn_fouri_word{1};
-        totitle = 'Wrong responses';
     end
     
     % compute inter-trial phase coherence (itpc) for each conditions
@@ -61,7 +57,7 @@ for el = 1:size(itpc,2)
         if cond==2,xlabel('Time (s)');end
         caxis([0 0.5])
     end
-    colormap(bwr.rgb_vals)
+    colormap('hot')
     colorbar
     sgtitle(['Elec: ' info.channelinfo.Label{el} ' - inter-trial phase coherence (word onset locked)'], 'FontSize',15,'FontWeight','bold')
     print('-r300','-djpeg',fullfile(save_dir,[info.channelinfo.Label{el} '_ITPC_word.jpg']))
