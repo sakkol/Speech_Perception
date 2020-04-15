@@ -67,3 +67,26 @@ for s = 1:length(indx)
     SP_control_ITPC(Sbj_Metadata)
 %     SP_separate_event_fourier_v2(Sbj_Metadata)
 end
+
+%% Correcting info.events based on new info (peakRate and peakEnv)
+
+AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[project_name '_BlockInfo.xlsx']));
+
+sbj_IDs = unique(AllBlockInfo.sbj_ID(~ismember(AllBlockInfo.sbj_ID,'NS144_2')));
+for s = 1:length(sbj_IDs)
+    sbj_ID = sbj_IDs{s};
+    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+    
+    whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID));
+    for b = 1:length(whichblocks)
+        curr_block = whichblocks{b};
+        fprintf('Running for pt-%s and block-%s\n',sbj_ID,curr_block)
+        load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']))
+        
+        for ii = 1:size(info.events,1)
+            info.events.peak_info{ii} = all_info_table.peak_info{strcmp(all_info_table.sentence,info.events.sentence{ii}) ...
+                & strcmp(all_info_table.rate,info.events.rate{ii})};
+        end
+        save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']),'info')
+    end
+end
