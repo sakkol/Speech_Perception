@@ -1,13 +1,26 @@
-function [peakRate, peakEnv, amp_envel, deriv_amp_env] = get_speech_peaks(speech,Fs)
+function [peakRate, peakEnv, amp_env, deriv_amp_env] = get_speech_peaks(speech,Fs)
+% This function calculates broadband speech amplitude envelope (amp_env),
+% half-wave rectified first derivative of amplitude envelope
+% (deriv_amp_env), peaks in the envelope (peakEnv), peaks in the rate
+% changes of envelope (peakRate) and also plots speech spectrogram along
+% with envelope and its first derivative. 
+% Spectrogram calculation is based on Cochlear Output function as
+% implemented in NSL toolbox with critical filters (CF) = 440*2.^((-31:97)/24)).
+% peakRate and peakEnv calculations are based on Oganian and Chang, 2019 
+% (Science Advances).
 
 
-% CF = 440 * 2 .^ ((-31:97)/24);
-load('bark_cutoff_freqs.mat')
-CF = bark_cutoff_freqs;
+% remove zeros in the end
+speech = speech(1:find(speech,1,'last'));
 
+CF = 440 * 2 .^ ((-31:97)/24);
+% load('bark_cutoff_freqs.mat') % I tried Bark scale but results weren't clear
+% CF = bark_cutoff_freqs;
 
+% Remove frequency bands that exceeds half of sampling rate
+CF(CF>Fs/2) = [];
 
-
+% Calculate narrow-band filtered speech envelope
 for bi = 1:[length(CF)-1]
     filter_range = [CF(bi) CF(bi+1)];
     [b,a] = butter(2, filter_range/(Fs/2), 'bandpass');
@@ -15,32 +28,46 @@ for bi = 1:[length(CF)-1]
     hilby(bi,:) = abs(hilbert(yfilt));
 end
 
+% Average narrow band filtered signals to get broadband envelope (with minor smoothing)
+amp_env = smooth(mean(hilby,1),500);
 
+% Calculate the first derivative of envelope (which means changes in rate
+% of envelope)  (with minor smoothing)
+deriv_amp_env = [smooth(diff(amp_env),700);0];
+% half wave rectification of derivative
+deriv_amp_env(deriv_amp_env<0) = 0;
 
-amp_envel = smooth(mean(hilby,1),1500);
+% find the peaks in both signals to get peakEnv and peak Rate locations
+[~,peakEnv]=findpeaks(amp_env*(1/max(abs(speech))),'MinPeakDistance',400,'MinPeakProminence',0.0001);
+[~,peakRate]=findpeaks(deriv_amp_env*(1/max(abs(deriv_amp_env))),'MinPeakDistance',400,'MinPeakProminence',0.02);
 
+% remove if there is one very close to end, probably error
+peakEnv( peakEnv > length(deriv_amp_env)-100) = [];
+peakRate( peakRate > length(deriv_amp_env)-100) = [];
 
-deriv_amp_env = [smooth(diff(amp_envel),1500);0];
-
-
-
-% amp_envel = smooth(mean(hilby,1),500);
-% amp_envel = sum(hilby,1);
-figure
-subplot(311)
-imagesc(hilby)
+%% Plot results
+figure('Units','normalized','Position', [0 0  .8 .5]);
+subplot(211)
+imagesc([1:length(hilby)]/Fs,CF,hilby)
 axis xy
-subplot(312)
-[~,peakEnv]=findpeaks(amp_envel,'MinPeakDistance',1000);
+ylabel('Frequency (Hz)')
+set(gca, 'FontSize',13,'FontWeight','bold','XGrid','on','GridColor','w','GridLineStyle','--','GridAlpha',1,'LineWidth',.7);
 
-subplot(313)
-[~,peakRate]=findpeaks(deriv_amp_env,'MinPeakDistance',1000);
+subplot(212)
+p1=plot([1:length(speech)]/Fs,speech*(1/max(abs(speech))),'Color',[0.651,0.651,0.651]);
+y=ylim;
+hold on
+p2=plot([1:length(amp_env)]/Fs,amp_env*(1/max(amp_env)),'r');
+plot([peakEnv/Fs peakEnv/Fs],[y(1) y(2)],'r','LineWidth',2);
 
-% remove last peaks that are close to end (probably error)
-peakEnv( peakEnv > length(deriv_amp_env)-1000) = [];
-peakRate( peakRate > length(deriv_amp_env)-1000) = [];
+p4=plot([1:length(deriv_amp_env)]/Fs,deriv_amp_env*(1/max(abs(deriv_amp_env))),'k');
+plot([peakRate/Fs peakRate/Fs],[y(1) y(2)],'k','LineWidth',2);
+xlim([0 length(deriv_amp_env)/Fs])
+xlabel('Time (s)')
+ylabel('Normalized amplitude')
+legend([p1 p2 p4],{'Speech', 'Amplitude Envelope', 'Positive Envelope Rate of Change'},'Location','northoutside','Orientation','horizontal','FontSize',15);
 
+set(gca, 'FontSize',13,'FontWeight','bold','XGrid','on','GridColor','k','GridLineStyle','--','GridAlpha',1,'LineWidth',.7);
 
-
-
+end
 
