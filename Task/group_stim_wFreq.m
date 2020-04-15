@@ -19,7 +19,7 @@ for i = 1:length(files)
     %compute envelope
  
     % 1. band pass filtering between 100 Hz and 4000 Hz 
-    filter_range = [1 12000];
+    filter_range = [100 4000];
     [b,a] = butter(2, filter_range/(Fs/2), 'bandpass');
     yfilt = filter(b,a,y);
  
