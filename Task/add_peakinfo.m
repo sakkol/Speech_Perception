@@ -4,8 +4,11 @@ main_stim_loc = ...
 load('English_all_info_old.mat')
 
 savedir = fullfile(main_stim_loc,'peakInfo_plots');
+ifPlot = 0;
 
+fprintf('Iteration = 000');
 for i=1:size(all_info_table,1)
+    fprintf('\b\b\b%3d',i)
     
     all_info_table.all_info{i}.Properties.VariableNames{'onset'} = 'syllable_onset';
     all_info_table.all_info{i}.Properties.VariableNames{'offset'} = 'syllable_offset';
@@ -21,28 +24,31 @@ for i=1:size(all_info_table,1)
     
     [speech,Fs] = audioread(filename);
     
-    [peakRate, peakEnv, amp_envel, deriv_amp_env] = get_speech_peaks(speech,Fs);
+    [peakRate, peakEnv, amp_envel, deriv_amp_env] = get_speech_peaks(speech,Fs,ifPlot);
     
-    all_info_table.peak_info{i} = {peakRate, peakEnv, amp_envel, deriv_amp_env};
+    all_info_table.peak_info{i} = {peakRate, peakEnv};
     
-    % add some more info, word boundaries
-    subplot(211)
-    hold on
-    y=ylim;
-    onsoff = [all_info_table.word_info{i}.onset;all_info_table.word_info{i}.offset(end)];
-    z1=plot([onsoff onsoff],y,'w','LineWidth',2);
-    splsent = strsplit(all_info_table.sentence{i},' ');
-    for s = 1:length(splsent)
-        text((onsoff(s)+onsoff(s+1))/2,y(2)-700,splsent{s},'HorizontalAlignment','center','FontSize',16,'Color','w','FontWeight','bold')
+    if ifPlot
+        % add some more info, word boundaries
+        subplot(211)
+        hold on
+        y=ylim;
+        onsoff = [all_info_table.word_info{i}.onset;all_info_table.word_info{i}.offset(end)];
+        z1=plot([onsoff onsoff],y,'w','LineWidth',2);
+        splsent = strsplit(all_info_table.sentence{i},' ');
+        for s = 1:length(splsent)
+            text((onsoff(s)+onsoff(s+1))/2,y(2)-700,splsent{s},'HorizontalAlignment','center','FontSize',16,'Color','w','FontWeight','bold')
+        end
+        set(gca,'XGrid','off');
+        
+        subplot(212)
+        set(gca,'XGrid','off');
+        sgtitle([all_info_table.sentence{i} ' (white lines: word boundaries)'], 'FontSize',16,'FontWeight','bold')
+        
+        print(fullfile(savedir,['Rate_' num2str(speech_rate)],[strjoin(splsent,'_') '.jpg']),'-djpeg','-r300')
+        close all
     end
-    set(gca,'XGrid','off');
-    
-    subplot(212)
-    set(gca,'XGrid','off');
-    sgtitle([all_info_table.sentence{i} ' (white lines: word boundaries)'], 'FontSize',16,'FontWeight','bold')
-    
-    print(fullfile(savedir,['Rate_' num2str(speech_rate)],[strjoin(splsent,'_') '.jpg']),'-djpeg','-r300')
-    close all
 end
+fprintf('\nSaving...\n')
 
 save(fullfile('/home/sakkol/Documents/Codes_git/Speech_Perception/preproc/English_all_info.mat'),'all_info_table')
