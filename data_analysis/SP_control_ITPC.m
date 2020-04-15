@@ -13,7 +13,7 @@ time = linspace(-0.05,0.7,76);
 save_dir = fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_v2'],'PICS');
 if ~exist(save_dir,'dir'),mkdir(save_dir),end
 
-% bwr = load('bwr_cmap.mat');
+bwr = load('bwr_cmap.mat');
 
 itpc = [];
 for cond = 1:3
@@ -30,7 +30,7 @@ for cond = 1:3
     tmp      = curr_fouri_all./abs(curr_fouri_all);    % divide by amplitude
     tmp      = sum(tmp,1);                            % sum angles across trials
     tmp      = abs(tmp)/size(curr_fouri_all,1);       % take the absolute value and normalize
-    itpc(cond,:,:,:)        = squeeze(tmp);                          % remove the first singleton dimension
+    itpc(cond,:,:,:) = squeeze(tmp);                          % remove the first singleton dimension
     
     
 end
@@ -57,7 +57,7 @@ for el = 1:size(itpc,2)
         if cond==2,xlabel('Time (s)');end
         caxis([0 0.5])
     end
-    colormap('hot')
+    colormap(bwr.rgb_vals)
     colorbar
     sgtitle(['Elec: ' info.channelinfo.Label{el} ' - inter-trial phase coherence (word onset locked)'], 'FontSize',15,'FontWeight','bold')
     print('-r300','-djpeg',fullfile(save_dir,[info.channelinfo.Label{el} '_ITPC_word.jpg']))
