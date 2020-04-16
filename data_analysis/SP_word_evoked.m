@@ -59,7 +59,7 @@ cfg              = [];
 cfg.baseline     = [-3.45 -3.05]; % seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
 cfg.baselinetype = 'db';
 cfg.parameter    = 'powspctrm';
-[wlt_bc]         = ft_freqbaseline(cfg, control_wlt);
+[control_wlt]         = ft_freqbaseline(cfg, control_wlt);
 
 cfg              = [];
 cfg.baseline     = [-3.45 -3.05];
