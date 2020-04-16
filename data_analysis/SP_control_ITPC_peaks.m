@@ -10,7 +10,7 @@ load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{1},[Sbj_Metadata.Bl
 freq = fouri_of_words.freq_band_dtls{1};
 time = linspace(-0.05,0.5,size(fouri_of_words.corr_rspn_fouri_peakEnv{1},4));
 
-save_dir = fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_v3_peaks'],'PICS');
+save_dir = fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_v3'],'PICS');
 if ~exist(save_dir,'dir'),mkdir(save_dir),end
 
 bwr = load('bwr_cmap.mat');
@@ -48,7 +48,7 @@ for pp = 1:2
 end
 
 % plot ITPC of each electrode
-for el = 1:size(itpc,2)
+for el = 1:size(itpc,3)
     figure('Units','normalized','Position', [0 0  .6 .3]);
     for pp = 1:2
         for cond = 1:3
