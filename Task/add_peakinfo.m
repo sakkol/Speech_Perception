@@ -10,8 +10,8 @@ fprintf('Iteration = 000');
 for i=1:size(all_info_table,1)
     fprintf('\b\b\b%3d',i)
     
-    all_info_table.all_info{i}.Properties.VariableNames{'onset'} = 'syllable_onset';
-    all_info_table.all_info{i}.Properties.VariableNames{'offset'} = 'syllable_offset';
+%     all_info_table.all_info{i}.Properties.VariableNames{'onset'} = 'syllable_onset';
+%     all_info_table.all_info{i}.Properties.VariableNames{'offset'} = 'syllable_offset';
     
     
     if strcmp(all_info_table.rate{i},'Fast')
@@ -26,7 +26,9 @@ for i=1:size(all_info_table,1)
     
     [peakRate, peakEnv, amp_envel, deriv_amp_env] = get_speech_peaks(speech,Fs,ifPlot);
     
-    all_info_table.peak_info{i} = {peakRate, peakEnv};
+    all_info_table.peak_info{i} = table;
+    all_info_table.peak_info{i}.peakEnv{1} = peakEnv/Fs;
+    all_info_table.peak_info{i}.peakRate{1} = peakRate/Fs;
     
     if ifPlot
         % add some more info, word boundaries
