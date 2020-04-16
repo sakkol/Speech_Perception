@@ -90,3 +90,13 @@ for s = 1:length(sbj_IDs)
         save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']),'info')
     end
 end
+
+%% Bulk run separate fourier v3
+% freq_bands = {[1 4],[4 8],[8 12]};
+freq_bands = {[1 12]};
+for s = 1:length(indx)
+    sbj_ID = subjects{indx(s)};
+    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+    SP_separate_event_fourier_v3(Sbj_Metadata,freq_bands)
+    SP_control_ITPC_peaks(Sbj_Metadata)
+end
