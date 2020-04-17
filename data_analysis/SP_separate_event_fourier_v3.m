@@ -19,8 +19,8 @@ for b = 1:length(control_blocks)
     curr_block = control_blocks{b};
     fprintf('...loading:%s\n',curr_block)
     % Load iEEG
-    load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']))
-    load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']))
+    load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt')
+    load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']),'info')
     events = info.events; clear info
     
     % Select only control events
@@ -29,23 +29,23 @@ for b = 1:length(control_blocks)
     % Select ecog data
     cfg = [];
     cfg.trials = control_idx;
-    [epoched_wlt.wlt] = ft_selectdata(cfg, epoched_wlt.wlt);
+    [epoched_wlt] = ft_selectdata(cfg, epoched_wlt);
     
     % Select events
     events = events(control_idx,:);
     
     % Append to overall list
     if b == 1
-        control_wlt = epoched_wlt.wlt;
+        control_wlt = epoched_wlt;
         control_events = events;
     else
         cfg = [];
         cfg.parameter  = 'fourierspctrm';
-        control_wlt = ft_appendfreq(cfg, control_wlt, epoched_wlt.wlt);
+        control_wlt = ft_appendfreq(cfg, control_wlt, epoched_wlt);
         
         control_events = [control_events;events];
     end
-    
+    clear epoched_wlt
 end
 
 %% Separate fourier spectrums of correct responses and others

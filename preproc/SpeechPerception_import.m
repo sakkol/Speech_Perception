@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS150';
+sbj_ID = 'NS148';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -221,8 +221,8 @@ fs              = ecog_avg.ftrip.fsample;
 
 % Make trial structure
 % speech onset locked
-pre = 4; % seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
-post = 6; % seconds (longest trial is ~8.5 seconds)
+pre  = 6; % seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec] - to not include any NaNs in wavelet increase by 2 seconds (from 4 to 6)
+post = 8; % seconds (longest trial is ~8.5 seconds)
 trl           = [];
 trl(:,1)      = floor( events.speech_onsets*fs - fs*pre );
 trl(:,2)      = floor( events.speech_onsets*fs + fs*post );
@@ -231,9 +231,9 @@ trl(:,3)      = floor( -pre*fs );
 % Epoch
 cfg      = [];
 cfg.trl  = trl;
-epoched_wlt    = ft_redefinetrial(cfg,ecog_avg.ftrip);
+epoched_data    = ft_redefinetrial(cfg,ecog_avg.ftrip); clear ecog_avg % save some memory
 % replace NaNs with zeros in first trial (if trial started fast)
-epoched_wlt.trial{1}(isnan(epoched_wlt.trial{1})) = 0;
+epoched_data.trial{1}(isnan(epoched_data.trial{1})) = 0;
 
 % def preproc parameters
 cfg_preproc                     = [];
@@ -244,17 +244,17 @@ cfg_preproc.detrend             = 'yes';
 cfg_preproc.dftfilter           = 'yes';
 cfg_preproc.dftfreq             = [60 120 180];
 % cfg_preproc.baselinewindow      = [-.5 -.05];
-epoched_wlt                     = ft_preprocessing(cfg_preproc, epoched_wlt);
+epoched_data                     = ft_preprocessing(cfg_preproc, epoched_data);
 
 % compute trials
 cfg             = [];
 cfg.keeptrials  = 'yes';
-epoched_wlt           = ft_timelockanalysis(cfg,epoched_wlt);
+epoched_data     = ft_timelockanalysis(cfg,epoched_data);
 
-if sum(sum(sum(isnan(epoched_wlt.trial))))
-    warning('\n\n\n\t\t\tTHERE ARE %s TRIALS THAT HAVE NANs',sum(sum(sum(isnan(epoched_wlt.trial)))))
+if sum(sum(sum(isnan(epoched_data.trial))))
+    warning('\n\n\n\t\t\tTHERE WERE %s TRIALS THAT HAVE NANs, REPLACING WITH ZEROS',sum(sum(sum(isnan(epoched_data.trial)))))
     % replace NaNs with zeros
-    epoched_wlt.trial(isnan(epoched_wlt.trial)) = 0;
+    epoched_data.trial(isnan(epoched_data.trial)) = 0;
 end
 
 
@@ -265,17 +265,25 @@ freq                  = [1 200];
 nf                    = length(freq(1):3:freq(2));
 cfg.foi               = logspace(log10(freq(1)),log10(freq(2)),nf);
 cfg.width             = 6;
-cfg.toi               = -4:0.01:6;
+cfg.toi               = -6:0.01:8;
 cfg.keeptrials        = 'yes';
 cfg.keeptaper         = 'yes';
 cfg.output            = 'fourier';
-tmp                   = ft_freqanalysis(cfg,epoched_wlt);
-cfg = [];
-cfg.latency            = [-4 6];
-cfg.keeptrials  = 'yes';
 
+cfg.outputfile = fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt_tmp.mat']); % save wavelet tmp file
+% epoched_wlt.wlt       = ft_freqanalysis(cfg,epoched_wlt);
+ft_freqanalysis(cfg,epoched_data);
 % epoched_wlt.wlt       = addRayleigh_to_ft(epoched_wlt.wlt); Rayleigh can
 % be added for control only. But because it combines all trials, it is not
 % clever to do it here.
 
-save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','-v7.3');
+
+% read tmp file and curb 1-1 sec from ends
+cfg=[];
+cfg.latency        = [-4 6];
+cfg.inputfile = fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt_tmp.mat']);
+epoched_wlt=ft_selectdata(cfg);
+
+% save wlt and data and delete tmp
+save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data','-v7.3');
+delete(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt_tmp.mat']));

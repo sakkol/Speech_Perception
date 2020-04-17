@@ -16,7 +16,7 @@ for b = 1:length(control_blocks)
     fprintf('...loading:%s\n',curr_block)
     
     % Load iEEG
-    load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']))
+    load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data')
     load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
     events = info.events;
     
@@ -26,32 +26,32 @@ for b = 1:length(control_blocks)
     % Select ecog data
     cfg = [];
     cfg.trials = control_idx;
-    [epoched_wlt.wlt] = ft_selectdata(cfg, epoched_wlt.wlt);
-    curr_ERP = ft_selectdata(cfg, epoched_wlt);
+    [epoched_wlt] = ft_selectdata(cfg, epoched_wlt);
+    curr_ERP = ft_selectdata(cfg, epoched_data);
     
     % from fourierspectrum to powerspectrum
     cfg = [];
     cfg.output='abs';
     cfg.keeptrials = 'yes';
-    epoched_wlt.wlt=ft_freqdescriptives(cfg,epoched_wlt.wlt);
+    epoched_wlt=ft_freqdescriptives(cfg,epoched_wlt);
     
     % Select events
     events = events(control_idx,:);
     
     % Append to overall list
     if b == 1
-        control_wlt = epoched_wlt.wlt;
+        control_wlt = epoched_wlt;
         control_events = events;
         control_ERP = curr_ERP;
     else
         cfg = [];
         cfg.parameter  = 'powspctrm';
-        control_wlt = ft_appendfreq(cfg, control_wlt, epoched_wlt.wlt);
+        control_wlt = ft_appendfreq(cfg, control_wlt, epoched_wlt);
         cfg = [];
         control_ERP = ft_appendtimelock(cfg,control_ERP,curr_ERP);
         control_events = [control_events;events];
     end
-    clear epoched_wlt events info curr_ERP control_idx
+    clear epoched_wlt events info curr_ERP control_idx epoched_data
 end
 
 %%  Baseline correct time-freq data
