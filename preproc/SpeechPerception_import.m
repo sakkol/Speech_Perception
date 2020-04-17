@@ -253,7 +253,10 @@ epoched_wlt           = ft_timelockanalysis(cfg,epoched_wlt);
 
 if sum(sum(sum(isnan(epoched_wlt.trial))))
     warning('\n\n\n\t\t\tTHERE ARE %s TRIALS THAT HAVE NANs',sum(sum(sum(isnan(epoched_wlt.trial)))))
+    % replace NaNs with zeros
+    epoched_wlt.trial(isnan(epoched_wlt.trial)) = 0;
 end
+
 
 % Wavelet
 cfg                   = [];
