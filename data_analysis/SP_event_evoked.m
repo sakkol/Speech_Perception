@@ -6,6 +6,8 @@ function SP_event_evoked(Sbj_Metadata,control_blocks,runagain)
 vars=who;
 if ~ismember(vars,'control_blocks')
     control_blocks = select_cont_blocks(Sbj_Metadata);
+elseif isempty(control_blocks)
+    control_blocks = select_cont_blocks(Sbj_Metadata);
 end
 if ~ismember(vars,'runagain')
     runagain = 1;
@@ -34,36 +36,38 @@ if ~exist(fullfile(save_folder,[strjoin(control_blocks,'_') '_control_wltERP.mat
         % Select ecog data
         cfg = [];
         cfg.trials = control_idx;
-        [epoched_wlt.wlt] = ft_selectdata(cfg, epoched_wlt.wlt);
-        curr_ERP = ft_selectdata(cfg, epoched_wlt);
+        [epoched_wlt] = ft_selectdata(cfg, epoched_wlt);
+        curr_ERP = ft_selectdata(cfg, epoched_data);
         
         % from fourierspectrum to powerspectrum
         cfg = [];
         cfg.output='abs';
         cfg.keeptrials = 'yes';
-        epoched_wlt.wlt=ft_freqdescriptives(cfg,epoched_wlt.wlt);
+        epoched_wlt=ft_freqdescriptives(cfg,epoched_wlt);
         
         % Select events
         events = events(control_idx,:);
         
         % Append to overall list
         if b == 1
-            control_wlt = epoched_wlt.wlt;
+            control_wlt = epoched_wlt;
             control_events = events;
             control_ERP = curr_ERP;
         else
             cfg = [];
             cfg.parameter  = 'powspctrm';
-            control_wlt = ft_appendfreq(cfg, control_wlt, epoched_wlt.wlt);
+            control_wlt = ft_appendfreq(cfg, control_wlt, epoched_wlt);
             cfg = [];
             control_ERP = ft_appendtimelock(cfg,control_ERP,curr_ERP);
             control_events = [control_events;events];
         end
-        clear epoched_wlt events info curr_ERP control_idx
+        clear epoched_wlt events info curr_ERP control_idx epoched_data
     end
     
+    fprintf('Saving to:\n\t->%s\n',fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']))
     save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']),'control_events','control_ERP','control_wlt','-v7.3')
 else
+    fprintf('Loading from:\n\t->%s\n',fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']))
     load(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']),'control_events','control_ERP','control_wlt')
     
 end
@@ -73,10 +77,11 @@ cfg              = [];
 cfg.baseline     = [-3.45 -3.05]; % seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
 cfg.baselinetype = 'db';
 cfg.parameter    = 'powspctrm';
-[control_wlt]         = ft_freqbaseline(cfg, control_wlt);
+[control_wlt]    = ft_freqbaseline(cfg, control_wlt);
 
 cfg              = [];
 cfg.baseline     = [-3.45 -3.05];
+cfg.baselinetype = 'db';
 cfg.channel      = 'all';
 cfg.parameter    = 'trial';
 control_ERP      = ft_timelockbaseline(cfg, control_ERP);
@@ -217,16 +222,16 @@ load(fullfile(save_dir, [strjoin(control_blocks,'_') '_ctrl_word_fouri.mat']),'f
 bwr = load('bwr_cmap.mat');
 
 itpc = [];
-for pp = 1:2 % first peakEnv second peakRate
+for pp = 1:2 % first peakRate second peakEnv
     for cond = 1:2 % first correct second no response
         % get data
-        if cond == 1 && pp ==1
+        if cond == 1 && pp == 2
             curr_fouri_all = fouri_of_words.corr_rspn_fouri_peakEnv{1};
-        elseif cond == 2 && pp ==1
-            curr_fouri_all = fouri_of_words.no_rspn_fouri_peakEnv{1};
-        elseif cond == 1 && pp ==2
-            curr_fouri_all = fouri_of_words.corr_rspn_fouri_peakRate{1};
         elseif cond == 2 && pp ==2
+            curr_fouri_all = fouri_of_words.no_rspn_fouri_peakEnv{1};
+        elseif cond == 1 && pp ==1
+            curr_fouri_all = fouri_of_words.corr_rspn_fouri_peakRate{1};
+        elseif cond == 2 && pp ==1
             curr_fouri_all = fouri_of_words.no_rspn_fouri_peakRate{1};
         end
         
@@ -247,7 +252,8 @@ end
 
 % for ITPC plot
 load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{1},[Sbj_Metadata.BlockLists{1} '_info.mat']),'info');
-
+freq_ITPC = fouri_of_words.freq_band_dtls{1};
+time_ITPC = linspace(-0.05,0.5,size(fouri_of_words.corr_rspn_fouri_peakEnv{1},4));
 
 clear fouri_of_words pp cond tmp
 
@@ -267,17 +273,18 @@ clear fouri_of_words pp cond tmp
 % no_rspn_spect_peakRate = {[]};
 % wrng_rspn_spect_peakRate = {[]};
 
-freq_ITPC = fouri_of_words.freq_band_dtls{1};
-time_ITPC = linspace(-0.05,0.5,size(fouri_of_words.corr_rspn_fouri_peakEnv{1},4));
+
 time_ERP = linspace(-0.05,0.5,size(corr_rspn_ERP_peakEnv{1},3));
 freq_spec = control_wlt.freq;
 time_spec = linspace(-0.05,0.5,size(corr_rspn_spect_peakEnv{1},4));
 
+cl_freqs=[];
 for ii = 70:150
-    cl_freqs(ii) = nearest(control_wlt.freq, ii);
+    cl_freqs(end+1) = nearest(control_wlt.freq, ii);
 end
+cl_freqs = unique(cl_freqs);
 
-for el = 1:size(corr_rspn_ERP_word{1},1)
+for el = 1:size(corr_rspn_ERP_peakRate{1},2)
     
     figure('Units','normalized','Position', [0 0  1 1]);
     
@@ -290,6 +297,8 @@ for el = 1:size(corr_rspn_ERP_word{1},1)
     shadedErrorBar(time_ERP,mean(for_avg,1),stderr(for_avg),'lineprops','r')
     title([num2str(size(corr_rspn_ERP_peakRate{1},1)) ' correct response - peakRate locked - ERP'])
     xlim([time_ERP(1) time_ERP(end)])
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    plot([0 0], ylim,'k')
     
     % plot single trials and average of no - ERP - pR
     subplot(4,4,5)
@@ -299,6 +308,8 @@ for el = 1:size(corr_rspn_ERP_word{1},1)
     shadedErrorBar(time_ERP,mean(for_avg,1),stderr(for_avg),'lineprops','r')
     title([num2str(size(no_rspn_ERP_peakRate{1},1)) ' no response - peakRate locked - ERP'])
     xlim([time_ERP(1) time_ERP(end)])
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    plot([0 0], ylim,'k')
     
     % plot single trials and average of corr - ERP - pE
     subplot(4,4,9)
@@ -308,6 +319,8 @@ for el = 1:size(corr_rspn_ERP_word{1},1)
     shadedErrorBar(time_ERP,mean(for_avg,1),stderr(for_avg),'lineprops','r')
     title([num2str(size(corr_rspn_ERP_peakEnv{1},1)) ' correct response - peakEnv locked - ERP'])
     xlim([time_ERP(1) time_ERP(end)])
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    plot([0 0], ylim,'k')
     
     % plot single trials and average of no - ERP - pE
     subplot(4,4,13)
@@ -317,93 +330,179 @@ for el = 1:size(corr_rspn_ERP_word{1},1)
     shadedErrorBar(time_ERP,mean(for_avg,1),stderr(for_avg),'lineprops','r')
     title([num2str(size(no_rspn_ERP_peakEnv{1},1)) ' no response - peakEnv locked - ERP'])
     xlim([time_ERP(1) time_ERP(end)])
-    
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    plot([0 0], ylim,'k')
     
     
     %% plot spectrograms
     % spectrogram of corr - pR
     subplot(4,4,2)
     avg_spec = squeeze(mean(corr_rspn_spect_peakRate{1}(:,el,:,:),1));
-    imagesc(time_spec,freq_spec,avg_spec')
+    h = pcolor(time_spec,freq_spec,avg_spec);
+    h.EdgeColor = 'none';
+%     imagesc(time_spec,freq_spec,avg_spec)
     axis xy
+    set(gca,'YScale','log')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    caxis([-7 7]);hold on
+    plot([0 0], ylim,'k')
     % spectrogram of no - pR
     subplot(4,4,6)
     avg_spec = squeeze(mean(no_rspn_spect_peakRate{1}(:,el,:,:),1));
-    imagesc(time_spec,freq_spec,avg_spec')
+%     imagesc(time_spec,freq_spec,avg_spec)
+    h = pcolor(time_spec,freq_spec,avg_spec);
+    h.EdgeColor = 'none';
     axis xy
+    set(gca,'YScale','log')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    caxis([-7 7]);hold on
+    plot([0 0], ylim,'k')
     % spectrogram of corr - pE
     subplot(4,4,10)
     avg_spec = squeeze(mean(corr_rspn_spect_peakEnv{1}(:,el,:,:),1));
-    imagesc(time_spec,freq_spec,avg_spec')
-    axis xy
+%     imagesc(time_spec,freq_spec,avg_spec)
+    h = pcolor(time_spec,freq_spec,avg_spec);
+    h.EdgeColor = 'none';
+    set(gca,'YScale','log')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    axis xy;hold on
+    caxis([-7 7])
+    plot([0 0], ylim,'k')
     % spectrogram of no - pE
     subplot(4,4,14)
     avg_spec = squeeze(mean(no_rspn_spect_peakEnv{1}(:,el,:,:),1));
-    imagesc(time_spec,freq_spec,avg_spec')
-    axis xy
+%     imagesc(time_spec,freq_spec,avg_spec)
+    h = pcolor(time_spec,freq_spec,avg_spec);
+    h.EdgeColor = 'none';
+    set(gca,'YScale','log')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    axis xy;hold on
+    caxis([-7 7])
+    plot([0 0], ylim,'k')
     
     
     
     
-    % plot single trials and average of corr - HFA
-    subplot(322)
-    for c = 1:size(corr_rspn_powspec_word,1)
-        plot(corr_rspn_powspec_word{c}(el,:),'Color',[0.9412,0.9412,0.9412])
-        hold on
-        tr_lenght(c,1) = size(corr_rspn_powspec_word{c},2);
+    %% plot HFA
+    % cl_freqs: HFA frequency range
+    % HFA of corr - pR
+    subplot(4,4,3)
+    avg_HFA = squeeze(mean(corr_rspn_spect_peakRate{1}(:,el,cl_freqs,:),1));
+    plot(time_spec,avg_HFA,'Color',[0.9412,0.9412,0.9412])
+    hold on
+    shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
+    title([num2str(size(corr_rspn_spect_peakRate{1},1)) ' correct response - peakRate locked - HFA'])
+    xlim([time_spec(1) time_spec(end)])
+    ylim([-8 8])
+    plot(xlim,[0 0],'k')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    ylabel('dB')
+    plot([0 0], ylim,'k')
+    % HFA of no - pR
+    subplot(4,4,7)
+    avg_HFA = squeeze(mean(no_rspn_spect_peakRate{1}(:,el,cl_freqs,:),1));
+    plot(time_spec,avg_HFA,'Color',[0.9412,0.9412,0.9412])
+    hold on
+    shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
+    title([num2str(size(no_rspn_spect_peakRate{1},1)) ' no response - peakRate locked - HFA'])
+    xlim([time_spec(1) time_spec(end)])
+    ylim([-8 8])
+    plot(xlim,[0 0],'k')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    ylabel('dB')
+    plot([0 0], ylim,'k')
+    % HFA of corr - pE
+    subplot(4,4,11)
+    avg_HFA = squeeze(mean(corr_rspn_spect_peakEnv{1}(:,el,cl_freqs,:),1));
+    plot(time_spec,avg_HFA,'Color',[0.9412,0.9412,0.9412])
+    hold on
+    shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
+    title([num2str(size(corr_rspn_spect_peakEnv{1},1)) ' correct response - peakEnv locked - HFA'])
+    xlim([time_spec(1) time_spec(end)])
+    ylim([-8 8])
+    plot(xlim,[0 0],'k')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    ylabel('dB')
+    plot([0 0], ylim,'k')
+    % HFA of no - pE
+    subplot(4,4,15)
+    avg_HFA = squeeze(mean(no_rspn_spect_peakEnv{1}(:,el,cl_freqs,:),1));
+    plot(time_spec,avg_HFA,'Color',[0.9412,0.9412,0.9412])
+    hold on
+    shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
+    title([num2str(size(no_rspn_spect_peakEnv{1},1)) ' no response - peakEnv locked - HFA'])
+    xlim([time_spec(1) time_spec(end)])
+    ylim([-8 8])
+    plot(xlim,[0 0],'k')
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    ylabel('dB')
+    plot([0 0], ylim,'k')
+    
+    
+    %% plot ITPC
+    for pp = 1:2 % first peakRate second peakEnv
+        for cond = 1:2 % first correct second no response
+            
+            subplot(4, 4, subplotno(4,2*pp+cond-2,4));
+            imagesc(time_ITPC, freq_ITPC, squeeze(itpc(pp,cond,el,:,:)));
+            axis xy
+            set(gca, 'FontSize',13,'FontWeight','bold');
+            caxis([0 0.5])
+            
+            if cond == 1
+                title('Correct responses');
+            elseif cond == 2
+                title('No responses');
+            end
+            
+            if pp == 1
+                ylabel({'peakRate locked';'Frequency (Hz)'});
+            elseif pp == 2
+                ylabel({'peakEnv locked';'Frequency (Hz)'});
+            end
+            
+        end
     end
-    for_avg=[];
-    for c = 1:size(corr_rspn_powspec_word,1)
-        for_avg(c,:) = [corr_rspn_powspec_word{c}(el,:),NaN(1,max(tr_lenght)-tr_lenght(c))];
-    end
-    shadedErrorBar(1:size(for_avg,2),nanmean(for_avg,1),nanstd(for_avg),'lineprops','r')
-    title([num2str(size(corr_rspn_powspec_word,1)) ' correct words HFA (mean+SD)'])
-    xlim([1 max(tr_lenght)])
-    xticks([20 40 60])
-    xticklabels({'0.2','0.4','0.6'})
     
-    % plot single trials and average of no resp - HFA
-    subplot(324)
-    for c = 1:size(no_rspn_powspec_word,1)
-        plot(no_rspn_powspec_word{c}(el,:),'Color',[0.9412,0.9412,0.9412])
-        hold on
-        tr_lenght(c,1) = size(no_rspn_powspec_word{c},2);
-    end
-    for_avg=[];
-    for c = 1:size(no_rspn_powspec_word,1)
-        for_avg(c,:) = [no_rspn_powspec_word{c}(el,:),NaN(1,max(tr_lenght)-tr_lenght(c))];
-    end
-    shadedErrorBar(1:size(for_avg,2),nanmean(for_avg,1),nanstd(for_avg),'lineprops','r')
-    title([num2str(size(no_rspn_powspec_word,1)) ' no response words HFA (mean+SD)'])
-    xlim([1 max(tr_lenght)])
-    xticks([20 40 60])
-    xticklabels({'0.2','0.4','0.6'})
+    % Create and delete new axes to plot colorbar of spectrogram
+    ax = axes;
+    colormap(bwr.rgb_vals);
+    cmaph = colorbar(ax);
+    cmaph.Ticks = linspace(0,1,5);
+    cmaph.TickLabels = num2cell(linspace(-7,7,5));
+    cmaph.FontSize = 13;cmaph.FontWeight='bold';
+    cmaph.LineWidth = 1;
+    colorTitleHandle = get(cmaph,'Title');
+    set(colorTitleHandle ,'String','dB-power','FontSize',13,'FontWeight','bold','Position',[149.5800 -30 0]);
     
-    % plot single trials and average of wrong resp - HFA
-    subplot(326)
-    for c = 1:size(wrng_rspn_powspec_word,1)
-        plot(wrng_rspn_powspec_word{c}(el,:),'Color',[0.9412,0.9412,0.9412])
-        hold on
-        tr_lenght(c,1) = size(wrng_rspn_powspec_word{c},2);
-    end
-    for_avg=[];
-    for c = 1:size(wrng_rspn_powspec_word,1)
-        for_avg(c,:) = [wrng_rspn_powspec_word{c}(el,:),NaN(1,max(tr_lenght)-tr_lenght(c))];
-    end
-    shadedErrorBar(1:size(for_avg,2),nanmean(for_avg,1),nanstd(for_avg),'lineprops','r')
-    title([num2str(size(wrng_rspn_powspec_word,1)) ' wrong response words HFA (mean+SD)'])
-    xlim([1 max(tr_lenght)])
-    xticks([20 40 60])
-    xticklabels({'0.2','0.4','0.6'})
-    xlabel('Time (s)')
+    a=get(cmaph); %gets properties of colorbar
+    a = a.Position; %gets the positon and size of the color bar
+    set(cmaph,'Location','southoutside') % to change orientation
+    set(cmaph,'Position',[a(1)/4+0.11 0.04 0.16 0.02]) % To change size    
+    ax.Visible = 'off';
     
-    sgtitle({[control_ERP.label{el}, ' - word onset locked ERP and HFA'];...
-        'Baseline corrected to prespeech only noise part ([-3.45 -3.05]sec of sentence onset)';...
-        ['from ' num2str(length(control_blocks)) ' blocks']})
+    % Create and delete new axes to plot colorbar of ITPC
+    cmaph2 = colorbar(ax);
+    cmaph2.Ticks = linspace(0,1,6);
+    cmaph2.TickLabels = num2cell(linspace(0,0.5,6));
+    cmaph2.FontSize = 13;cmaph2.FontWeight='bold';
+    cmaph2.LineWidth = 1;
+    colorTitleHandle = get(cmaph2,'Title');
+    set(colorTitleHandle ,'String','ITPC','FontSize',13,'FontWeight','bold','Position',[149.5800 -30 0]);
+    
+    a2=get(cmaph2); %gets properties of colorbar
+    a2 = a2.Position; %gets the positon and size of the color bar
+    set(cmaph2,'Location','southoutside') % to change orientation
+    set(cmaph2,'Position',[3*a(1)/4+0.08 0.04 0.16 0.02]) % To change size    
+    ax.Visible = 'off';
+    text(-0.07,0.6,'peakRate locked events','Units','normalized','Rotation',90,'FontSize',18,'FontWeight','bold')
+    text(-0.07,0.1,'peakEnv locked events','Units','normalized','Rotation',90,'FontSize',18,'FontWeight','bold')
+    
+    sgtitle(['Elec: ' info.channelinfo.Label{el} ' - ERP-spectrogram-HFA-ITPC'], 'FontSize',15,'FontWeight','bold')
     
     % Save the figure
     fprintf('\t-Saving electrode #%d-%s, out of %d\n',el,control_ERP.label{el},size(control_ERP.label,1))
-    print(fullfile(save_folder,[control_wlt.label{el} , '_words_only.jpg']),'-djpeg','-r300')
+    print(fullfile(save_folder,[control_wlt.label{el} , '_pEvents.jpg']),'-djpeg','-r300')
     close all
     
 end
