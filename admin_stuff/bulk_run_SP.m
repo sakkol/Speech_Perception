@@ -109,3 +109,20 @@ for s = 1:length(indx)
     Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
     SP_event_evoked(Sbj_Metadata,[],0)
 end
+
+%% Save channel of interests
+
+for s = 1:length(indx)
+    sbj_ID = subjects{indx(s)};
+    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+    
+    whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID));
+    curr_block = whichblocks{1};
+    
+    load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']))
+    
+    channel_OI = info.channelinfo.Label(contains(info.channelinfo.Label,{'LTs','RTs'}));
+    
+    save(fullfile(Sbj_Metadata.sbjDir,[Sbj_Metadata.sbj_ID, '_channel_OI.mat']),'channel_OI')
+end
+
