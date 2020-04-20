@@ -123,8 +123,8 @@ for el = 1:length(stim_epochs.label) % Loop electrode pairs
         tmp(t,1) = max(abs(stim_epochs.trial{t}(el,:)));
     end
     % Calculate average across trials
-    efields_mean(el,1) = mean(tmp);
-    efields_sterr(el,1) = stderr(tmp);
+    efields_mean(el,1) = mean(tmp)/distances(el);
+    efields_sterr(el,1) = stderr(tmp)/distances(el);
 end
 
 %% Put colors of stim elecs differently
