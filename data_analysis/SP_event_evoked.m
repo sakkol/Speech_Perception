@@ -72,19 +72,21 @@ else
     
 end
 
-%%  Baseline correct time-freq data
+%% Baseline correct TF data but not ERPs
+%  Baseline correct time-freq data
 cfg              = [];
 cfg.baseline     = [-3.45 -3.05]; % seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
 cfg.baselinetype = 'db';
 cfg.parameter    = 'powspctrm';
 [control_wlt]    = ft_freqbaseline(cfg, control_wlt);
 
-cfg              = [];
-cfg.baseline     = [-3.45 -3.05];
-cfg.baselinetype = 'db';
-cfg.channel      = 'all';
-cfg.parameter    = 'trial';
-control_ERP      = ft_timelockbaseline(cfg, control_ERP);
+
+% cfg              = [];
+% cfg.baseline     = [-3.45 -3.05];
+% cfg.baselinetype = 'db';
+% cfg.channel      = 'all';
+% cfg.parameter    = 'trial';
+% control_ERP      = ft_timelockbaseline(cfg, control_ERP);
 
 %% Separate conditions
 
@@ -104,7 +106,6 @@ corr_rspn_spect_peakRate = [];
 no_rspn_spect_peakRate = [];
 wrng_rspn_spect_peakRate = [];
 
-
 wcorr_ind = 1;
 wno_ind = 1;
 wwrng_ind = 1;
@@ -112,7 +113,6 @@ scorr_ind = 1;
 sno_ind = 1;
 swrng_ind = 1;
 fprintf('\nCurrent event:')
-
 
 
 for t = 1:size(control_events,1)
@@ -259,34 +259,72 @@ time_ITPC = linspace(-0.05,0.5,size(fouri_of_words.corr_rspn_fouri_peakEnv{1},4)
 % calculate stats
 for i=1:2
     
+%     if i==1
+%         to_freq1 = fouri_of_words.corr_rspn_fouri_peakRate{1};
+%         to_freq2 = fouri_of_words.no_rspn_fouri_peakRate{1};
+%     else
+%         to_freq1 = fouri_of_words.corr_rspn_fouri_peakEnv{1};
+%         to_freq2 = fouri_of_words.no_rspn_fouri_peakEnv{1};
+%     end
+%     freq1 = [];
+%     freq1.label = info.channelinfo.Label;
+%     freq1.time = fouri_of_words.time_dtls;
+%     freq1.freq = fouri_of_words.freq_band_dtls{1};
+%     freq1.dimord = 'rpt_chan_freq_time';
+%     freq2=freq1;
+%     freq1.fourierspectrum = to_freq1;
+%     freq2.fourierspectrum = to_freq2;
+%     
+%     cfg=[];
+%     cfg.channel = channel_OI;
+%     cfg.latency = [0 0.5];
+%     cfg.statistic = 'ft_statfun_diff_itc';
+% %     cfg.statistic       = 'indepsamplesT';
+%     cfg.method='montecarlo';
+%     cfg.correctm = 'bonferroni';
+% %     cfg.correctm = 'cluster';
+% %     cfg.clusterthreshold = 'nonparametric_individual';
+%     cfg.parameter = 'fourierspectrum';
+%     cfg.numrandomization = 1000;
+%     cfg.design = [ones(1,size(to_freq1,1)),2*ones(1,size(to_freq2,1))];
+%     [ITPC_stats(i)] = ft_freqstatistics(cfg, freq1,freq2);
+
     if i==1
-        to_freq1 = fouri_of_words.corr_rspn_fouri_peakRate{1};
-        to_freq2 = fouri_of_words.no_rspn_fouri_peakRate{1};
+        to_freq = cat(1,fouri_of_words.corr_rspn_fouri_peakRate{1},fouri_of_words.no_rspn_fouri_peakRate{1});
+        size11 = size(fouri_of_words.corr_rspn_fouri_peakRate{1},1);
+        size22 = size(fouri_of_words.no_rspn_fouri_peakRate{1},1);
     else
-        to_freq1 = fouri_of_words.corr_rspn_fouri_peakEnv{1};
-        to_freq2 = fouri_of_words.no_rspn_fouri_peakEnv{1};
+        to_freq = cat(1,fouri_of_words.corr_rspn_fouri_peakEnv{1},fouri_of_words.no_rspn_fouri_peakEnv{1});
+        size11 = size(fouri_of_words.corr_rspn_fouri_peakEnv{1},1);
+        size22 = size(fouri_of_words.no_rspn_fouri_peakEnv{1},1);
     end
-    freq1 = [];
-    freq1.label = info.channelinfo.Label;
-    freq1.time = fouri_of_words.time_dtls;
-    freq1.freq = fouri_of_words.freq_band_dtls{1};
-    freq1.dimord = 'rpt_chan_freq_time';
-    freq2=freq1;
-    freq1.fourierspectrum = to_freq1;
-    freq2.fourierspectrum = to_freq2;
+    freq = [];
+    freq.label = info.channelinfo.Label;
+    freq.time = fouri_of_words.time_dtls;
+    freq.freq = fouri_of_words.freq_band_dtls{1};
+    freq.dimord = 'rpt_chan_freq_time';
+    freq.fourierspectrum = to_freq;
     
     cfg=[];
     cfg.channel = channel_OI;
     cfg.latency = [0 0.5];
     cfg.statistic = 'ft_statfun_diff_itc';
-    cfg.statistic       = 'indepsamplesT';
+%     cfg.statistic       = 'indepsamplesT';
     cfg.method='montecarlo';
+    cfg.alpha       = 0.05;
+    cfg.tail        = 0; % two-sided test
+    cfg.correcttail = 'alpha';
+
+    
     cfg.correctm = 'bonferroni';
+%     cfg.correctm = 'cluster';
+%     cfg.clusterthreshold = 'nonparametric_individual';
     cfg.parameter = 'fourierspectrum';
     cfg.numrandomization = 1000;
-    cfg.design = [ones(1,size(to_freq1,1)),2*ones(1,size(to_freq2,1))];
-    [ITPC_stats(i)] = ft_freqstatistics(cfg, freq1,freq2);
-    
+    cfg.design = [ones(1,size11),2*ones(1,size22)];
+    [ITPC_stats(i)] = ft_freqstatistics(cfg, freq);
+
+
 end
 
 clear fouri_of_words pp cond tmp curr_fouri_all to_freq1 to_freq2
@@ -384,6 +422,7 @@ for el = 1:size(corr_rspn_ERP_peakRate,2)
     set(gca, 'FontSize',13,'FontWeight','bold');
     caxis([-7 7]);hold on
     plot([0 0], ylim,'k')
+    title('Spectrograms')
     % spectrogram of no - pR
     subplot(4,4,6)
     avg_spec = squeeze(mean(no_rspn_spect_peakRate(:,el,:,:),1));
@@ -495,7 +534,11 @@ for el = 1:size(corr_rspn_ERP_peakRate,2)
         title('ITPC [Correct-No] responses');
         
         hold on
-        plot(squeeze(ITPC_stats(pp).mask(strcmp(ITPC_stats(pp).label,control_ERP.label{el}),:,:)))
+        signplot = [zeros(size(ITPC_stats(pp).mask,2),find(time_ITPC==0)-1),double(squeeze(ITPC_stats(pp).mask(strcmp(ITPC_stats(pp).label,control_ERP.label{el}),:,:)))];
+        contour(time_ITPC, freq_ITPC,signplot,1,'LineColor','k','LineWidth',3)
+        plot([0 0], ylim,'k')
+        
+        
         
     end
     
