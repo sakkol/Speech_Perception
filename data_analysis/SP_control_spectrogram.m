@@ -66,7 +66,7 @@ if ~exist(fullfile(save_folder,[strjoin(control_blocks,'_') '_control_wltERP.mat
     save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']),'control_events','control_ERP','control_wlt','-v7.3')
 else
     fprintf('Loading from:\n\t->%s\n',fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']))
-    load(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']),'control_events','control_ERP','control_wlt')
+    load(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']),'control_ERP','control_wlt')
     
 end
 
@@ -86,7 +86,9 @@ cfg.parameter    = 'powspctrm';
 % control_ERP      = ft_timelockbaseline(cfg, control_ERP);
 
 %% Prepare for plot
+% load info.mat file
 load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{1},[Sbj_Metadata.BlockLists{1} '_info.mat']),'info');
+% load channels of interest
 load(fullfile(Sbj_Metadata.sbjDir,[Sbj_Metadata.sbj_ID, '_channel_OI.mat']),'channel_OI')
 
 freq_spec = control_wlt.freq;
