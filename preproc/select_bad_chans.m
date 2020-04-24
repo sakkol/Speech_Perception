@@ -5,8 +5,9 @@ soz_id = ismember(ecog.ftrip.label,ecog.szr_onset_chans);
 spike_id = ismember(ecog.ftrip.label,ecog.spike_chans);
 bad_id = ismember(ecog.ftrip.label,ecog.bad_chans);
 vars=who;
-if ~ismember(vars,'selected_chans')
+if ~any(ismember(vars,'selected_chans'))
     select_id = false(length(ecog.ftrip.label),1);
+    selected_chans={};
 else
     select_id = ismember(ecog.ftrip.label,selected_chans);
 end
@@ -52,7 +53,7 @@ new_selected_chans = already_selected(ismember(already_selected,ecog.ftrip.label
 fprintf('Newly assigned bad channels: %s\n',strjoin(new_bads,', '))
 fprintf('Newly assigned spikey channels: %s\n',strjoin(new_spikes,', '))
 fprintf('Newly assigned SOZ channels: %s\n',strjoin(new_SOZs,', '))
-fprintf('Newly SELECTED channels: %s\n',strjoin(selected_chans,', '))
+fprintf('Newly SELECTED channels: %s\n',strjoin(new_selected_chans,', '))
 
 % Put it back
 ecog.bad_chans = ecog.ftrip.label([newData{:,2}]);
