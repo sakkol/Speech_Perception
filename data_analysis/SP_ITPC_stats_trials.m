@@ -154,3 +154,31 @@ cfg.parameter = 'fourierspectrum';
 cfg.numrandomization = 1000;
 cfg.design = [ones(1,size11),2*ones(1,size22)];
 [ITPC_stats(i)] = ft_freqstatistics(cfg, freq);
+
+%% Fourth attempt: with Phase Opposition Sum
+
+% Select blocks to import
+control_blocks = select_cont_blocks(Sbj_Metadata);
+save_dir = fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_v3']);
+fprintf('Loading ''fouri_of_words'' from:\n-->%s\n',fullfile(save_dir, [strjoin(control_blocks,'_') '_ctrl_word_fouri.mat']))
+load(fullfile(save_dir, [strjoin(control_blocks,'_') '_ctrl_word_fouri.mat']));
+load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{1},[Sbj_Metadata.BlockLists{1} '_info.mat']),'info');
+
+for i=1:2 % loop peakRate and peakEnv
+    if i==1 % peakRate events
+        data1 = permute(fouri_of_words.corr_rspn_fouri_peakRate{1},[2,3,4,1]);
+        data2 = permute(fouri_of_words.no_rspn_fouri_peakRate{1},[2,3,4,1]);
+    else
+        data1 = permute(fouri_of_words.corr_rspn_fouri_peakEnv{1},[2,3,4,1]);
+        data2 = permute(fouri_of_words.no_rspn_fouri_peakEnv{1},[2,3,4,1]);
+    end
+    [p_circWW{i}, p_POS{i}, p_zPOS{i}] = PhaseOpposition(data1, data2, 1000, 3);
+end
+
+
+
+
+
+
+
+
