@@ -61,4 +61,4 @@ ecog.spike_chans = ecog.ftrip.label([newData{:,3}]);
 ecog.szr_onset_chans = ecog.ftrip.label([newData{:,4}]);
 selected_chans = ecog.ftrip.label([newData{:,5}]);
 
-clear new_bads new_spikes new_SOZs newData uit h soz_id bad_id spike_id select_id vars d already_nonbad already_nonsp already_nonSOZ already_selected 
+clear new_bads new_spikes new_SOZs newData uit h soz_id bad_id spike_id select_id vars d already_nonbad already_nonsp already_nonSOZ already_selected new_selected_chans
