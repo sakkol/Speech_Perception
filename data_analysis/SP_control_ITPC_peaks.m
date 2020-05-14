@@ -1,4 +1,9 @@
 function SP_control_ITPC_peaks(Sbj_Metadata)
+% This function streamlines: loading wavelet complex output that was
+% epoched based on peakRate or peakEnv events in different conditions
+% (no-response, correct response and wrong response), calculating ITPC
+% (from all events) and plots in 2x3 figure (peakRate or peakEnv x 3
+% conditions). 
 
 % Select blocks to import
 control_blocks = select_cont_blocks(Sbj_Metadata);

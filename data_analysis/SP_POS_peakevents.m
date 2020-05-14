@@ -1,4 +1,8 @@
 function SP_POS_peakevents(Sbj_Metadata)
+% This function streamlines calculation of phase opposition values by:
+% loading peakRate and peakEnv locked epoched wavelet, calculates p-values
+% from phase opposition sum from z-score, calculate ITPCz nd plots ITPCzs,
+% p-values and ITPZ differences (with significant periods circled).
 
 % Select blocks to import
 control_blocks = select_cont_blocks(Sbj_Metadata);
@@ -9,12 +13,14 @@ load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{1},[Sbj_Metadata.Bl
 
 % freq = fouri_of_words.freq_band_dtls{1};
 % time = linspace(-0.05,0.5,size(fouri_of_words.corr_rspn_fouri_peakEnv{1},4));
-save_folder = fullfile(Sbj_Metadata.results, [strjoin(control_blocks,'_') '_v4']);
+save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'), 'POS_peakevents');
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
 
-%% Calculate statistics
-% calculate everything only on electrodes of interest 
+% load channels of interest
 load(fullfile(Sbj_Metadata.sbjDir,[Sbj_Metadata.sbj_ID, '_channel_OI.mat']),'channel_OI')
+
+%% Calculate statistics
+% % calculate everything only on electrodes of interest 
 % chan_OI_idx = ismember(info.channelinfo.Label,channel_OI);
 % fouri_of_words.corr_rspn_fouri_peakRate{1} = fouri_of_words.corr_rspn_fouri_peakRate{1}(:,chan_OI_idx,:,:);
 % fouri_of_words.no_rspn_fouri_peakRate{1} = fouri_of_words.no_rspn_fouri_peakRate{1}(:,chan_OI_idx,:,:);
@@ -22,6 +28,7 @@ load(fullfile(Sbj_Metadata.sbjDir,[Sbj_Metadata.sbj_ID, '_channel_OI.mat']),'cha
 % fouri_of_words.no_rspn_fouri_peakEnv{1} = fouri_of_words.no_rspn_fouri_peakEnv{1}(:,chan_OI_idx,:,:);
 
 for pp=1:2 % loop peakRate and peakEnv
+    % move the trials to last dimension
     if pp==1 % peakRate events
         data1 = permute(fouri_of_words.corr_rspn_fouri_peakRate{1},[2,3,4,1]);
         data2 = permute(fouri_of_words.no_rspn_fouri_peakRate{1},[2,3,4,1]);
@@ -29,14 +36,11 @@ for pp=1:2 % loop peakRate and peakEnv
         data1 = permute(fouri_of_words.corr_rspn_fouri_peakEnv{1},[2,3,4,1]);
         data2 = permute(fouri_of_words.no_rspn_fouri_peakEnv{1},[2,3,4,1]);
     end
+    % calculate different phase opposition values, best seems to be p_zPOS
     [p_circWW{pp}, p_POS{pp}, p_zPOS{pp}] = PhaseOpposition(data1, data2, 1000, 3);
 end
 
-% % calculate the p-threshold for multiple comparison
-% size_dims = size(fouri_of_words.corr_rspn_fouri_peakRate{1});
-% p_thresh = 0.05 / prod(size_dims(2:4));
-
-%% Calculate ITPC
+%% Calculate ITPCz
 itpc = [];
 for pp = 1:2
     for cond = 1:2

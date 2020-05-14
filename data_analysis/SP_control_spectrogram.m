@@ -1,4 +1,8 @@
 function SP_control_spectrogram(Sbj_Metadata,control_blocks,runagain)
+% This function streamlines: loading wavelet output from each block,
+% combines only control trials (if not done or if need to be redone),
+% baseline correct time-freq map, then plots spectrogram, HFA and ERP in
+% 1x3 figure.
 
 %% Select blocks to import
 vars=who;
@@ -15,9 +19,10 @@ clear vars
 %% bring in these blocks and combine only the control events
 fprintf('These blocks are going to be used: %s\n',strjoin(control_blocks,', '))
 
-save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'));
+save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'control_spectrogram');
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
-% check if this has already been run
+
+% check if this has already been run or need to be re-run
 if ~exist(fullfile(save_folder,[strjoin(control_blocks,'_') '_control_wltERP.mat']),'file') || runagain
     for b = 1:length(control_blocks)
         curr_block = control_blocks{b};
