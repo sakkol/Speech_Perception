@@ -131,7 +131,8 @@ end
 for s = 1:length(indx)
     sbj_ID = subjects{indx(s)};
     Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
-    SP_control_spectrogram(Sbj_Metadata,[],0)
+    SP_control_spectrogram(Sbj_Metadata,[],0,0)
+    SP_control_spectrogram(Sbj_Metadata,[],0,1)
 end
 
 %% Bulk run peak events evoked ITPC plots and stats
@@ -140,4 +141,10 @@ for s = 1:length(indx)
     sbj_ID = subjects{indx(s)};
     Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
     SP_POS_peakevents(Sbj_Metadata)
+end
+
+for s = 1:length(indx)
+    sbj_ID = subjects{indx(s)};
+    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+    SP_POS_equalpeaks(Sbj_Metadata)
 end
