@@ -17,8 +17,10 @@ end
 if ~ismember(vars,'onlySuccess')
     onlySuccess = 0;
     save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'control_spectrogram');
-else
+elseif onlySuccess == 1
     save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'control_spectrogram_onlySuccess');
+elseif onlySuccess == 0
+    save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'control_spectrogram');
 end
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
 clear vars
