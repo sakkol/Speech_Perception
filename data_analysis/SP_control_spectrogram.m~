@@ -1,9 +1,7 @@
-function SP_BLP_comp(Sbj_Metadata,control_blocks,runagain,onlySuccess)
+function SP_control_spectrogram(Sbj_Metadata,control_blocks,runagain,onlySuccess)
 % This function streamlines: loading wavelet output from each block,
 % combines only control trials (if not done or if need to be redone),
-% baseline correct time-freq map, compute bandlimited power using
-% my_BLP_butter.m from EPIPROC, then plots baseline corrected spectrogram,
-% HFA from baseline corrected spectrogram and HFA from BLP function in a
+% baseline correct time-freq map, then plots spectrogram, HFA and ERP in
 % 1x3 figure.
 
 %% Select blocks to import
@@ -18,11 +16,11 @@ if ~ismember(vars,'runagain')
 end
 if ~ismember(vars,'onlySuccess')
     onlySuccess = 0;
-    save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'BLP_HFA');
+    save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'control_spectrogram');
 elseif onlySuccess == 1
-    save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'BLP_HFA_onlySuccess');
+    save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'control_spectrogram_onlySuccess');
 elseif onlySuccess == 0
-    save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'BLP_HFA');
+    save_folder = fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),'control_spectrogram');
 end
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
 clear vars
@@ -100,7 +98,7 @@ end
 baseline = [-3.4 -3.1];
 cfg              = [];
 cfg.baseline     =  baseline;% seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
-cfg.baselinetype = 'db';
+cfg.baselinetype = 'zscore';
 cfg.parameter    = 'powspctrm';
 [control_wlt]    = ft_freqbaseline(cfg, control_wlt);
 
@@ -109,11 +107,12 @@ cfg.frequency     = [70 150];
 cfg.avgoverfreq   = 'yes';
 freq_sel = ft_selectdata(cfg, control_wlt);
 
-%% run BLP on ERP for HFA
-% Band Limited Power frequencies
-hgb_frequencies = [50 58; 62 70; 70 80; 80 90; 90 100; 100 110; 110 118; 122 130; 130 140; 140 150];
-
-BLP_HFA = my_BLP_butter(control_ERP,hgb_frequencies,0);
+% cfg              = [];
+% cfg.baseline     = [-3.45 -3.05];
+% cfg.baselinetype = 'db';
+% cfg.channel      = 'all';
+% cfg.parameter    = 'trial';
+% control_ERP      = ft_timelockbaseline(cfg, control_ERP);
 
 %% Prepare for plot
 % load channels of interest
@@ -123,11 +122,16 @@ freq_spec = control_wlt.freq;
 time_spec = control_wlt.time;
 
 time_ERP = control_ERP.time;
-
+% cl_freqs=[];
+% for ii = 70:150
+%     cl_freqs(end+1) = nearest(control_wlt.freq, ii);
+% end
+% cl_freqs = unique(cl_freqs);
 bwr = load('bwr_cmap.mat');
 
-%% Plot results to compare
-for el = 1:size(control_ERP.trial,2) % loop electrodes
+%% Plot
+
+for el = 1:size(control_ERP.trial,2)
     
     if ~any(ismember(channel_OI,control_ERP.label{el}))
         continue
@@ -135,8 +139,36 @@ for el = 1:size(control_ERP.trial,2) % loop electrodes
     
     figure('Units','normalized','Position', [0 0  .4 1]);
     
-    % spectrogram
+    % plot ERPs
     subplot(3,1,1)
+    for_avg=squeeze(control_ERP.trial(:,el,:));
+    plot(time_ERP,for_avg,'Color',[0.9412,0.9412,0.9412])
+    hold on
+    shadedErrorBar(time_ERP,mean(for_avg,1),stderr(for_avg),'lineprops','r')
+    title(['Target sentence onset locked ERP'])
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    xlim([time_spec(1) time_spec(end)])
+    hold on
+    ylims = ylim;
+    plot([-3.54 -3.54], ylim,'k') % trial onset
+    text(-3.54,ylims(2)-(ylims(2)-ylims(1))/10,'Trial onset')
+    
+    plot([-3.045 -3.045], ylim,'k') % 3.045
+    text(-3.045,ylims(2)-2*(ylims(2)-ylims(1))/10,'Attention sent. onset')
+    
+    plot([0 0], ylim,'k')
+    text(0,ylims(2)-(ylims(2)-ylims(1))/10,'Target sent. onset')
+    
+    plot([2.2 2.2], ylim,'k') % sentence offset
+    text(2.2,ylims(2)-(ylims(2)-ylims(1))/10,'Target sent. ends')
+    
+    plot([4.2 4.2], ylim,'k') % trial ends
+    text(4.2,ylims(2)-(ylims(2)-ylims(1))/10,'Trial ends')
+    ylabel('Voltage (uV)')
+    ylim(ylims)
+    
+    % spectrogram
+    subplot(3,1,2)
     avg_spec = squeeze(nanmean(control_wlt.powspctrm(:,el,:,:),1));
     h = pcolor(time_spec,freq_spec,avg_spec);
     h.EdgeColor = 'none';
@@ -145,7 +177,7 @@ for el = 1:size(control_ERP.trial,2) % loop electrodes
     set(gca,'YScale','log')
     yticks([1,4,8,12,20,50,70,100,150,200])
     set(gca, 'FontSize',13,'FontWeight','bold');
-    caxis([-7 7]);
+%     caxis([-1 4]);
     hold on
     ylims = ylim;
     plot([-3.54 -3.54], ylim,'k') % trial onset
@@ -166,19 +198,19 @@ for el = 1:size(control_ERP.trial,2) % loop electrodes
     ylabel('log frequency (Hz)')
     colorbar
     
-    % plot HFA from wavelet averaging 
+    % plot HFA
     % cl_freqs: HFA frequency range
-    subplot(3,1,2)
+    subplot(3,1,3)
     avg_HFA = squeeze(freq_sel.powspctrm(:,el,:,:));
     plot(time_spec,avg_HFA,'Color',[0.9412,0.9412,0.9412])
     hold on
     shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
-    title('HFA from baseline corrected spectrogram')
+    title(['Target sentence onset locked HFA'])
     xlim([time_spec(1) time_spec(end)])
-    ylim([-8 8])
+    ylim([-1 6])
     plot(xlim,[0 0],'k')
     set(gca, 'FontSize',13,'FontWeight','bold');
-    ylabel('HFA power (dB)')
+    ylabel('HFA (dB)')
     ylims = ylim;
     plot([-3.54 -3.54], ylim,'k') % trial onset
     text(-3.54,ylims(2)-(ylims(2)-ylims(1))/10,'Trial onset')
@@ -195,46 +227,14 @@ for el = 1:size(control_ERP.trial,2) % loop electrodes
     plot([4.2 4.2], ylim,'k') % trial ends
     text(4.2,ylims(2)-(ylims(2)-ylims(1))/10,'Trial ends')
     xlim([time_spec(1) time_spec(end)])
-    
-    % plot BLP_HFA
-    subplot(3,1,3)
-    for_avg=squeeze(BLP_HFA(:,el,:));
-    plot(time_ERP,for_avg,'Color',[0.9412,0.9412,0.9412])
-    hold on
-    shadedErrorBar(time_ERP,mean(for_avg,1),stderr(for_avg),'lineprops','r')
-    set(gca, 'FontSize',13,'FontWeight','bold');
-    xlim([time_spec(1) time_spec(end)])
-    title('HFA from averaged bandpass limited power')
-    hold on
-    ylims = ylim;
-    plot([-3.54 -3.54], ylim,'k') % trial onset
-    text(-3.54,ylims(2)-(ylims(2)-ylims(1))/10,'Trial onset')
-    
-    plot([-3.045 -3.045], ylim,'k') % 3.045
-    text(-3.045,ylims(2)-2*(ylims(2)-ylims(1))/10,'Attention sent. onset')
-    
-    plot([0 0], ylim,'k')
-    text(0,ylims(2)-(ylims(2)-ylims(1))/10,'Target sent. onset')
-    
-    plot([2.2 2.2], ylim,'k') % sentence offset
-    text(2.2,ylims(2)-(ylims(2)-ylims(1))/10,'Target sent. ends')
-    
-    plot([4.2 4.2], ylim,'k') % trial ends
-    text(4.2,ylims(2)-(ylims(2)-ylims(1))/10,'Trial ends')
-    ylabel('HFA Power')
-    ylim(ylims)
-    xlabel('Time (s)')
     
     colormap(bwr.rgb_vals);
     
-    sgtitle({['Elec: ' info.channelinfo.Label{el} ' - spectrogram; ' num2str(size(control_wlt.powspctrm,1)) ' trials'];...
-        ['spectrogram baseline correction in ' num2str(baseline(1)) ' - ' num2str(baseline(2))]}, 'FontSize',15,'FontWeight','bold')
+    sgtitle(['Elec: ' info.channelinfo.Label{el} ' - ERP-spectrogram-HFA; ' num2str(size(control_wlt.powspctrm,1)) ' trials - baseline correction in '...
+        num2str(baseline(1)) ' - ' num2str(baseline(2))], 'FontSize',15,'FontWeight','bold')
     
     % Save the figure
     fprintf('\t-Saving electrode #%d-%s, out of %d\n',el,control_ERP.label{el},size(channel_OI,1))
     print(fullfile(save_folder,[control_wlt.label{el} , '_spectrograms.jpg']),'-djpeg','-r300')
     close all
-end
-
-
 end

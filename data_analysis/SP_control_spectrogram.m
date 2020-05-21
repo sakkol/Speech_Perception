@@ -98,7 +98,7 @@ end
 baseline = [-3.4 -3.1];
 cfg              = [];
 cfg.baseline     =  baseline;% seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
-cfg.baselinetype = 'db';
+cfg.baselinetype = 'relchange';
 cfg.parameter    = 'powspctrm';
 [control_wlt]    = ft_freqbaseline(cfg, control_wlt);
 
@@ -177,7 +177,7 @@ for el = 1:size(control_ERP.trial,2)
     set(gca,'YScale','log')
     yticks([1,4,8,12,20,50,70,100,150,200])
     set(gca, 'FontSize',13,'FontWeight','bold');
-    caxis([-7 7]);
+    caxis([-1 5]);
     hold on
     ylims = ylim;
     plot([-3.54 -3.54], ylim,'k') % trial onset
@@ -207,7 +207,7 @@ for el = 1:size(control_ERP.trial,2)
     shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
     title(['Target sentence onset locked HFA'])
     xlim([time_spec(1) time_spec(end)])
-    ylim([-8 8])
+    ylim([-1 5])
     plot(xlim,[0 0],'k')
     set(gca, 'FontSize',13,'FontWeight','bold');
     ylabel('HFA (dB)')
