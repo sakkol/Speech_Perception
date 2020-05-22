@@ -157,3 +157,11 @@ parfor s = 1:length(indx)
     SP_BLP_comp(Sbj_Metadata,[],0,0)
 end
 
+%% New sep event fourier v4
+
+freq_bands = {[1 200]};
+for s = 1:length(indx)
+    sbj_ID = subjects{indx(s)};
+    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+    SP_separate_event_fourier_v4(Sbj_Metadata,freq_bands,'_all')
+end
