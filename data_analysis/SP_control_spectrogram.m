@@ -50,12 +50,6 @@ if ~exist(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(co
         [epoched_wlt] = ft_selectdata(cfg, epoched_wlt);
         curr_ERP = ft_selectdata(cfg, epoched_data);
         
-        % from fourierspectrum to powerspectrum
-        cfg = [];
-        cfg.output='abs';
-        cfg.keeptrials = 'yes';
-        epoched_wlt=ft_freqdescriptives(cfg,epoched_wlt);
-        
         % Select events
         events = events(control_idx,:);
         
@@ -66,7 +60,7 @@ if ~exist(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(co
             control_ERP = curr_ERP;
         else
             cfg = [];
-            cfg.parameter  = 'powspctrm';
+            cfg.parameter  = 'fourierspctrm';
             control_wlt = ft_appendfreq(cfg, control_wlt, epoched_wlt);
             cfg = [];
             control_ERP = ft_appendtimelock(cfg,control_ERP,curr_ERP);
@@ -75,6 +69,8 @@ if ~exist(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(co
         clear epoched_wlt events info curr_ERP control_idx epoched_data
     end
     
+    control_wlt.cumtapcnt = ones([size(control_wlt.fourierspctrm,1),length(control_wlt.freq)]);
+    
     fprintf('Saving to:\n\t->%s\n',fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']))
     save(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']),'control_events','control_ERP','control_wlt','-v7.3')
 else
@@ -82,6 +78,12 @@ else
     load(fullfile(Sbj_Metadata.results, strjoin(control_blocks,'_'),[strjoin(control_blocks,'_') '_control_wltERP.mat']),'control_events','control_ERP','control_wlt')
     
 end
+
+% from fourierspectrum to powerspectrum
+cfg = [];
+cfg.output='abs';
+cfg.keeptrials = 'yes';
+control_wlt=ft_freqdescriptives(cfg,control_wlt);
 
 if onlySuccess
     % select the trials that the accuracy is higher than 3 words
@@ -98,7 +100,7 @@ end
 baseline = [-3.4 -3.1];
 cfg              = [];
 cfg.baseline     =  baseline;% seconds (prespeech part is 3.5455 seconds) [0.5sec + 3.0455sec]
-cfg.baselinetype = 'relchange';
+cfg.baselinetype = 'relative';
 cfg.parameter    = 'powspctrm';
 [control_wlt]    = ft_freqbaseline(cfg, control_wlt);
 
@@ -177,7 +179,7 @@ for el = 1:size(control_ERP.trial,2)
     set(gca,'YScale','log')
     yticks([1,4,8,12,20,50,70,100,150,200])
     set(gca, 'FontSize',13,'FontWeight','bold');
-    caxis([-1 5]);
+    caxis([0 5]);
     hold on
     ylims = ylim;
     plot([-3.54 -3.54], ylim,'k') % trial onset
@@ -201,14 +203,14 @@ for el = 1:size(control_ERP.trial,2)
     % plot HFA
     % cl_freqs: HFA frequency range
     subplot(3,1,3)
-    avg_HFA = squeeze(freq_sel.powspctrm(:,el,:,:));
+    avg_HFA = smoothdata(squeeze(freq_sel.powspctrm(:,el,:,:)),2,'gaussian',10);
     plot(time_spec,avg_HFA,'Color',[0.9412,0.9412,0.9412])
     hold on
     shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
     title(['Target sentence onset locked HFA'])
     xlim([time_spec(1) time_spec(end)])
-    ylim([-1 5])
-    plot(xlim,[0 0],'k')
+    ylim([0 5])
+    plot(xlim,[1 1],'k') % horizontal line
     set(gca, 'FontSize',13,'FontWeight','bold');
     ylabel('HFA (dB)')
     ylims = ylim;
@@ -218,7 +220,7 @@ for el = 1:size(control_ERP.trial,2)
     plot([-3.045 -3.045], ylim,'k') % 3.045
     text(-3.045,ylims(2)-2*(ylims(2)-ylims(1))/10,'Attention sent. onset')
     
-    plot([0 0], ylim,'k')
+    plot([0 0], ylim,'k') % target sentence onset
     text(0,ylims(2)-(ylims(2)-ylims(1))/10,'Target sent. onset')
     
     plot([2.2 2.2], ylim,'k') % sentence offset
@@ -230,7 +232,7 @@ for el = 1:size(control_ERP.trial,2)
     
     colormap(bwr.rgb_vals);
     
-    sgtitle(['Elec: ' info.channelinfo.Label{el} ' - ERP-spectrogram-HFA; ' num2str(size(control_wlt.powspctrm,1)) ' trials - baseline correction in '...
+    sgtitle(['Elec: ' control_ERP.label{el} ' - ERP-spectrogram-HFA; ' num2str(size(control_wlt.powspctrm,1)) ' trials - baseline correction in '...
         num2str(baseline(1)) ' - ' num2str(baseline(2))], 'FontSize',15,'FontWeight','bold')
     
     % Save the figure
