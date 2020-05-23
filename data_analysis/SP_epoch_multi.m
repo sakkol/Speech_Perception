@@ -2,9 +2,14 @@ function [all_output,freq,time] = SP_epoch_multi(ft_data_TF,trial_nos,onsets,bef
 % this is to get segments from ERP or time-frequency data where some
 % segments can be in different time points and trials.
 
-if isfield(ft_data_TF,'powspctrm')
+if isfield(ft_data_TF,'fourierspctrm')
+    lchan = size(ft_data_TF.fourierspctrm,2);
+    lsize = length(size(ft_data_TF.fourierspctrm));
+    fieldOI = 'fourierspctrm';
+elseif isfield(ft_data_TF,'powspctrm')
     lchan = size(ft_data_TF.powspctrm,2);
     lsize = length(size(ft_data_TF.powspctrm));
+    fieldOI = 'powspctrm';
 else
     lchan = size(ft_data_TF.trial,2);
     lsize = size(ft_data_TF.trial);
@@ -21,7 +26,7 @@ for t = 1:length(trial_nos)
         
     if lsize == 4
         if t==1;all_output = zeros([length(trial_nos) lchan length(tmp.freq) length(tmp.time)]);end
-        all_output(t,:,:,:) = tmp.powspctrm;
+        all_output(t,:,:,:) = tmp.(fieldOI);
         freq = tmp.freq;
     else
         if t==1;all_output = zeros([length(trial_nos) lchan length(tmp.time)]);end
