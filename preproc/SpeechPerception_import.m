@@ -199,9 +199,10 @@ save(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']),'info'
 % save the auditory responsive electrodes from Auditory Localizer to here too
 [AudRespElecs] = get_AudRespElecs(Sbj_Metadata,project_name);
 
-save(fullfile(params.directoryOUT, [params.filename '_ecog.mat']),'ecog','-v7.3');
+save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'ecog','-v7.3');
 %% Re-reference
 % Average ref
+ecog.ftrip = cont_notched; % nothched or not-noteched
 plot_stuff=0;
 ignore_szr_chans=1;
 ecog_avg=ecog_avg_ref(ecog,plot_stuff,ignore_szr_chans);
