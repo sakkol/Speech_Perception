@@ -147,7 +147,7 @@ for el = 1:size(control_ERP.trial,2)
     plot(time_ERP,for_avg,'Color',[0.9412,0.9412,0.9412])
     hold on
     shadedErrorBar(time_ERP,mean(for_avg,1),stderr(for_avg),'lineprops','r')
-    title(['Target sentence onset locked ERP'])
+    title('Target sentence onset locked ERP')
     set(gca, 'FontSize',13,'FontWeight','bold');
     xlim([time_spec(1) time_spec(end)])
     hold on
@@ -198,7 +198,7 @@ for el = 1:size(control_ERP.trial,2)
     text(4.2,ylims(2)-(ylims(2)-ylims(1))/10,'Trial ends')
     xlim([time_spec(1) time_spec(end)])
     ylabel('log frequency (Hz)')
-    colorbar
+    title('Spectrogram')
     
     % plot HFA
     % cl_freqs: HFA frequency range
@@ -207,12 +207,12 @@ for el = 1:size(control_ERP.trial,2)
     plot(time_spec,avg_HFA,'Color',[0.9412,0.9412,0.9412])
     hold on
     shadedErrorBar(time_spec,mean(avg_HFA,1),stderr(avg_HFA),'lineprops','r')
-    title(['Target sentence onset locked HFA'])
+    title('Target sentence onset locked HFA')
     xlim([time_spec(1) time_spec(end)])
     ylim([0 5])
     plot(xlim,[1 1],'k') % horizontal line
     set(gca, 'FontSize',13,'FontWeight','bold');
-    ylabel('HFA (dB)')
+    ylabel('HFA (relative)')
     ylims = ylim;
     plot([-3.54 -3.54], ylim,'k') % trial onset
     text(-3.54,ylims(2)-(ylims(2)-ylims(1))/10,'Trial onset')
@@ -231,6 +231,22 @@ for el = 1:size(control_ERP.trial,2)
     xlim([time_spec(1) time_spec(end)])
     
     colormap(bwr.rgb_vals);
+    
+    % Create and delete new axes to plot colorbar
+    ax = axes;
+    colormap;
+    cmaph = colorbar(ax);
+    cmaph.Ticks = linspace(0,1,6);
+    cmaph.TickLabels = num2cell(linspace(0,5,6));
+    cmaph.FontSize = 13;cmaph.FontWeight='bold';
+    cmaph.LineWidth = 1.5;
+    cmaph.Label.Position(1)=2.5;
+    cmaph.Label.String = 'Power (relative)';
+    cmaph.Label.Rotation=270;
+    a=get(cmaph); %gets properties of colorbar
+    a = a.Position; %gets the positon and size of the color bar
+    set(cmaph,'Position',[a(1)+0.05 a(2)+0.29 0.03 0.21])% To change size
+    ax.Visible = 'off';
     
     sgtitle(['Elec: ' control_ERP.label{el} ' - ERP-spectrogram-HFA; ' num2str(size(control_wlt.powspctrm,1)) ' trials - baseline correction in '...
         num2str(baseline(1)) ' - ' num2str(baseline(2))], 'FontSize',15,'FontWeight','bold')
