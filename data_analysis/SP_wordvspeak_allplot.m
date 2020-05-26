@@ -189,11 +189,13 @@ itpc = [];
 tmp      = accr_word_tf./abs(accr_word_tf);   % divide by amplitude
 tmp      = sum(tmp,1);                            % sum angles across trials
 tmp      = abs(tmp)/size(accr_word_tf,1);       % take the absolute value and normalize
+% itpc(1,1,:,:,:) = squeeze(tmp); % remove the first singleton dimension
 itpc(1,1,:,:,:) = size(accr_word_tf,1) * squeeze(tmp).^2; % remove the first singleton dimension and n*ITPC^2
 % for wrong words
 tmp      = wrong_word_tf./abs(wrong_word_tf);   % divide by amplitude
 tmp      = sum(tmp,1);                            % sum angles across trials
 tmp      = abs(tmp)/size(wrong_word_tf,1);       % take the absolute value and normalize
+% itpc(1,2,:,:,:) = squeeze(tmp); % remove the first singleton dimension
 itpc(1,2,:,:,:) = size(wrong_word_tf,1) * squeeze(tmp).^2; % remove the first singleton dimension and n*ITPC^2
 
 for pp = 2:3
@@ -213,6 +215,7 @@ for pp = 2:3
         tmp      = curr_fouri_all./abs(curr_fouri_all);   % divide by amplitude
         tmp      = sum(tmp,1);                            % sum angles across trials
         tmp      = abs(tmp)/size(curr_fouri_all,1);       % take the absolute value and normalize
+%         itpc(pp,cond,:,:,:) = squeeze(tmp); % remove the first singleton dimension and n*ITPC^2
         itpc(pp,cond,:,:,:) = size(curr_fouri_all,1) * squeeze(tmp).^2; % remove the first singleton dimension and n*ITPC^2
     end
 end
@@ -337,13 +340,13 @@ for el = 1:length(control_wlt.label)
             plot3([0 0],ylim,[15 15],'k');
             
             if cond == 1 && pp == 1
-                title({'ITPC - Correct response events';['Random ' num2str(size(accr_word_tf,1)) ' events']});
+                title({'ITPCz - Correct response events';['Random ' num2str(size(accr_word_tf,1)) ' events']});
             elseif cond == 2 && pp == 2
                 title({'';['Random ' num2str(size(wrong_pR_tf,1)) ' events']});
             elseif cond == 1 && pp == 3
                 title({'';['Random ' num2str(size(accr_pE_tf,1)) ' events']});
             elseif cond == 2 && pp == 1
-                title({'ITPC - No response events';['Random ' num2str(size(wrong_word_tf,1)) ' events']});
+                title({'ITPCz - No response events';['Random ' num2str(size(wrong_word_tf,1)) ' events']});
             elseif cond == 1 && pp == 2
                 title({'';['Random ' num2str(size(accr_pR_tf,1)) ' events']});
             elseif cond == 2 && pp == 3
@@ -390,12 +393,12 @@ for el = 1:length(control_wlt.label)
     ax = axes;
     colormap(bwr.rgb_vals);
     cmaph = colorbar(ax);
-    cmaph.Ticks = linspace(0,1,5);
-    cmaph.TickLabels = num2cell(linspace(0,5,5));
+    cmaph.Ticks = linspace(0,1,6);
+    cmaph.TickLabels = num2cell(linspace(0,5,6));
     cmaph.FontSize = 13;cmaph.FontWeight='bold';
     cmaph.LineWidth = 1;
     colorTitleHandle = get(cmaph,'Title');
-    set(colorTitleHandle ,'String','n*ITPC^2 values','FontSize',13,'FontWeight','bold','Position',[295 -35 0]);
+    set(colorTitleHandle ,'String','ITPCz values','FontSize',13,'FontWeight','bold','Position',[295 -35 0]);
     a=get(cmaph); %gets properties of colorbar
     a = a.Position; %gets the positon and size of the color bar
     set(cmaph,'Location','southoutside') % to change orientation

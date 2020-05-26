@@ -131,7 +131,7 @@ end
 for s = 1:length(indx)
     sbj_ID = subjects{indx(s)};
     Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
-    SP_control_spectrogram(Sbj_Metadata,[],1,0)
+    SP_control_spectrogram(Sbj_Metadata,[],0,0)
     SP_control_spectrogram(Sbj_Metadata,[],0,1)
 end
 
