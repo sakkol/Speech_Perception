@@ -1,10 +1,13 @@
 function events_cell = event_creator(main_stim_loc,slowVSfast,SNR_input)
-% Input is only the directory of where Sentences_Rate are. (eg. /home/sakkol/Documents/Speech_Perception_stim/4th_Generation)
-% events_cell, everything ready output:
+% Input is only the directory of where Sentences_Rate are. (eg.
+% /home/sakkol/Documents/Speech_Perception_stim/4th_Generation) 
+% Output: events_cell
+% Everything ready output:
 % first column is Code of sentence; second is Sentence itself; third and
-% fourth are Condition code and name; Fifth is stimulus which will be given
-% and Fifth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
-% varargin = varargin;
+% fourth are Condition code and name; fifth is stimulus which will be given
+% and sixth is configuration input to stim_creatorv2 (saving this to be on
+% the safer side.) 
+
 %% INPUTS
 % select speech rate
 if nargin > 1 && exist('slowVSfast','var')
@@ -41,7 +44,8 @@ else
 end
 
 % Condition list to select from, for this block
-cond_list = {'Control condition','HG - short delay','HG - long delay',...
+cond_list = {'Control condition','Control condition','Control condition',...
+    'HG - short delay','HG - long delay',...
     'STG - short delay','STG - long delay',...
     'Epicranial - short delay','Epicranial - long delay'...
     'HG - sinewave - inphase','HG - sinewave - outphase',...
@@ -53,14 +57,14 @@ cond_list = {'Control condition','HG - short delay','HG - long delay',...
 if sum(cond_indx)==0,error('Quiting, no input!'),end
 
 % get delays for each condition which has delay
-if any(cond_indx~=1)
-    all_delays = inputdlg(cond_list(cond_indx(cond_indx~=1)),'Please input delays in miliseconds',[1 55]);
+if any(~ismember(cond_indx,[1 2 3]))
+    all_delays = inputdlg(cond_list(cond_indx(~ismember(cond_indx,[1 2 3]))),'Please input delays in miliseconds',[1 55]);
 end
 if isempty(all_delays),error('Quiting, no input!'),end
 
 % Get delays
-use_cond_list = cond_list(cond_indx(cond_indx~=1));
-for i=1:length(cond_list(cond_indx~=1))
+use_cond_list = cond_list(cond_indx(~ismember(cond_indx,[1 2 3])));
+for i=1:length(cond_list(~ismember(cond_indx,[1 2 3])))
     condname_erase = erase(use_cond_list{i},{' ','-'});
     eval([condname_erase ' = ' all_delays{i} '/1000;'])
 end
@@ -84,6 +88,9 @@ pool  = repelem(cond_indx, n_of_each_cond);
 index = randperm(numel(pool), n_of_each_cond*length(cond_indx));
 random_conds_code = pool(index)';
 random_conds_name = cond_list(random_conds_code)';
+
+% correct 2 and 3 to 1, because they are also Control condition (names are correct)
+random_conds_code(ismember(random_conds_code,[2 3])) = 1;
 
 %% Now create stimuli and put it into event_cell
 % common parameters
