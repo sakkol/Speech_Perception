@@ -192,3 +192,13 @@ for s = 1:length(indx)
     SP_wordvssyll_CorrVsWrng(Sbj_Metadata)
 end
 
+%% Check the acoustic differences between corr no vs wrong
+
+for s = 1:length(indx)
+    sbj_ID = subjects{indx(s)};
+    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+    SP_comp_resp_acoustics(Sbj_Metadata)
+end
+
+
+
