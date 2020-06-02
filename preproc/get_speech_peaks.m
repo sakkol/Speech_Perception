@@ -13,27 +13,13 @@ if nargin == 2, ifPlot=1;end
 % remove zeros in the end
 speech = speech(1:find(speech,1,'last'));
 
-CF = 440 * 2 .^ ((-31:97)/24);
-% load('bark_cutoff_freqs.mat') % I tried Bark scale but results weren't clear
-% CF = bark_cutoff_freqs;
+% get amplitude envelope and first derivative of amplitude envelope (using cochlear function scale)
+[amp_env,deriv_amp_env,spectrogram] = get_speech_2features(speech,Fs,'cochlear');
 
 % Remove frequency bands that exceeds half of sampling rate
+CF = 440 * 2 .^ ((-31:97)/24);
 CF(CF>Fs/2) = [];
 
-% Calculate narrow-band filtered speech envelope
-for bi = 1:[length(CF)-1]
-    filter_range = [CF(bi) CF(bi+1)];
-    [b,a] = butter(2, filter_range/(Fs/2), 'bandpass');
-    yfilt = filter(b,a,speech);
-    hilby(bi,:) = abs(hilbert(yfilt));
-end
-
-% Average narrow band filtered signals to get broadband envelope (with minor smoothing)
-amp_env = smooth(mean(hilby,1),500);
-
-% Calculate the first derivative of envelope (which means changes in rate
-% of envelope)  (with minor smoothing)
-deriv_amp_env = [smooth(diff(amp_env),700);0];
 % half wave rectification of derivative
 deriv_amp_env(deriv_amp_env<0) = 0;
 
@@ -50,7 +36,7 @@ peakRate( peakRate > length(deriv_amp_env)-100) = [];
 if ifPlot
     figure('Units','normalized','Position', [0 0  .8 .5]);
     subplot(211)
-    imagesc([1:length(hilby)]/Fs,CF,hilby)
+    imagesc([1:length(spectrogram)]/Fs,CF,spectrogram)
     axis xy
     ylabel('Frequency (Hz)')
     set(gca, 'FontSize',13,'FontWeight','bold','XGrid','on','GridColor','w','GridLineStyle','--','GridAlpha',1,'LineWidth',.7);
