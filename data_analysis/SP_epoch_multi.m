@@ -4,15 +4,15 @@ function [all_output,freq,time] = SP_epoch_multi(ft_data_TF,trial_nos,onsets,bef
 
 if isfield(ft_data_TF,'fourierspctrm')
     lchan = size(ft_data_TF.fourierspctrm,2);
-    lsize = length(size(ft_data_TF.fourierspctrm));
     fieldOI = 'fourierspctrm';
-elseif isfield(ft_data_TF,'powspctrm')
+elseif isfield(ft_data_TF,'powspctrm') && length(size(ft_data_TF.powspctrm)) == 4
     lchan = size(ft_data_TF.powspctrm,2);
-    lsize = length(size(ft_data_TF.powspctrm));
     fieldOI = 'powspctrm';
-else
+elseif isfield(ft_data_TF,'powspctrm') && length(size(ft_data_TF.powspctrm)) == 3
+    lchan = size(ft_data_TF.powspctrm,1);
+    fieldOI = 'powspctrm';
+else % probably time domain ERP
     lchan = size(ft_data_TF.trial,2);
-    lsize = size(ft_data_TF.trial);
 end
 
 % loop trial_nos
@@ -24,7 +24,7 @@ for t = 1:length(trial_nos)
     cfg.latency = [onsets(t)+before,onsets(t)+after];
     tmp = ft_selectdata(cfg,ft_data_TF);
         
-    if lsize == 4
+    if isfield(ft_data_TF,'powspctrm') || isfield(ft_data_TF,'fourierspctrm')
         if t==1;all_output = zeros([length(trial_nos) lchan length(tmp.freq) length(tmp.time)]);end
         all_output(t,:,:,:) = tmp.(fieldOI);
         freq = tmp.freq;
