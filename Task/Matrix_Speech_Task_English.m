@@ -1,4 +1,4 @@
-%% Temporary Speech Perception Script
+%% Task Script of English version of Matrix Sentence Test based Speech Perception Task
 
 % Serdar Akkol
 % Noah Markowitz
@@ -6,6 +6,8 @@
 % Human Brain Mapping Lab
 % North Shore University Hospital
 % September 2019
+% Updates:
+% added mic recording option, June 2020
 %% Preliminary Experimental Startup
 
 % Pre-Experiment Items
@@ -19,13 +21,14 @@ curr_dir=pwd;
 main_stim_loc = fullfile(curr_dir,'main_stim_loc');
 
 % Experimental Setup Settings
-par.textcolor = 255;                                                        % Text appears white
-par.textsize = 60;                                                          % Text font size
-par.cross_length = 40;                 % Size in pixels
+par.textcolor = 255;                         % Text appears white
+par.textsize = 60;                           % Text font size
+par.cross_length = 40;                       % Size in pixels
 par.cross_color = 255;
-par.N_entrain_stim = 4;                                                   % Number of entrainment sounds prior to the probe 
-par.eeg_pPort = 'DFF8';                                                     % For parallel port
-par.port_id = '/dev/tty.usbmodem14201';                     % Something like '/dev/tty.usbmodem14101' for Mac and something like 'COM4' for Windows
+par.N_entrain_stim = 4;                      % Number of entrainment sounds prior to the probe 
+par.eeg_pPort = 'DFF8';                      % For parallel port
+par.port_id = '/dev/tty.usbmodem14201';      % Something like '/dev/tty.usbmodem14101' for Mac and something like 'COM4' for Windows
+par.rec_comp_mic = 1;                        % if wanting to record microphone from laptop
 
 %% Prompt for settings
 non_acceptable = 1;
@@ -100,8 +103,8 @@ if thresVSreal == 1
 startscreen_now
 
 %% Adaptation
-% SA: I'll put several example sounds to play, without noise. Their sounds
-% are going to be ready to play. Just couple of introduction may be needed.
+% There'll be several example sounds without noise. Sounds are ready to
+% play in the adaptation_sounds folder. There will be 2 lines saying:
 % 1. Intro:
 %   a. 'You will be listening simple sentences composed of 5 words'
 %   b. 'When you are ready, press space bar to start each sentence'
@@ -145,19 +148,19 @@ for trialN = [1,4,7,10,13,16,19,22,25,28,30,11,14,17,20,23,26,2,6,29,27,24,21,18
     send_ttl(255, port_handle);
     [actualStartTime, ~,~,estStopTime] = PsychPortAudio('Stop',pahandle,1,1);
     send_ttl(0, port_handle); 
-    WaitSecs(0.5); % Wait until audio ends and then wait another 1sec
+    WaitSecs(0.5); % Wait until audio ends and then wait another 0.5 sec
     [time_trial_end, key, ~] = KbWait(-1);
     if strcmp(KbName(key), 'ESCAPE'); break; end
 end
 
 %% Threshold:
-% SA: I need to work on this
-% Probably same as adaptation, with set group of sentences with 3 different
-% SNR levels. If that is, we can use a similar loop as in previous section
+% There are set group of sentences to play in threshold_sounds folder.
+% However this time, these sounds will be embedded in noise of 3 different
+% levels. 
 
 % Looping for threshold audio
-% Load all the stimuli for the 'Adaptation Phase' from directory
-% called 'adaptation_sounds'
+% Load all the stimuli for the 'Threshold Phase' from directory called
+% 'threshold_sounds' 
 if slowVSfast == 1
     threshold_sounds_dir = fullfile(main_stim_loc, 'threshold_sounds_slow');
 elseif slowVSfast == 2
@@ -190,12 +193,17 @@ for trialN = 1:length(threshold_sounds)
     send_ttl(255, port_handle);
     [actualStartTime, ~,~,estStopTime] = PsychPortAudio('Stop',pahandle,1,1);
     send_ttl(0, port_handle);
-    WaitSecs(0.5); % Wait until audio ends and then wait another 1sec
+    if par.rec_comp_mic
+        [recordedaudio{trialN,1}, freq{trialN,1}] = audio_capture(pahandle);
+    else
+        recordedaudio=[];freq=[];
+    end
+    WaitSecs(0.25); % Wait until audio and/or utterance ends and then wait another 0.25sec
     [time_trial_end, key, ~] = KbWait(-1);
     if strcmp(KbName(key), 'ESCAPE'); break; end
 end
 
-save([save_filename '.mat'], 'threshold_sounds', 'slowVSfast')
+save([save_filename '.mat'], 'par', 'threshold_sounds', 'slowVSfast', 'recordedaudio', 'freq')
 
 %% Do the real task
 elseif thresVSreal == 2
@@ -221,7 +229,7 @@ end
 options             = [];   % initialize as an empty struct
 options.sigmoidName = 'norm';   % normal Gaussian curve as the sigmoid
 % options.expType     = '4AFC'; % ours is not forced choice, so  no input should be given
-options.threshPC       = .7;
+options.threshPC       = .5;
 
 result = psignifit(data_threshold,options);
 p1=plotPsych(result);
@@ -235,9 +243,8 @@ current_SNR = getThreshold(result,0.5)
 % fourth are Condition code and name; fifth is stimulus which will be given
 % and sixth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
 events_cell = event_creator(main_stim_loc,slowVSfast,current_SNR);
-%save([save_filename '_events_cell.mat'],'events_cell') 
 
-%% Loop for events_cell
+%% Loop for events_cell, meaning trials
 % 1. Intro:
 %   a. 'Now, you will listen similar sentences' stays for 3sec
 %   b. 'Please try to attend and tell us what was the sentence' stays for 3sec
@@ -248,7 +255,9 @@ events_cell = event_creator(main_stim_loc,slowVSfast,current_SNR);
 % This code is the first column of events_cell. It is a note for
 % experimenter to check the sheet and find the sentence.
 % 4. Button press
-% 5. After stim ends, 'What was the sentence?' stays for 2 sentence.
+% 5. After stim ends, 'What was the sentence?' screen comes. If no mic
+% recording needed, it stays for 2 seconds. If mic recording, until
+% response is finished.
 % 6. Cross hair comes. End of loop.
 % 7. After loop ends, 'Thank you for your time!'
 startscreen_now;
@@ -286,7 +295,13 @@ for trialN = 1:length(events_cell)
     DrawFormattedText(window, 'What was the sentence?','center','center',par.textcolor);
     Screen('DrawText',window,num2str(this_trial_code),winRect(3)/20,winRect(4)*0.9,par.textcolor);
     Screen('Flip',window);
-    WaitSecs(2);
+    if par.rec_comp_mic
+        [recordedaudio{trialN,1}, freq{trialN,1}] = audio_capture(pahandle);
+    else
+        recordedaudio=[];freq=[];
+        WaitSecs(1.75);
+    end
+    WaitSecs(0.25);
     
     % Go back to cross and wait for button press before proceeding to
     % next trial
@@ -298,7 +313,7 @@ for trialN = 1:length(events_cell)
 end
 
 % Save the info
-save([save_filename '.mat'], 'par','result','options','events_cell','data_threshold')
+save([save_filename '.mat'], 'par','result','options','events_cell','data_threshold','recordedaudio','freq')
 
 end
 %% End of task
@@ -307,7 +322,7 @@ end
 end_msg = 'Thank you for your time!';
 DrawFormattedText(window, end_msg,'center','center',par.textcolor);
 Screen('Flip',window);
-WaitSecs(3);
+WaitSecs(2);
 
 % If MMB trigger box was used, close it
 if ttl_sender == 2
@@ -317,7 +332,7 @@ if ttl_sender == 2
 end
 
 % Close Experiment
-ListenChar(0);                                                               % Characters Show in Command Window
+ListenChar(0);                                                              % Characters Show in Command Window
 ShowCursor();                                                               % Shows Cursor
 PsychPortAudio('Close', pahandle);                                 % Close the audio device
 Screen('CloseAll');                                                         % Close PsychToolbox Screen
@@ -325,7 +340,7 @@ sca
 
 catch
     
-    ListenChar(0);                                                           % Characters Show in Command Window
+    ListenChar(0);                                                          % Characters Show in Command Window
     ShowCursor();                                                           % Shows Cursor
     %PsychPortAudio('Close', pahandle);                             % Close the audio device
     Screen('CloseAll');                                                     % Close PsychToolbox Screen
