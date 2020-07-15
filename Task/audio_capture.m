@@ -4,6 +4,10 @@ recordedaudio = [];
 
 % Wait for release of all keys on keyboard:
 %KbReleaseWait;
+InitializePsychSound;
+device=[];
+
+pahandle= PsychPortAudio('Open',device,2,1,[],2);
 
 % Get what freq'uency we are actually using:
 s = PsychPortAudio('GetStatus', pahandle);
@@ -17,16 +21,17 @@ PsychPortAudio('GetAudioData', pahandle, 10);
 % i.e. record until recording is manually stopped.
 PsychPortAudio('Start', pahandle, 0, 0, 1);
 
-fprintf('Audio capture started, press any key for about 0.25 second to quit.\n');
+fprintf('Audio capture started, press any key for about 0.15 second to quit.\n');
 
 
 % We retrieve status once to get access to SampleRate:
 s = PsychPortAudio('GetStatus', pahandle);
 
 % Stay in a little loop until keypress:
+maxsecs=25;
 while ~KbCheck && ((length(recordedaudio) / s.SampleRate) < maxsecs)
-    % Wait 0.25 seconds...
-    WaitSecs(0.25);
+    % Wait 0.15 seconds...
+    WaitSecs(0.15);
 
     % Query current capture status and print it to the Matlab window:
     s = PsychPortAudio('GetStatus', pahandle);
@@ -46,4 +51,7 @@ audiodata = PsychPortAudio('GetAudioData', pahandle);
 
 % Attach it to our full sound vector:
 recordedaudio = [recordedaudio audiodata];
+
+% Close audio device
+PsychPortAudio('Close',pahandle);
 
