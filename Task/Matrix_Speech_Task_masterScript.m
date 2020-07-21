@@ -10,7 +10,7 @@
 % September 2019
 % Updates:
 % July 2020: added mic recording option and some cleaning.
-% July 2020: English and Spanish version combined into one script.
+% July 2020: English and Spanish version combined into one script. Part to set volume level done.
 
 %% Preliminary Experimental Startup
 
