@@ -7,7 +7,7 @@
 % North Shore University Hospital
 % September 2019
 % Updates:
-% added mic recording option, June 2020
+% June 2020: added mic recording option and some cleaning
 %% Preliminary Experimental Startup
 
 % Pre-Experiment Items
@@ -39,8 +39,6 @@ while non_acceptable
     'TTL Pulse (1 = None, 2 = MMB, 3 = Parallel Port)',...
     'Adaptation+Threshold (1) vs Real Deal (2)'};
     def = {'B1_NS001', '1', '1','1'};
-    'TTL Pulse (1 = None, 2 = MMB, 3 = Parallel Port)'};
-    def = {'B1_NS001', '1', '1'};
     answer = inputdlg(prompt,dlg_title,1,def);
     
     if isempty(answer); errordlg('Exiting task. Rerun script for dialogue', 'Aborting'); return; end
