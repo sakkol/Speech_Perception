@@ -7,9 +7,14 @@ function events_cell = event_creator(main_stim_loc,slowVSfast,SNR_input)
 % fourth are Condition code and name; fifth is stimulus which will be given
 % and sixth is configuration input to stim_creatorv2 (saving this to be on
 % the safer side.) 
+% Updates:
+% July 2020: 
+%   1. if SNR_input is given as thresholding results (3 accuracy
+%   values), this will run psignifit here.
+%   2. dialogs made more compact.
 
 %% INPUTS
-% select speech rate
+% select speech rate and ear to present speech
 if nargin > 1 && exist('slowVSfast','var')
     if slowVSfast == 1
         speech_rate_input = 'Slow (x0.9 = 2.95Hz)';
@@ -20,6 +25,15 @@ else
     speech_rate_input = questdlg('Slow is default!', ...
         'Please select speech rate:', ...
         'Slow (x0.9 = 2.95Hz)','Fast (x1.3 = 4.4Hz)','Slow (x0.9 = 2.95Hz)');
+end
+% set speech rate
+switch speech_rate_input
+    case 'Slow (x0.9 = 2.95Hz)'
+        speech_rate = '0.9';slowVSfast=1;
+    case 'Fast (x1.3 = 4.4Hz)'
+        speech_rate = '1.3';slowVSfast=2;
+    case ''
+        error('Quiting, no input for speech rate!')
 end
 
 % select ear to present speech
@@ -36,11 +50,12 @@ end
 clear LvsR_input 
 
 % SNR input
-if nargin > 2 && exist('SNR_input','var')
+if nargin > 2 && exist('SNR_input','var') && length(SNR_input) == 1
     SNR = SNR_input;
-else
-    SNR = inputdlg('Please write SNR in dB!');
-    SNR = str2double(SNR{1});
+elseif nargin > 2 && exist('SNR_input','var') && length(SNR_input) == 3 % run psignifit here
+    [SNR] = estimate_threshold(slowVSfast,SNR_input);
+elseif ~exist('SNR_input','var') || isempty(SNR_input)
+    SNR = estimate_threshold(slowVSfast);
 end
 
 % Condition list to select from, for this block
@@ -56,9 +71,11 @@ cond_list = {'Control condition','Control condition','Control condition',...
 [cond_indx,~] = listdlg('ListString',cond_list);
 if sum(cond_indx)==0,error('Quiting, no input!'),end
 
-% get delays for each condition which has delay
+% get delays for each condition which needs delay to be specified
 if any(~ismember(cond_indx,[1 2 3]))
     all_delays = inputdlg(cond_list(cond_indx(~ismember(cond_indx,[1 2 3]))),'Please input delays in miliseconds',[1 55]);
+else
+    all_delays=0;
 end
 if isempty(all_delays),error('Quiting, no input!'),end
 
@@ -71,7 +88,7 @@ end
 
 %% Randomization section
 n_of_each_cond = 20;    % if you want to increase the number of trials per condition
-all_sentence_list = readtable([main_stim_loc filesep 'Sentence_to_use.xlsx']);
+all_sentence_list = readtable(fullfile(main_stim_loc, 'Sentence_to_use.xlsx'));
 
 % random selection from main sentence repository
 if contains(main_stim_loc,'Spanish')
@@ -95,16 +112,6 @@ random_conds_code(ismember(random_conds_code,[2 3])) = 1;
 %% Now create stimuli and put it into event_cell
 % common parameters
 cfg = [];
-% speech rate
-switch speech_rate_input
-    case 'Slow (x0.9 = 2.95Hz)'
-        speech_rate = '0.9';
-    case 'Fast (x1.3 = 4.4Hz)'
-        speech_rate = '1.3';
-    case ''
-        error('Quiting, no input!')
-end
-
 cfg.SNR = SNR;
 cfg.prespeech.part1.length= 0.5;
 cfg.prespeech.part1.noise = 'pink';
