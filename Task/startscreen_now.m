@@ -30,9 +30,9 @@ Screen('TextFont',window,'Times');
 Screen('TextSize',window,par.textsize);
 
 % Setup PsychPortAudio and Sounds
-InitializePsychSound(1);                          % Initialize Sound Driver
-nrchannels = 2;                                     % Number of Channels
-fs = 24000;                                          %Frequency of Sampling
+InitializePsychSound(1);                             % Initialize Sound Driver
+nrchannels = 2;                                      % Number of Channels
+fs = par.PTB_fs;                                     % Frequency of Sampling
 repetitions = 1;                                     % Number of Times to Play Sound Each Time (Keep at 1)
 startCue = 0;                                        % Start Immeadiately
 pahandle = PsychPortAudio('Open', [], 1, 1, fs, nrchannels); % Open Psych-Audio Port
