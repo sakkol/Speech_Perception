@@ -27,6 +27,6 @@ amp_env = smooth(mean(spectrogram,1),500);
 
 % Calculate the first derivative of envelope (which means changes in rate
 % of envelope)  (with minor smoothing)
-deriv_amp_env = [smooth(diff(amp_env),700);0];
+deriv_amp_env = [smooth(diff(amp_env),500);0];
 
 end
