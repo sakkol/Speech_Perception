@@ -59,45 +59,49 @@ save(fullfile('/home/sakkol/Documents/Codes_git/Speech_Perception/preproc/Englis
 main_stim_loc = '/home/sakkol/Documents/TASKS/Matrix_Speech_Task/Spanish_main_stim_loc';
 
 savedir = '/home/sakkol/Documents/TASKS/Matrix_Speech_Task_additionals/Spanish_peakInfo_plots';
-ifPlot = 1;
+ifPlot = 0;
 
 speech_rates = [0.9,1.3];
 sent2use = readtable(fullfile(main_stim_loc,'Sentence_to_use.xlsx'));
 allsents = sent2use.Sentence;
-peakInfotable=struct;
+peakInfostr=struct;
+peakInfostr.lang{700,1}='';
+peakInfostr.rate{700,1}='';
+peakInfostr.sentence{700,1}='';
+peakInfostr.peak_info{700,1}=table;
 for s = 1:2
     speech_rate = speech_rates(s);
-    mkdir(fullfile(savedir,['Rate_' num2str(speech_rate)]))
+%     mkdir(fullfile(savedir,['Rate_' num2str(speech_rate)]))
     
     fprintf('Iteration = 000');
     for i=1:size(allsents,1)
         fprintf('\b\b\b%3d',i)
         
-        peakInfotable.lang{i} = 'Spanish';
+        peakInfostr.lang{i+(s-1)*350} = 'Spanish';
         if speech_rate == 1.3
-            peakInfotable.rate{i}='Fast';
+            peakInfostr.rate{i+(s-1)*350}='Fast';
         elseif speech_rate == 0.9
-            peakInfotable.rate{i}='Slow';
+            peakInfostr.rate{i+(s-1)*350}='Slow';
         end
-        
+        peakInfostr.sentence{i+(s-1)*350} = allsents{i};
         
         filename = find_sentence(allsents{i},main_stim_loc,speech_rate);
         [speech,Fs] = audioread(filename);
         
         [peakRate, peakEnv, amp_envel, deriv_amp_env] = get_speech_peaks(speech,Fs,ifPlot);
         
-        peakInfotable.peak_info{i} = table;
-        peakInfotable.peak_info{i}.peakEnv{1} = peakEnv/Fs;
-        peakInfotable.peak_info{i}.peakRate{1} = peakRate/Fs;
+        peakInfostr.peak_info{i+(s-1)*350} = table;
+        peakInfostr.peak_info{i+(s-1)*350}.peakEnv{1} = peakEnv/Fs;
+        peakInfostr.peak_info{i+(s-1)*350}.peakRate{1} = peakRate/Fs;
         
-        if ifPlot
-            % add some more info, word boundaries
-            sgtitle(['Sentence is: ' allsents{i}], 'FontSize',16,'FontWeight','bold')
-            print(fullfile(savedir,['Rate_' num2str(speech_rate)],[replace(allsents{i},' ','_') '.jpg']),'-djpeg','-r300')
-            close all
-        end
+%         if ifPlot
+%             % add some more info, word boundaries
+%             sgtitle(['Sentence is: ' allsents{i}], 'FontSize',16,'FontWeight','bold')
+%             print(fullfile(savedir,['Rate_' num2str(speech_rate)],[replace(allsents{i},' ','_') '.jpg']),'-djpeg','-r300')
+%             close all
+%         end
     end
 end
 fprintf('\nSaving...\n')
-peakInfotable = struct2table(peakInfotable);
+peakInfotable = struct2table(peakInfostr);
 save(fullfile('/home/sakkol/Documents/Codes_git/Speech_Perception/preproc/Spanish_all_info.mat'),'peakInfotable')
