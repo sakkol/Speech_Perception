@@ -5,12 +5,21 @@ function SP_beh_analysis(Sbj_Metadata,curr_block)
 % Load response table
 response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
 
+% convert code column into double
 if iscell(response_table.Condition_Code)
     for i=1:size(response_table,1)
         coll(i,1) = str2double(cell2mat(response_table.Condition_Code(i)));
     end
     response_table.Condition_Code = coll;
 end
+
+% convert sub/verb/numb/adj/noun column into string if needed
+for c=4:8
+    if isnumeric(response_table.(response_table.Properties.VariableNames{c}))
+        response_table.(response_table.Properties.VariableNames{c}) = cellstr(num2str(response_table.(response_table.Properties.VariableNames{c})));
+    end
+end
+
 % Read conditions:
 all_cond_codes = sort(unique(response_table.Condition_Code));
 for c=1:length(all_cond_codes)
@@ -106,6 +115,7 @@ for c=1:length(all_cond_codes)
     h.LineWidth = .75;legend('hide');
 end
 xlim([0 21])
+xlabel('Trial #')
 yticks(0:1:5)
 ylim([0 5.5])
 xticks(1:20)
