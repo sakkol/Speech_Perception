@@ -119,8 +119,9 @@ xlabel('Time (s)')
 xlim([1/analog_fs length(noise_ch)/analog_fs])
 print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
 
+clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl beh_data
+
 %% Create each event point
-clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl beh_data trial_dur curr_stimdur
 % trial onsets and ends
 % convert event time from Accl recording to EEG recording sampling rate
 % (should be in column)
@@ -180,7 +181,7 @@ events = [array2table(sbjID),array2table(block),array2table(event_ids),events,ar
     timing_info,accuracy];
 
 clear block sbjID event_ids trial_onsets att_sent_onset speech_onsets trial_ends trial_durs accuracy timing_info ...
-    c t response_table all_info_table prestim_att_length trial_onsets_tpts tmp_events i prespeech_noise_length
+    c t response_table all_info_table prestim_att_length trial_onsets_tpts tmp_events i
 
 %% trial based rejection
 fs = ecog.ftrip.fsample;
