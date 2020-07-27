@@ -45,7 +45,7 @@ while non_acceptable
         'English (1) vs Spanish (2)',...
         'Slow (1) vs Fast (2)',...
         'TTL Pulse (1 = None, 2 = MMB, 3 = Parallel Port)',...
-        'Adaptation+Threshold (1) vs Real Deal (2)'};
+        'Adaptation+Threshold (1) vs Real Deal (2) vs No-noise Stimuli (3)'};
     def = {'B1_NS001','1', '1', '1','1'};
     answer = inputdlg(prompt,dlg_title,1,def);
     
@@ -57,6 +57,7 @@ while non_acceptable
     ttl_sender = str2double(answer{4});
     thresVSreal = str2double(answer{5});
     
+    log_dir = fullfile(curr_dir, 'log', par.runID);
     % Put in bits that checks to make sure input is acceptable
     if exist(log_dir,'dir')
         dlg_title = 'Run ID exists already!';
@@ -79,9 +80,8 @@ end
 %% Setup second part
 
 % Create directory structure to store data
-log_dir = fullfile(curr_dir, 'log', par.runID);
-mkdir(log_dir);                                               % General directory
-save_filename = [log_dir filesep par.runID];                  % The file that will store the end results
+if ~exist(log_dir,'dir'),mkdir(log_dir),end                                % General directory
+save_filename = [log_dir filesep par.runID];                               % The file that will store the end results
 
 % set where the stimuli will be found and the dialogs
 if EngvsSpa == 1
@@ -257,12 +257,16 @@ save([save_filename '.mat'], 'par', 'EngvsSpa', 'threshold_sounds', 'slowVSfast'
 
 
 %% Do Real deal
-elseif thresVSreal == 2
+elseif thresVSreal == 2 || thresVSreal == 3
 % Creating events: description of output:
 % first column is Code of sentence; second is Sentence itself; third and
 % fourth are Condition code and name; fifth is stimulus which will be given
 % and sixth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
-events_cell = event_creator(main_stim_loc,slowVSfast,[]);
+if thresVSreal == 2
+    events_cell = event_creator(main_stim_loc,slowVSfast,[]);
+elseif thresVSreal == 3
+    events_cell = nonoise_event_creator(main_stim_loc,slowVSfast);
+end
 
 %% Loop for events_cell (=trials)
 % 1. Intro:
