@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS156';
+sbj_ID = 'NS144_2';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -20,13 +20,13 @@ SP_beh_analysis(Sbj_Metadata,curr_block)
 % 
 % save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_TDT_data.mat']),'data','-v7.3');
 
-% for edfs
-params.edf = fullfile(params.directory,[params.filename, '.edf']);
-params.analog.ttl            = 'DC2';
-params.analog.audio          = 'DC7';
-% params.analog.micro          = 'C210';
-ecog=edf2ecog(params);
-tmp = ecog.ftrip.time;ecog.ftrip.time={[]};ecog.ftrip.time{1}=tmp;clear tmp
+% % for edfs
+% params.edf = fullfile(params.directory,[params.filename, '.edf']);
+% params.analog.ttl            = 'DC2';
+% params.analog.audio          = 'DC7';
+% % params.analog.micro          = 'C210';
+% ecog=edf2ecog(params);
+% tmp = ecog.ftrip.time;ecog.ftrip.time={[]};ecog.ftrip.time{1}=tmp;clear tmp
 
 % not needed, just can stay here as a reminder: data = edf2fieldtrip(params.edf)
 
@@ -84,17 +84,22 @@ else % for edfs, where
 end
 
 % Analog2digital of the noise channel
+if strcmpi(tmp_events.trial_details{1}.LvsR, 'L')
+    lr=1;
+else
+    lr=2;
+end
 if isfield(ecog.analog,'trial') % amplitude threshold
     thr_ampl = 0.01; % amplitude threshold
-    noise_ch = analog_struct.trial{1}(1,:);
+    noise_ch = demean(analog_struct.trial{1}(lr,:));
 else % for edfs 
     thr_ampl = 50000;
-    noise_ch = demean(analog_struct.trial{1}(1,:));
+    noise_ch = demean(analog_struct.trial{1}(lr,:));
 end
-% % If needed: check for threshold
+% If needed: check for threshold
 figure; plot(noise_ch);
 title('Check for threshold');
-refract_tpts = floor(1*analog_struct.fs); % 1 second only
+refract_tpts = floor(2*analog_struct.fs); % 2 second only
 digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
 analog_fs = analog_struct.fs;
 
@@ -170,7 +175,7 @@ for t = 1:size(tmp_events,1)
     end
 end
 
-%% Collect trial events
+% Collect trial events
 event_ids = (1:size(tmp_events,1))';
 sbjID(1:size(tmp_events,1),1) = {sbj_ID};
 block(1:size(tmp_events,1),1) = {curr_block};
