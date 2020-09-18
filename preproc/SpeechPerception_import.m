@@ -1,11 +1,11 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS144_2';
+sbj_ID = 'NS156';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{2}
+curr_block = Sbj_Metadata.BlockLists{3}
 params = create_Params(Sbj_Metadata,curr_block)
 
 %% if response table hasn't been filled, fill it here
@@ -21,12 +21,12 @@ SP_beh_analysis(Sbj_Metadata,curr_block)
 % save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_TDT_data.mat']),'data','-v7.3');
 
 % % for edfs
-% params.edf = fullfile(params.directory,[params.filename, '.edf']);
-% params.analog.ttl            = 'DC2';
-% params.analog.audio          = 'DC7';
-% % params.analog.micro          = 'C210';
-% ecog=edf2ecog(params);
-% tmp = ecog.ftrip.time;ecog.ftrip.time={[]};ecog.ftrip.time{1}=tmp;clear tmp
+params.edf = fullfile(params.directory,[params.filename, '.edf']);
+params.analog.ttl            = 'DC1';
+params.analog.audio          = 'DC2';
+% params.analog.micro          = 'C210';
+ecog=edf2ecog(params);
+tmp = ecog.ftrip.time;ecog.ftrip.time={[]};ecog.ftrip.time{1}=tmp;clear tmp
 
 % not needed, just can stay here as a reminder: data = edf2fieldtrip(params.edf)
 
@@ -108,7 +108,7 @@ trial_onsets_tpts=find(digital_trig_chan==1);
 for i=1:length(tmp_events.Sentence_Codes)
     curr_stimdur = length(tmp_events.Stimuli{i})/24000; % in seconds; events file is 24KHz, recording may be different
     trial_dur = curr_stimdur*floor(ecog.analog.fs); % according to recording time stamps
-    trial_onsets_tpts(trial_onsets_tpts>trial_onsets_tpts(i) & trial_onsets_tpts<trial_onsets_tpts(i)+trial_dur) = [];
+%     trial_onsets_tpts(trial_onsets_tpts>trial_onsets_tpts(i) & trial_onsets_tpts<trial_onsets_tpts(i)+trial_dur) = [];
     trial_end_tpts(i,1) = trial_onsets_tpts(i) + trial_dur;
     trial_durs(i,1) = trial_dur;
 end
@@ -242,7 +242,8 @@ save(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']),'info'
 [AudRespElecs] = get_AudRespElecs(Sbj_Metadata,project_name);
 
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'ecog','-v7.3');
-%% Re-reference
+
+% Re-reference
 % Average ref
 ecog.ftrip = cont_notched; % nothched or not-noteched
 plot_stuff=0;
@@ -255,6 +256,7 @@ ecog_bp=ecog_bipolarize(ecog);
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']),'ecog_bp','-v7.3');
 
 %% Wavelet analysis
+clearvars -except Sbj_Metadata curr_block
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_avg.mat']))
 load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
 events = info.events; clear info

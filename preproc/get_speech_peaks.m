@@ -46,7 +46,12 @@ if ifPlot
     y=ylim;
     hold on
     p2=plot([1:length(amp_env)]/Fs,amp_env*(1/max(amp_env)),'r');
-    plot([peakEnv/Fs peakEnv/Fs],[y(1) y(2)],'r','LineWidth',2);
+    if length(peakEnv) == 2
+        plot([peakEnv(1)/Fs peakEnv(1)/Fs],[y(1) y(2)],'r','LineWidth',2);
+        plot([peakEnv(2)/Fs peakEnv(2)/Fs],[y(1) y(2)],'r','LineWidth',2);
+    elseif ~isempty(peakEnv)
+        plot([peakEnv/Fs peakEnv/Fs],[y(1) y(2)],'r','LineWidth',2);
+    end
     
     p4=plot([1:length(deriv_amp_env)]/Fs,deriv_amp_env*(1/max(abs(deriv_amp_env))),'k');
     if length(peakRate) == 2

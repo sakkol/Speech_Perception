@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Sep 17 21:37:15 2020
+
+@author: sakkol
+"""
+
 """Synthesizes speech from the input string of text or ssml.
 
 Note: ssml must be well-formed according to:
@@ -6,31 +14,22 @@ Note: ssml must be well-formed according to:
 #from google.cloud import storage
 import os
 from pathlib import Path
-
-# set GOOGLE_APPLICATION_CREDENTIALS="C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\My First Project-dc1f01a6b01a.json"
-# os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\user\Desktop\PROJECT MANAGEMENT\PhD\TASK\My First Project-dc1f01a6b01a.json"
-# Explicitly use service account credentials by specifying the private key
-# file.
-#storage_client = storage.Client.from_service_account_json('My First Project-dc1f01a6b01a.json')
-#buckets = list(storage_client.list_buckets())
-#print(buckets)
-
 from google.cloud import texttospeech
 
 ## Instantiates a client
-client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/Spanish_Matrix_Sentence/Preparations/Version_4/My First Project-4597d3a51499.json"))
+client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/English/vol1/My First Project-4597d3a51499.json"))
 
 
 ## DEFINE ALL PARAMETERS HERE
 # Either folder name with text files
 CORPUS = 'CST-Repeated'
-dirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Preparations/Version_4/Attention_Sentence'
+dirname = r'/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/English/vol1/word-texts'
 dirname = Path(dirname)
-outdirname = r'/home/sakkol/Documents/Spanish_Matrix_Sentence/Preparations/Version_4/Attention_Sentence/new'
+outdirname = r'/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/English/vol1/word_sounds'
 outdirname = Path(outdirname)
 
 # Define output voice gender
-# Either 'M' or 'F'
+# Either 'M' or 'F' ; Male preferred
 GENDER = 'F'
 GENDER = 'M'
 
@@ -40,7 +39,7 @@ lang = 'English'
 
 # Slow down speech to 90% or Speed up by %130
 rate = 0.9
-rate = 1.3
+# rate = 1.3
 
 
 
@@ -55,7 +54,7 @@ if lang == 'Spanish':
 elif lang == 'English':
     lang_code = 'en-US'
     if GENDER == 'F':
-        voice_name = 'en-US-Wavenet-E'
+        voice_name = 'en-US-Wavenet-E' # D for male, E for female (Wavenet voices)
         # Pitch up female by 3 semitones
         pitch = 3.0
     elif GENDER == 'M':
@@ -70,13 +69,14 @@ else:
 # voice gender ("neutral")
 voice = texttospeech.types.VoiceSelectionParams(
     language_code=lang_code,
-    name=voice_name) # D for male, E for female (Wavenet voices)
+    name=voice_name)
 
 # Select the type of audio file you want returned
 audio_config = texttospeech.types.AudioConfig(
     audio_encoding = texttospeech.enums.AudioEncoding.LINEAR16, #LPCM WAV
     speaking_rate = rate,
-    pitch = pitch)
+    pitch = pitch,
+    sample_rate_hertz = 44100)
 
 # Get items in directory with text files here
 items = os.listdir(dirname)
