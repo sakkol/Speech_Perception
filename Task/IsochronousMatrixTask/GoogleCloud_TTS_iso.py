@@ -38,8 +38,8 @@ lang = 'Spanish'
 lang = 'English'
 
 # Slow down speech to 90% or Speed up by %130
-rate = 0.9
-# rate = 1.3
+# rate = 0.9
+rate = 1.3
 
 
 
