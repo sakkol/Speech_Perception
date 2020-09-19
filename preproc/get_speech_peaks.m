@@ -43,6 +43,7 @@ if ifPlot
     
     subplot(212)
     p1=plot([1:length(speech)]/Fs,speech*(1/max(abs(speech))),'Color',[0.651,0.651,0.651]);
+    ylim=[-1 1];
     y=ylim;
     hold on
     p2=plot([1:length(amp_env)]/Fs,amp_env*(1/max(amp_env)),'r');
