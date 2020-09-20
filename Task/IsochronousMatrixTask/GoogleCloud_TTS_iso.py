@@ -17,15 +17,15 @@ from pathlib import Path
 from google.cloud import texttospeech
 
 ## Instantiates a client
-client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/English/vol1/My First Project-4597d3a51499.json"))
+client = texttospeech.TextToSpeechClient.from_service_account_json(Path(r"/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/vol1/My First Project-4597d3a51499.json"))
 
 
 ## DEFINE ALL PARAMETERS HERE
 # Either folder name with text files
 CORPUS = 'CST-Repeated'
-dirname = r'/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/English/vol1/word-texts'
+dirname = r'/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/vol1/word-texts/English'
 dirname = Path(dirname)
-outdirname = r'/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/English/vol1/word_sounds'
+outdirname = r'/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/vol1/word_sounds/English'
 outdirname = Path(outdirname)
 
 # Define output voice gender
@@ -37,9 +37,9 @@ GENDER = 'M'
 lang = 'Spanish'
 lang = 'English'
 
-# Slow down speech to 90% or Speed up by %130
+# Speed up by %130
 # rate = 0.9
-rate = 1.3
+rate = 1.7
 
 
 

@@ -1,6 +1,5 @@
-% select_conditions (based on select_bad_chans)
-% To be able to easily select the conditions from a nice table if needed to
-% select manually but select_conditions_GUI is better and more up-to-date !!!!!!!!!!!!!!!!!!
+function selections = select_conditions_GUI
+% new select_conditions with a GUI
 
 elecstim_cond_list ={'Control condition','Control condition','Control condition',...
                 'HG - short delay','HG - long delay',...
@@ -33,18 +32,27 @@ d =    {true 'English',2.4,'L','Sentence','iso','clean','4-word','Control condit
         false 'English',2.4,'L','Scrambled','a','in-noise','3-/5-word','Control condition',0};
 
 % Create the uitable
-t = uitable('Parent',h,...
+t = uitable(h,...
     'Units', 'Normalized', 'Position', [0.1, 0.1, 0.85, 0.8],...
     'Data', d,...
     'ColumnName', columnname,...
     'ColumnFormat', columnformat,...
     'ColumnEditable', [true true true true true true true true true true],... %// That's the important line. Entries set to true will allow you to create a popup menu for the whole column.
     'RowName','Options',...
-    'DeleteFcn','newData = MyDeleteFcn(gcbo);');
+    'DeleteFcn','CloseAndSave(gcbo)');
 
-waitfor(h)
+uiwait
 
-selections = cell2table(newData);
+% general problem is that when figure closes, the data is also cleaned. To
+% work around this problem, 'CloseAndSave(gcbo)' in uitable creates a
+% temporary file to load it here. After loading tmp file, delete it.
+load('tmp.mat','selections_table');
+delete tmp.mat
+data=selections_table;
+
+% selected ones are passed onto next step
+selections = cell2table(data);
 selections.Properties.VariableNames=replace(columnname,{'/',' ','-'},'_');
 selections = selections(selections.Conditions==1,:);
-clear h t d columnname columnformat newData
+
+end

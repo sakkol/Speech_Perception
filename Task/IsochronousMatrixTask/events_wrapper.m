@@ -2,50 +2,42 @@ function [events_cell] = events_wrapper(SNR_input,default_selection)
 
 if ~exist('default_selection','var') || isempty(default_selection)
     select_conditions
+else
+    selections = default_conds(default_selection);
 end
 
 
 
-if any(selections.Electrical_stim)
-    % Condition list to select from, for this block
-    cond_list ={'Control condition','Control condition','Control condition',...
-                'HG - short delay','HG - long delay',...
-                'STG - short delay','STG - long delay',...
-                'Epicranial - short delay','Epicranial - long delay'...
-                'HG - sinewave - inphase','HG - sinewave - outphase',...
-                'STG - sinewave - inphase','STG - sinewave - outphase',...
-                'Epicranial - sinewave - inphase','Epicranial - sinewave - outphase',...
-                'Epicranial - 100Hz - nonmodulated'};
-    
-    [cond_indx,~] = listdlg('ListString',cond_list);
-    if sum(cond_indx)==0,error('Quiting, no input!'),end
-    
-    % get delays for each condition which needs delay to be specified
-    if any(~ismember(cond_indx,[1 2 3]))
-        all_delays = inputdlg(cond_list(cond_indx(~ismember(cond_indx,[1 2 3]))),'Please input delays in miliseconds',[1 55]);
-    else
-        all_delays=0;
-    end
-    if isempty(all_delays),error('Quiting, no input!'),end
-    
-    % Get delays
-    use_cond_list = cond_list(cond_indx(~ismember(cond_indx,[1 2 3])));
-    for i=1:length(cond_list(~ismember(cond_indx,[1 2 3])))
-        condname_erase = erase(use_cond_list{i},{' ','-'});
-        eval([condname_erase ' = ' all_delays{i} '/1000;'])
-    end
+
+
+
+
+
+
+
+
+
+
+% SNR input
+if nargin > 2 && exist('SNR_input','var') && length(SNR_input) == 1
+    SNR = SNR_input;
+elseif nargin > 2 && exist('SNR_input','var') && length(SNR_input) == 3 % run psignifit here
+    [SNR] = estimate_threshold(slowVSfast,SNR_input);
+elseif ~exist('SNR_input','var') || isempty(SNR_input)
+    SNR = estimate_threshold(slowVSfast);
 end
+
 
 %% create the trial order and loop to create trials
 
 %% Randomization section
-n_of_each_cond = 25;    % if you want to increase the number of trials per condition
 if strcmp(cfg.language,'English')
     load('EnglishWordsInfo.mat','WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
 else
     load('SpanishWordsInfo.mat','WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
 end
 all_sentence_list = readtable(fullfile(main_stim_loc, 'Sentence_to_use.xlsx'));
+n_of_each_cond = 25;    % if you want to increase the number of trials per condition
 
 % random selection from main sentence repository
 if contains(main_stim_loc,'Spanish')

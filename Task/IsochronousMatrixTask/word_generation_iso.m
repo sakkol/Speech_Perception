@@ -33,7 +33,7 @@ for s = 1:length(soundss)
     audiowrite(fullfile(soundss(s).folder,soundss(s).name),new_sound,Fs);
     
     % save the spectrogram plot
-    WordsInfo.StimName{s} = soundss(s).name;
+    WordsInfo.StimName{s} = erase(soundss(s).name,'-M.wav');
     WordsInfo.Stim{s} = new_sound;
     WordsInfo.StimLength(s) = length(new_sound)/Fs;
     WordsInfo.SampleRate(s) = Fs;
