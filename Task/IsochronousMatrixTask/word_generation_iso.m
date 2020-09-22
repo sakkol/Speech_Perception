@@ -56,7 +56,6 @@ end
 
 
 % Estimating the K value, to multiply with noise for SNR
-
 Signal_Power=[];Noise_Power=[];K=[];
 for s=[22,9,31,35]
     % generate noise

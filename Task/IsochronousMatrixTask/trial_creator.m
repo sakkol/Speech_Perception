@@ -42,7 +42,7 @@ SampleRate = 44100;
 
 % generate noise
 if strcmp(cfg.noise,'silence')
-    common_noise = zeros(curr_length,1);
+    common_noise = zeros(SampleRate*10,1);
 elseif any(strcmp(cfg.noise,{'pink','white','brown','blue','purple'}))
     cn = dsp.ColoredNoise('Color',cfg.noise,'SamplesPerFrame',SampleRate,'NumChannels',1);
     common_noise = cn();clear cn;common_noise=[common_noise;common_noise;common_noise;common_noise;common_noise];
@@ -58,7 +58,7 @@ end
 
 %% Now loop the parts according to the parameters
 cfgfields=fieldnames(cfg);
-partfields = cfgfields(contains(cfgfields,'part'));
+partfields = cfgfields(contains(cfgfields,'part'));partfields = SortCell(partfields);
 all_trial=[];
 
 for p = 1:length(partfields)
@@ -72,14 +72,13 @@ for p = 1:length(partfields)
         % loop the words to get clean versions with iso/achronous regularity
         for w=1:length(wordfields)
             
-            filename = find_word(curr_part.(wordfields{w}),main_stim_loc,language);
-            speech_audio = WordsInfo.Stim{contains(WordsInfo.StimName,[curr_part.(wordfields{w}) '-'])};
+            speech_audio = WordsInfo.Stim{strcmpi(WordsInfo.StimName,curr_part.(wordfields{w}))};
             if isempty(speech_audio),error('There is something wrong here'),end
             if size(speech_audio,2)==2 % it may have two channels, get only one for now
                 speech_audio(:,2) = [];
             end
             emptyss=(SampleRate*(1/curr_part.frequency))-length(speech_audio);
-            if emptyss > 0 && strcmpi(curr_part.chronicity,'a')
+            if (emptyss>0) && strcmpi(curr_part.chronicity,'a')
                 movepoint=randi(emptyss,1);
             elseif strcmpi(curr_part.chronicity,'iso')
                 movepoint=0;
