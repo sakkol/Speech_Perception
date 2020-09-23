@@ -28,6 +28,8 @@ if strcmp(select_block,'2.4Hz-isochronous-matrix')
     elseif ~exist('SNR_input','var') || isempty(SNR_input)
         SNR = estimate_threshold(1);
     end
+else
+    SNR=1;
 end
 
 %% create the trial order and loop to create trials
@@ -36,8 +38,6 @@ if strcmp(language,'English')
 else
     load('SpanishWordsInfo.mat','WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
 end
-
-n_of_each_cond = 25;    % if you want to increase the number of trials per condition
 
 % randomize word list
 rng('shuffle')
@@ -75,13 +75,16 @@ w3sent=1;w4sent=1;w5sent=1;
 w3scram=1;w4scram=1;w5scram=1;
 
 events_cell=table;
-events_cell.trials(1:(n_of_each_cond*size(selections,1)))={''};
-events_cell.cfgs(1:(n_of_each_cond*size(selections,1)))={''};
-events_cell.cond_info(1:(n_of_each_cond*size(selections,1)))={''};
+events_cell.trials(1:sum(str2double(selections.trial_no_per_block)))={''};
+events_cell.cfgs(1:sum(str2double(selections.trial_no_per_block)))={''};
+events_cell.cond_info(1:sum(str2double(selections.trial_no_per_block)))={''};
 s=1;
+
+fprintf('\n\t\t CREATING ALL EVENTS, THIS TAKES FEW SECONDS!\n\n')
+
 for c = 1:size(selections,1)
     
-    for t = 1:n_of_each_cond
+    for t = 1:str2double(selections.trial_no_per_block{c})
         
         cfg=[];
         cfg.language=selections.Language{c};
@@ -101,6 +104,7 @@ for c = 1:size(selections,1)
             cfg.part2.word2='catch';
             cfg.part2.word3='these';
             cfg.part2.word4='words';
+            cfg.part2.estim=0;
             
             if strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
                 curr_sent = all4wordsent(w4sent,:);w4sent=w4sent+1;
@@ -125,20 +129,21 @@ for c = 1:size(selections,1)
             end
             cfg.part3.chronicity=selections.Iso_A_chronous_Natural{c};
             cfg.part3.frequency=selections.Frequency(c);
+            cfg.part3.estim=~strcmp(selections.Electrical_stim{c},'Control no-stim condition');
+            cfg.part3.delay = (selections.E_stim_delay(c))/1000;
             
             cfg.part4 = cfg.part1;
             
         elseif strcmp(selections.Number_of_sentences{c},'3sentences') || strcmp(selections.Number_of_sentences{c},'5sentences')
             pss = str2double(selections.Number_of_sentences{c}(1))+1;
+            
+            % loop sentences (equals to "parts" field)
             for p=2:pss
-                
+                % select general parameters
                 cfg.(['part' num2str(p)]).chronicity=selections.Iso_A_chronous_Natural;
                 cfg.(['part' num2str(p)]).frequency=selections.Frequency;
-                cfg.part2.word1='now';
-                cfg.part2.word2='catch';
-                cfg.part2.word3='these';
-                cfg.part2.word4='words';
                 
+                % select words from randomly generated list
                 if strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
                     curr_sent = all4wordsent(w4sent,:);w4sent=w4sent+1;
                 elseif strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
