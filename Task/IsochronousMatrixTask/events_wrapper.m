@@ -1,4 +1,4 @@
-function [events_cell] = events_wrapper(SNR_input,language,LvsR,default_selection)
+function [events_table] = events_wrapper(SNR_input,language,LvsR,select_block_input)
 % This is the wrapper for trial_creator. With simple inputs and needs, it
 % returns everything you'd need in the block: stimuli, cfgs (to be able to
 % use later), cond_info (to be able to use later)
@@ -12,21 +12,21 @@ if ~exist('LvsR','var') || isempty(LvsR)
 end
 
 % select the block and arrange several parameters
-if ~exist('default_selection','var') || isempty(default_selection)
+if ~exist('select_block_input','var') || isempty(select_block_input)
     [selections, select_block] = select_conditions_GUI([],language,LvsR);
 else
-    [selections, select_block] = select_conditions_GUI(default_selection,language,LvsR);
+    [selections, select_block] = select_conditions_GUI(select_block_input,language,LvsR);
 end
 language = selections.Language{1};
 LvsR = selections.Left_vs_Right{1};
 % SNR input
-if strcmp(select_block,'2.4Hz-isochronous-matrix')
+if strcmp(select_block,'iso_mat_24')
     if exist('SNR_input','var') && length(SNR_input) == 1
         SNR = SNR_input;
     elseif exist('SNR_input','var') && length(SNR_input) == 3 % run psignifit here
-        [SNR] = estimate_threshold(1,SNR_input);
+        [SNR] = estimate_threshold(3,SNR_input);
     elseif ~exist('SNR_input','var') || isempty(SNR_input)
-        SNR = estimate_threshold(1);
+        SNR = estimate_threshold(3); % 3 is the condition for 40-word list
     end
 else
     SNR=1;
@@ -74,10 +74,10 @@ all3wordscramb = all3wordscramb(randperm(length(all3wordscramb)),:);
 w3sent=1;w4sent=1;w5sent=1;
 w3scram=1;w4scram=1;w5scram=1;
 
-events_cell=table;
-events_cell.trials(1:sum(str2double(selections.trial_no_per_block)))={''};
-events_cell.cfgs(1:sum(str2double(selections.trial_no_per_block)))={''};
-events_cell.cond_info(1:sum(str2double(selections.trial_no_per_block)))={''};
+events_table=table;
+events_table.trials(1:sum(str2double(selections.trial_no_per_block)))={''};
+events_table.cfgs(1:sum(str2double(selections.trial_no_per_block)))={''};
+events_table.cond_info(1:sum(str2double(selections.trial_no_per_block)))={''};
 s=1;
 
 fprintf('\n\t\t CREATING ALL EVENTS, THIS TAKES FEW SECONDS!\n\n')
@@ -174,8 +174,8 @@ for c = 1:size(selections,1)
             
         end
         
-        [events_cell.trials{s}, events_cell.cfgs{s}] = trial_creator(cfg);
-        events_cell.cond_info{s} = selections(c,:);
+        [events_table.trials{s}, events_table.cfgs{s}] = trial_creator(cfg);
+        events_table.cond_info{s} = selections(c,:);
         s=s+1;
         
     end
@@ -183,6 +183,6 @@ end
 
 
 %% Randomization of trials
-events_cell = events_cell(randperm(size(events_cell,1)),:);
+events_table = events_table(randperm(size(events_table,1)),:);
 
 end
