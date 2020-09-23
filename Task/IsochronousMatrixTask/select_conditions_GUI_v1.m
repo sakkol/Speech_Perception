@@ -47,8 +47,6 @@ columnname = {'Activate Conditions','Language','Frequency','Left vs Right','Numb
 columnformat = {'logical',{'English','Spanish'},'numeric',{'L','R','both'},{'1attention-1sentence','3sentences','5sentences'},{'10','15','25','30'},...
     {'Sentence','Scrambled'},{'iso','a','natural'},{'clean','in-noise'},{'4-word','3-/5-word'},elecstim_cond_list,'numeric'}; %// Set the entries of the popup menu in a cell array. When the format is 'logical', the output in the table is a checkbox.
 
-no_error = 1;cnt=1;
-while no_error % keeps you in the loop until you want to quit or everything is perfect
 %% Create the figure and uitable
 h = figure('Name', fig_title, 'NumberTitle', 'off', 'MenuBar', 'none', 'ToolBar', 'none',...
     'Units', 'Normalized', 'Position', [0.05, 0.2, 0.9, 0.4]);
@@ -66,12 +64,12 @@ t = uitable(h,...
 %% User Interfaces to change different options in the whole table
 % ui to select from default options
 c0 = uicontrol(h,'Style','popupmenu',...
-    'Units', 'Normalized','Position', [0.72 0.925 0.1 0.05],...
+    'Units', 'Normalized','Position', [0.73 0.925 0.13 0.05],...
     'String', {'','iso_mat_24','FR_3sent','passive_5sent','clear_table'},...
     'Callback', {@selection_block,t},...
     'FontSize',14);
 cnon = uicontrol(h,'Style','edit','Enable','off',...
-    'Units', 'Normalized','Position', [0.57 0.92 0.15 0.05],...
+    'Units', 'Normalized','Position', [0.57 0.92 0.16 0.05],...
     'String', 'Choose from default options:',...
     'FontSize',14);
 
@@ -113,16 +111,9 @@ cnon = uicontrol(h,'Style','edit','Enable','off',...
     'Units', 'Normalized','Position', [0.35 0.85 0.09 0.045],...
     'String', 'Change no of trials:');
 
-% ui to quit
-c2 = uicontrol(h,'Style','pushbutton',...
-    'Units', 'Normalized','Position', [0.85 0.9 0.10 0.05],...
-    'String', 'Get me outta here!!',...
-    'Callback', {@quit_button},...
-    'FontSize',14);
-
 uiwait
 
-%% After table
+%% After table is
 % general problem is that when figure closes, the data is also cleaned. To
 % work around this problem, 'CloseAndSave(gcbo)' in uitable creates a
 % temporary file to load it here. After loading tmp file, delete it.
@@ -140,44 +131,21 @@ selections = cell2table(data_to_save);
 selections.Properties.VariableNames=replace(columnname,{'/',' ','-'},'_');
 selections = selections(selections.Activate_Conditions==1,:);
 
-% check the output if anything missing or want to quit
-if exist('tmp3.mat','file')
-    delete tmp3.mat
-    error('OK, don''t be angry. Hope to see you soon!')
-elseif isempty(selections)
-    warning('No conditions were selected, change "Activate Conditions" column boxes for the ones you want to involve!')
-    d=data_to_save;
-    if cnt>3
-        error('No conditions were selected, change "Activate Conditions" column boxes for the ones you want to involve!')
-    else
-        no_error=1;cnt=cnt+1;
-    end
-elseif any(isempty(selections.Language)) || any(ismember(selections.Language,{' ',''}))
-    warning('Language is left blank, please correct it!')
-    d=data_to_save;
-    if cnt>3
-        error('Language is left blank several times, quiting!')
-    else
-        no_error=1;cnt=cnt+1;
-    end
-elseif any(isempty(selections.Left_vs_Right)) || any(ismember(selections.Left_vs_Right,{' ',''}))
-    warning('Left_vs_Right is left blank, please correct it!')
-    d=data_to_save;
-    if cnt>3
-        error('Left_vs_Right is left blank several times, quiting!')
-    else
-        no_error=1;cnt=cnt+1;
-    end
-else
-    no_error=0;
+% check the output if anything missing
+if isempty(selections)
+    error('No conditions were selected, change "Activate Conditions" column boxes for the ones you want to involve!')
 end
-
+if any(isempty(selections.Language)) || any(ismember(selections.Language,{' ',''}))
+    error('Language is left blank, please correct it!')
+end
+if any(isempty(selections.Left_vs_Right)) || any(ismember(selections.Left_vs_Right,{' ',''}))
+    error('Left_vs_Right is left blank, please correct it!')
 end
 
 end
 
 
-%% Subfunctions of User Interfaces to change options in whole table or quit
+%% Subfunctions of User Interfaces to change options in whole table
 function selection_block(src,event,t)
 tmp = load('default_conditions.mat');
 srcstr = get(src,'String');
@@ -248,11 +216,4 @@ tdata = get(t,'Data');
 tdata(:,3) = {str2double(srcstr{srcval})};
 set(t,'Data',tdata);
 % disp(['Selection: ' srcstr{srcval}]);
-end
-
-function no_error = quit_button(src,event)
-% save block selection for later use
-no_error=0;
-save('tmp3.mat','no_error')
-close all
 end
