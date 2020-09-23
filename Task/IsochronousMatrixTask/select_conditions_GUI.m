@@ -1,53 +1,54 @@
-function [selections, select_block] = select_conditions_GUI(default_table,language,LvsR)
+function [selections, select_block] = select_conditions_GUI(default_selection,language,LvsR)
 % new select_conditions with a GUI
 
 if ~exist('language','var') || isempty(language)
-    language = 'English';
+    language = ' ';
 end
 if ~exist('LvsR','var') || isempty(LvsR)
-    LvsR = '';
+    LvsR = ' ';
 end
 
-if ~exist('default_table','var') || isempty(default_table)
-    default_table = cell(0,11);
+% Define the initial displayed data
+tmp = load('default_conditions.mat');
+default_table = ...
+       {false,language,2.4,LvsR,'1attention-1sentence','30','Sentence','iso','clean','4-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Scrambled','iso','clean','4-word','Epicranial - short delay',50;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Sentence','a','clean','4-word','Epicranial - long delay',150;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Scrambled','a','clean','4-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Sentence','iso','in-noise','4-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Scrambled','iso','in-noise','4-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Sentence','a','in-noise','4-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Scrambled','a','in-noise','4-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Sentence','iso','in-noise','3-/5-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Scrambled','iso','in-noise','3-/5-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Sentence','a','in-noise','3-/5-word','Control no-stim condition',0;
+        false,language,2.4,LvsR,'1attention-1sentence','30','Scrambled','a','in-noise','3-/5-word','Control no-stim condition',0};
+if ~exist('default_selection','var') || isempty(default_selection)
     fig_title = 'PLEASE SELECT AND ARRANGE THE CONDITIONS!';
+    d = default_table;
+elseif ismember(default_selection,fieldnames(tmp))
+    d = table2cell([tmp.(default_selection);default_table]);
+    fig_title = 'YOU MAY PLAY WITH PARAMETERS AS YOU WISH!';
 else
-    default_table = table2cell(default_table);
-    fig_title = 'YOU MAY CHANGE THE E-STIM LOCATION AND DELAY!';
+    
 end
 
-elecstim_cond_list ={'Control no-stim condition',...
-    'HG - short delay','HG - long delay',...
-    'STG - short delay','STG - long delay',...
-    'Epicranial - short delay','Epicranial - long delay'...
-    'HG - sinewave - inphase','HG - sinewave - outphase',...
-    'STG - sinewave - inphase','STG - sinewave - outphase',...
-    'Epicranial - sinewave - inphase','Epicranial - sinewave - outphase',...
-    'Epicranial - 100Hz - nonmodulated'};
+elecstim_cond_list = {  'Control no-stim condition',...
+                        'HG - short delay','HG - long delay',...
+                        'STG - short delay','STG - long delay',...
+                        'Epicranial - short delay','Epicranial - long delay'...
+                        'HG - sinewave - inphase','HG - sinewave - outphase',...
+                        'STG - sinewave - inphase','STG - sinewave - outphase',...
+                        'Epicranial - sinewave - inphase','Epicranial - sinewave - outphase',...
+                        'Epicranial - 100Hz - nonmodulated'};
 
 h = figure('Name', fig_title, 'NumberTitle', 'off', 'MenuBar', 'none', 'ToolBar', 'none',...
     'Units', 'Normalized', 'Position', [0.15, 0.3, 0.7, 0.35]);
 
 % Column names and column format
-columnname = {'Activate','Language','Frequency','Left vs Right','Number of sentences','Sentence vs Scrambled','Iso/A-chronous/Natural','Clean vs In-noise','Word per sentence','Electrical stim','E-stim delay'};
-columnformat = {'logical',{'English','Spanish'},'numeric',{'L','R','both'},{'1attention-1sentence','3sentences','5sentences'},...
+columnname = {'Activate','Language','Frequency','Left vs Right','Number of sentences','trial no per block','Sentence vs Scrambled','Iso/A-chronous/Natural','Clean vs In-noise','Word per sentence','Electrical stim','E-stim delay'};
+columnformat = {'logical',{'English','Spanish'},'numeric',{'L','R','both'},{'1attention-1sentence','3sentences','5sentences'},{'10','15','25','30'},...
     {'Sentence','Scrambled'},{'iso','a','natural'},{'clean','in-noise'},{'4-word','3-/5-word'},elecstim_cond_list,'numeric'}; %// Set the entries of the popup menu in a cell array. When the format is 'logical', the output in the table is a checkbox.
-
-% Define the initial displayed data
-d =    {false,language,2.4,LvsR,'1attention-1sentence','Sentence','iso','clean','4-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Scrambled','iso','clean','4-word','Epicranial - short delay',50;
-    false,language,2.4,LvsR,'1attention-1sentence','Sentence','a','clean','4-word','Epicranial - long delay',150;
-    false,language,2.4,LvsR,'1attention-1sentence','Scrambled','a','clean','4-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Sentence','iso','in-noise','4-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Scrambled','iso','in-noise','4-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Sentence','a','in-noise','4-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Scrambled','a','in-noise','4-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Sentence','iso','in-noise','3-/5-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Scrambled','iso','in-noise','3-/5-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Sentence','a','in-noise','3-/5-word','Control condition',0;
-    false,language,2.4,LvsR,'1attention-1sentence','Scrambled','a','in-noise','3-/5-word','Control condition',0};
-
-d = [default_table;d];
 
 % Create the uitable
 t = uitable(h,...
@@ -55,8 +56,8 @@ t = uitable(h,...
     'Data', d,...
     'ColumnName', columnname,...
     'ColumnFormat', columnformat,...
-    'ColumnEditable', [true true true true true true true true true true true],... %// That's the important line. Entries set to true will allow you to create a popup menu for the whole column.
-    'ColumnWidth',{'auto' 'auto' 'auto' 'auto' 180 'auto' 'auto' 'auto' 'auto' 250 'auto'},...
+    'ColumnEditable', [true true true true true true true true true true true true],... %// That's the important line. Entries set to true will allow you to create a popup menu for the whole column.
+    'ColumnWidth',{'auto' 'auto' 'auto' 'auto' 180 'auto' 'auto' 'auto' 'auto' 'auto' 250 'auto'},...
     'RowName',{'Options'},...
     'DeleteFcn','CloseAndSave(gcbo)');
 
@@ -71,20 +72,36 @@ cnon = uicontrol(h,'Style','edit','Enable','off',...
     'FontSize',14);
 
 c1 = uicontrol(h,'Style','popupmenu',...
-    'Units', 'Normalized','Position', [0.4 0.85 0.05 0.045],...
+    'Units', 'Normalized','Position', [0.12 0.85 0.05 0.045],...
     'String', {'English','Spanish'},...
     'Callback', {@selection_lang,t});
 cnon = uicontrol(h,'Style','edit','Enable','off',...
-    'Units', 'Normalized','Position', [0.33 0.85 0.07 0.045],...
+    'Units', 'Normalized','Position', [0.05 0.85 0.07 0.045],...
     'String', 'Change language:');
+    
+c2 = uicontrol(h,'Style','popupmenu',...
+    'Units', 'Normalized','Position', [0.29 0.85 0.03 0.045],...
+    'String', {2,2.4,2.5,2.8,3,3.2},...
+    'Callback', {@change_freq,t});
+cnon = uicontrol(h,'Style','edit','Enable','off',...
+    'Units', 'Normalized','Position', [0.22 0.85 0.07 0.045],...
+    'String', 'Change frequency:');
 
 c2 = uicontrol(h,'Style','popupmenu',...
-    'Units', 'Normalized','Position', [0.6 0.85 0.05 0.045],...
-    'String', {'L','R','both'},...
+    'Units', 'Normalized','Position', [0.44 0.85 0.04 0.045],...
+    'String', {' ','L','R','both'},...
     'Callback', {@selection_LR,t});
 cnon = uicontrol(h,'Style','edit','Enable','off',...
-    'Units', 'Normalized','Position', [0.51 0.85 0.09 0.045],...
+    'Units', 'Normalized','Position', [0.35 0.85 0.09 0.045],...
     'String', 'Change left vs right ear:');
+    
+c2 = uicontrol(h,'Style','popupmenu',...
+    'Units', 'Normalized','Position', [0.64 0.85 0.03 0.045],...
+    'String', {'10','15','25','30'},...
+    'Callback', {@selection_notrial,t});
+cnon = uicontrol(h,'Style','edit','Enable','off',...
+    'Units', 'Normalized','Position', [0.55 0.85 0.09 0.045],...
+    'String', 'Change no of trials:');
     
 uiwait
 
@@ -105,13 +122,21 @@ selections = cell2table(data_to_save);
 selections.Properties.VariableNames=replace(columnname,{'/',' ','-'},'_');
 selections = selections(selections.Activate==1,:);
 
+% check the output if anything missing
 if isempty(selections)
     error('No conditions were selected, change Activate column boxes for the ones you want to involve!')
 end
+if any(isempty(selections.Language)) || any(strcmp(selections.Language,' '))
+    error('Language is left blank, please correct it!')
+end
+if any(isempty(selections.Left_vs_Right)) || any(strcmp(selections.Left_vs_Right,' '))
+    error('Left_vs_Right is left blank, please correct it!')
+end
 
 end
 
 
+%% Subfunctions
 function selection_block(src,event,t)
 tmp = load('default_conditions.mat');
 srcstr = get(src,'String');
@@ -152,7 +177,7 @@ function selection_lang(src,event,t)
 srcstr = get(src,'String');
 srcval = get(src,'Value');
 tdata = get(t,'Data');
-tdata(:,2) = {srcstr{srcval}};
+tdata(:,2) = srcstr(srcval);
 set(t,'Data',tdata);
 % disp(['Selection: ' srcstr{srcval}]);
 end
@@ -161,7 +186,25 @@ function selection_LR(src,event,t)
 srcstr = get(src,'String');
 srcval = get(src,'Value');
 tdata = get(t,'Data');
-tdata(:,4) = {srcstr{srcval}};
+tdata(:,4) = srcstr(srcval);
+set(t,'Data',tdata);
+% disp(['Selection: ' srcstr{srcval}]);
+end
+
+function selection_notrial(src,event,t)
+srcstr = get(src,'String');
+srcval = get(src,'Value');
+tdata = get(t,'Data');
+tdata(:,6) = srcstr(srcval);
+set(t,'Data',tdata);
+% disp(['Selection: ' srcstr{srcval}]);
+end
+
+function change_freq(src,event,t)
+srcstr = get(src,'String');
+srcval = get(src,'Value');
+tdata = get(t,'Data');
+tdata(:,3) = {str2double(srcstr{srcval})};
 set(t,'Data',tdata);
 % disp(['Selection: ' srcstr{srcval}]);
 end

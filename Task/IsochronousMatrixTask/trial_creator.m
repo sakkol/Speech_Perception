@@ -12,12 +12,23 @@ function [all_trial,cfg] = trial_creator(cfg)
 % cfg.part1.length=1;
 % cfg.part2.chronicity='a';
 % cfg.part2.frequency=2.4;
-% cfg.part2.word1='Ben';
-% cfg.part2.word2='got';
-% cfg.part2.word3='nine';
-% cfg.part2.word4='large';
-% cfg.part2.word5='bells';
-% cfg.part3.length=1;
+% cfg.part2.word1='Jane';
+% cfg.part2.word2='wants';
+% cfg.part2.word3='two';
+% cfg.part2.word4='cups';
+% cfg.part2.delay = 0.2;
+% cfg.part2.estim=1;
+% cfg.part3.chronicity='iso';
+% cfg.part3.frequency=2.4;
+% cfg.part3.word1='Ben';
+% cfg.part3.word2='got';
+% cfg.part3.word3='nine';
+% cfg.part3.word4='large';
+% cfg.part3.word5='bells';
+% cfg.part3.delay = 0.2;
+% cfg.part3.estim=0;
+% cfg.part4.length=1;
+% [all_trial,cfg_new] = trial_creator(cfg);
 
 %% Adming stuff
 if ~isfield(cfg,'SNR')
@@ -77,17 +88,22 @@ for p = 1:length(partfields)
             if size(speech_audio,2)==2 % it may have two channels, get only one for now
                 speech_audio(:,2) = [];
             end
+            
+            % arrange and arrange how much to move the word
             emptyss=(SampleRate*(1/curr_part.frequency))-length(speech_audio);
-            if (emptyss>0) && strcmpi(curr_part.chronicity,'a')
-                movepoint=randi(emptyss,1);
-            elseif strcmpi(curr_part.chronicity,'iso')
-                movepoint=0;
-            elseif strcmpi(curr_part.chronicity,'natural')
-                movepoint=0;
-                emptyss=0;
+            if isfield(cfg.(partfields{p}),['move_times' num2str(w)])
+                movepoint = floor((cfg.(partfields{p}).(['move_times' num2str(w)]))*SampleRate);
+            else
+                if (emptyss>0) && strcmpi(curr_part.chronicity,'a')
+                    movepoint=randi(emptyss,1);
+                elseif strcmpi(curr_part.chronicity,'iso')
+                    movepoint=0;
+                elseif strcmpi(curr_part.chronicity,'natural')
+                    movepoint=0;
+                    emptyss=0;
+                end
+                cfg.(partfields{p}).(['move_times' num2str(w)]) = movepoint/SampleRate;
             end
-            % collect move points
-            cfg.(partfields{p}).(['move_times' num2str(w)]) = movepoint/SampleRate;
             
             thisword_clear=[zeros(movepoint,1);speech_audio;zeros(emptyss-movepoint,1)];
             collected_clean_sounds=[collected_clean_sounds;thisword_clear];
@@ -98,6 +114,11 @@ for p = 1:length(partfields)
         
     end
     
+    % move the stimulation side for delay (if needed)
+    if any(strcmp(curr_partfields,'delay'))
+        collected_clean_sounds = [zeros(curr_part.delay*SampleRate,1);collected_clean_sounds];
+    end
+    
     % calculate the average scale factor to multiply with noise
     K = (avg_sig_pow/avg_noise_pow)*10^(-cfg.SNR/10);
     % Scale factor (K): avg_sig_pow and avg_noise_pow are the average signal and noise
@@ -106,11 +127,18 @@ for p = 1:length(partfields)
     
     collected_noise_sounds=collected_clean_sounds+curr_noise(1:length(collected_clean_sounds));
     
+    % clear what is going to e-stimulation side if no e-stim given
+    if any(strcmp(curr_partfields,'estim')) && curr_part.estim==0
+        collected_clean_sounds = zeros(length(collected_clean_sounds),1);
+    end
+    
     % LvsR option
     if strcmp(cfg.LvsR,'L')
         curr_stim = [collected_clean_sounds,collected_noise_sounds];
     elseif strcmp(cfg.LvsR,'R')
         curr_stim = [collected_noise_sounds,collected_clean_sounds];
+    elseif strcmp(cfg.LvsR,'both')
+        curr_stim = [collected_noise_sounds,collected_noise_sounds];
     end
     
     all_trial=[all_trial;curr_stim];
