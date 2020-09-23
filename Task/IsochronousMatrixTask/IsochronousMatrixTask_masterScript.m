@@ -13,7 +13,7 @@
 %% Preliminary Experimental Startup
 
 % Pre-Experiment Items
-clear all
+clear
 commandwindow;                                                              % Typed Characters Appear in Command Window
 
 addpath(genpath('Speech_Perception'));
@@ -40,7 +40,7 @@ dlg_title = 'Enter information';
 
 while non_acceptable
     prompt = {'Run ID',...
-        'Adaptation+Threshold (1) vs E-stim (2) vs Clean stimuli (3)',...
+        'Adaptation+Threshold (1) vs E-stim (2) vs Clean stimuli (3) vs Free-Recall (4) vs Free style (5)',...
         'English (1) vs Spanish (2)',...
         'TTL Pulse (1 = None, 2 = MMB, 3 = Parallel Port)'};
     def = {'B1_NS001','1','1','1'};
@@ -61,7 +61,7 @@ while non_acceptable
     elseif ~ismember(EngvsSpa,[1, 2])
         dlg_title = 'Invalid choice for English vs Spanish!';
         non_acceptable = 1;
-    elseif ~ismember(thresVSreal,[1, 2, 3])
+    elseif ~ismember(thresVSreal,[1, 2, 3, 4, 5])
         dlg_title = 'Invalid choice for threshold or e-stim or clean stimuli part!';
         non_acceptable = 1;
     elseif ~ismember(ttl_sender,[1, 2, 3])
@@ -74,6 +74,10 @@ while non_acceptable
 end
 
 %% Setup second part
+% Create directory structure to store data
+if ~exist(log_dir,'dir'),mkdir(log_dir),end                                % General directory
+save_filename = [log_dir filesep par.runID];                               % The file that will store the end results
+
 % Anonymous functions for TTL
 if ttl_sender == 1
     send_ttl = @(pulse_code, ttl_handle) pulse_code*2;%display('No pulse sent');
@@ -94,10 +98,6 @@ elseif ttl_sender == 3 % Set TTLs for parallel port
     send_ttl = @(pulse_code, ttl_handle) io64(eeg_obj,ttl_handle, pulse_code);
 end
 
-% Create directory structure to store data
-if ~exist(log_dir,'dir'),mkdir(log_dir),end                                % General directory
-save_filename = [log_dir filesep par.runID];                               % The file that will store the end results
-
 % set where the stimuli will be found and the dialogs
 if EngvsSpa == 1
     language='English';
@@ -107,63 +107,79 @@ if EngvsSpa == 1
         'Please try to catch the sentence coming after\n'...
         '''now catch these words''\n\n'...
         'When you are ready, \npress space bar to start each sentence'];
+    real_deal_msg = ['Again, you will listen similar sentences,\nembedded in noise\n\n'...
+        'Please try to catch the sentence coming after\n'...
+        '''now catch these words''\n\n'...
+        'When you are ready, \npress space bar to start each sentence'];
     end_msg = 'Thank you for your time!\n\nSaving data...';
     what_sentence = 'What was the sentence?';
 elseif EngvsSpa == 2
     language='Spanish';
     adaptation_intro_msg = ['Escucharás oraciones simples,\ncompuestas de 4 palabras\n\n'...
         'Cuando esté listo,\npresione la barra espaciadora\npara comenzar cada oración'];
-    threshold_intro_msg = ['Ahora, escuchará oraciones similares,\nincrustadas en el ruido\n\n'...
+    threshold_intro_msg = ['Otra vez, escuchará oraciones similares,\nincrustadas en el ruido\n\n'...
         'Por favor, trata de entender la frase que viene después\n'...
         '''................................''\n\n'...
         'Cuando esté listo,\npresione la barra espaciadora\npara comenzar cada oración'];
+    real_deal_msg;
     end_msg = '¡Gracias por tu tiempo!\n\nGuardando datos...';
     what_sentence = '¿Cuál fue la oración?';
 end
 
 %% Create the events
+% Description of events_cell:
+% first column is the sound to play; second is cfgs, the output from
+% trial_creator function; third is cond_info, the condition info.
+
+tmp=load('default_conditions.mat');
 if thresVSreal==1 % adapt + thresh
-%% Adaptation + Thresholding
-% There'll be several example sounds without noise. Sounds are ready to
-% play in the adaptation_sounds folder. There will be 2 lines saying:
-% 1. Intro:
-%   a. 'You will be listening simple sentences composed of 4 words'
-%   b. 'When you are ready, press space bar to start each sentence'
-% 2. Loop for 30 stimuli (in a cell structure with same order for each
-% patient)
-%% Threshold:
-% There are set group of sentences to play in threshold_sounds folder.
-% However this time, these sounds will be embedded in noise of 3 different
-% levels
-    tmp=load('default_conditions.mat',['cfgs_for_adapt_' language],['cfgs_for_thresh_' language]);
+%     Adaptation + Thresholding:
+%     There will be 10 trials, composed of 5 sentences without noise. Sentences
+%     are preselected and generated here (so there is no need to save any
+%     file, "WordsInfo" has everything). There will be 2 lines saying:
+%     1. Intro:
+%       a. 'You will be listening simple sentences composed of 4 words'
+%       b. 'When you are ready, press space bar to start each sentence'
+%     After adaptation (which it self can be used), there will be threshold
+%     block with 30 sentences generated with 3 different  SNR levels (+2, -2,
+%     -6). Words here are also preselected and generated rapidly here.
+    
     cfgs_for_adapt = tmp.(['cfgs_for_adapt_' language]);
-    cfgs_for_thresh = tmp.(['cfgs_for_thresh_' language]);clear tmp
+    cfgs_for_thresh = tmp.(['cfgs_for_thresh_' language]); 
     for c = 1:length(cfgs_for_adapt)
         cfgs_for_adapt{c}.language = language;
-        events_cell1{c} = trial_creator(cfgs_for_adapt{c});
+        events_table1{c} = trial_creator(cfgs_for_adapt{c});
     end
     for c = 1:length(cfgs_for_thresh)
         cfgs_for_thresh{c}.language = language;
-        events_cell2{c} = trial_creator(cfgs_for_thresh{c});
+        events_table2{c} = trial_creator(cfgs_for_thresh{c});
     end
-    events_cell=[events_cell1;events_cell2];
-    clear events_cell1 events_cell2 cfgs_for_adapt cfgs_for_thresh
-elseif thresVSreal==2
+    events_table=[events_table1;events_table2];
+    clear events_cell1 events_cell2 cfgs_for_adapt cfgs_for_thresh tmp
+    
+elseif thresVSreal==2 % isochronous version of matrix sentence task
+    % 
+    [events_table] = events_wrapper([],language,[],'iso_mat_24');
     
 elseif thresVSreal==3
+    [events_table] = events_wrapper([],language,[],'passive_5sent');
+    
+elseif thresVSreal==4 % free recall :D 
+    [events_table] = events_wrapper([],language,[],'FreeRecall_3sent');
+    
+elseif thresVSreal==4 % free style :D 
+    [events_table] = events_wrapper([],language,[],[]);
     
 end
-
+close all
 
 %% Setup Psychtoolbox and Screen
 try
 
-if thresVSreal==1
-
-%% SOUND VOLUME SETTING
+% SOUND VOLUME SETTING FIRST
 sound_good=0;
 while sound_good~=1
-    obj = audioplayer(events_cell.trials{1},par.PTB_fs);
+    obj = audioplayer(events_table.trials{1},par.PTB_fs);
     playblocking(obj);
     sounds_good = questdlg('Sounds good?', ...
         'Is the sound level good?', ...
@@ -173,42 +189,71 @@ end
 
 startscreen_now
 
-% Play the adaptation sounds
-for trialN = 1:size(events_cell,1)
+% Play the sounds
+for trialN = 1:size(events_table,1)
     if trialN==1,WaitSecs(.5);end % in the first, give a little pause, it may be very scary at first
     
+    % Choose dialog messages
     if thresVSreal==1 && trialN==1
-        % put dialog message to start adaptation part
+        % at the start of the adaptation part
         DrawFormattedText(window, adaptation_intro_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         KbWait(-1);
+        if strcmp(KbName(key), 'ESCAPE'); return; end
         % put cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
         Screen('Flip',window);
     elseif thresVSreal==1 && trialN==11
         % put the dialog message
         DrawFormattedText(window, threshold_intro_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         KbWait(-1);
+        if strcmp(KbName(key), 'ESCAPE'); return; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
         Screen('Flip',window);
-    elseif thresVSreal==2 && trialN==11
+    elseif thresVSreal==1
+        % draw cross hair
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
+        Screen('Flip',window);
+    elseif thresVSreal==2 && trialN==1
         DrawFormattedText(window, real_deal_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         [~, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); return; end
+        % draw cross hair
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('Flip',window);
     end
     
-    PsychPortAudio('FillBuffer',pahandle, events_cell.trial{trialN});
+    PsychPortAudio('FillBuffer',pahandle, events_table.trial{trialN});
     startTime{trialN,1} = PsychPortAudio('Start', pahandle, repetitions, startCue, waitforDeviceStart);
     send_ttl(255, port_handle);
     [actualStartTime{trialN,1}, ~,~,estStopTime{trialN,1}] = PsychPortAudio('Stop',pahandle,1,1);
     send_ttl(0, port_handle); 
-    WaitSecs(0.2); % Wait until audio ends and then wait another 0.5 sec
+    WaitSecs(0.25); % Wait until audio ends and then wait another 0.25 sec
+    
+    if (thresVSreal == 1 && trialN > 10) || thresVSreal == 2
+        % Prompt for answer from participant. Show message for 1.75sec
+        DrawFormattedText(window, what_sentence,'center','center',par.textcolor);
+        Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
+        Screen('Flip',window);
+        WaitSecs(1.75);
+    end
+    % this time period when patient answers, then wait for input to start next trial
     [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
     if strcmp(KbName(key), 'ESCAPE'); break; end
+    
 end
+
+% Draw thank you msg
+DrawFormattedText(window, end_msg,'center','center',par.textcolor);
+Screen('Flip',window);
+WaitSecs(2);
+
 
 all_times=[];
 all_times.startTime = startTime;startTime=[];
@@ -216,20 +261,14 @@ all_times.estStopTime = estStopTime;estStopTime=[];
 all_times.actualStartTime=actualStartTime;actualStartTime=[];
 all_times.time_trial_end = time_trial_end;time_trial_end=[];
 
-save([save_filename '.mat'], 'par', 'EngvsSpa', 'threshold_sounds', 'slowVSfast', 'recordedaudio', 'freq','all_times_adapt','all_times_thresh')
+% Save the info
+save([save_filename '.mat'], 'par', 'EngvsSpa', 'events_table', 'freq','all_times')
+save([save_filename '.mat'], 'par','result','options','events_cell','data_threshold')
 
 
-%% Do Real deal
-elseif thresVSreal == 2 || thresVSreal == 3
-% Creating events: description of output:
-% first column is Code of sentence; second is Sentence itself; third and
-% fourth are Condition code and name; fifth is stimulus which will be given
-% and sixth is cfg input to stim_creatorv2 (saving this to be on the safer side.)
-if thresVSreal == 2
-    events_cell = event_creator(main_stim_loc,slowVSfast,[]);
-elseif thresVSreal == 3
-    events_cell = nonoise_event_creator(main_stim_loc,slowVSfast);
-end
+
+
+
 
 %% Loop for events_cell (=trials)
 % 1. Intro:
@@ -248,70 +287,7 @@ end
 % 6. Cross hair comes. End of loop.
 % 7. After loop ends, 'Thank you for your time!'
 
-startscreen_now;
 
-DrawFormattedText(window, real_deal_msg,'center','center',par.textcolor);
-Screen('Flip',window);
-[~, key, ~] = KbWait(-1);
-if strcmp(KbName(key), 'ESCAPE'); return; end
-    
-% Start loop through events_cell
-for trialN = 1:length(events_cell)
-    % Set sound and code for this trial
-    this_trial_sounds = events_cell{trialN,5};
-    this_trial_code = events_cell{trialN,1};
-    if par.PTB_fs ~= 24000 % 24000 is what audio is in
-        this_trial_sounds = resample(this_trial_sounds',par.PTB_fs,24000)';
-    end
-    
-    % Create cross and write code to screen for this trial
-    Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
-    Screen('DrawText',window,num2str(this_trial_code),winRect(3)/20,winRect(4)*0.9,par.textcolor);
-    Screen('Flip', window);
-    
-    % Play sound for this trial
-    PsychPortAudio('FillBuffer',pahandle, this_trial_sounds');
-    %WaitSecs(0.5);
-    startTime{trialN,1} = PsychPortAudio('Start', pahandle, repetitions, startCue, waitforDeviceStart);
-    send_ttl(255, port_handle);
-    [actualStartTime{trialN,1}, ~,~,estStopTime{trialN,1}] = PsychPortAudio('Stop',pahandle,1,1);
-    send_ttl(0, port_handle);
-    WaitSecs(0.25); % Wait until audio ends and then wait another 0.25sec
-    
-    % Prompt for answer from participant. Show message for 2sec
-    DrawFormattedText(window, what_sentence,'center','center',par.textcolor);
-    Screen('DrawText',window,num2str(this_trial_code),winRect(3)/20,winRect(4)*0.9,par.textcolor);
-    Screen('Flip',window);
-    if par.rec_comp_mic
-        [recordedaudio{trialN,1}, freq{trialN,1}] = audio_capture(pahandle);
-    else
-        recordedaudio=[];freq=[];
-        WaitSecs(1.75);
-    end
-    WaitSecs(0.25);
-    
-    % Go back to cross and wait for button press before proceeding to the next trial
-    Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
-    Screen('DrawText',window,num2str(this_trial_code),winRect(3)/20,winRect(4)*0.9,par.textcolor);
-    Screen('Flip', window);
-    [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
-    if strcmp(KbName(key), 'ESCAPE'); break; end
-end
-
-all_times_real=[];
-all_times_real.startTime = startTime;
-all_times_real.estStopTime = estStopTime;
-all_times_real.actualStartTime=actualStartTime;
-all_times_real.time_trial_end = time_trial_end;
-
-% Draw thank you msg
-DrawFormattedText(window, end_msg,'center','center',par.textcolor);
-Screen('Flip',window);
-WaitSecs(2);
-% Save the info
-save([save_filename '.mat'], 'par','result','options','events_cell','data_threshold','recordedaudio','freq','all_times_real')
-
-end
 %% End of task
 
 % If MMB trigger box was used, close it
@@ -327,6 +303,8 @@ ShowCursor();                                                               % Sh
 PsychPortAudio('Close', pahandle);                                          % Close the audio device
 Screen('CloseAll');                                                         % Close PsychToolbox Screen
 sca
+
+%% IF ANY ERRORS
 
 catch
     ListenChar(0);                                                          % Characters Show in Command Window
