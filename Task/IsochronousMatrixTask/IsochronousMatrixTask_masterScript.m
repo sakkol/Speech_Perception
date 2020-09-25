@@ -158,14 +158,18 @@ if thresVSreal==1 % adapt + thresh
     cfgs_for_thresh = tmp.(['cfgs_for_thresh_' language]); 
     for c = 1:length(cfgs_for_adapt)
         cfgs_for_adapt{c}.language = language;
-        events_table1{c} = trial_creator(cfgs_for_adapt{c});
+        events_table1{c,1} = trial_creator(cfgs_for_adapt{c});
     end
     for c = 1:length(cfgs_for_thresh)
         cfgs_for_thresh{c}.language = language;
-        events_table2{c} = trial_creator(cfgs_for_thresh{c});
+        events_table2{c,1} = trial_creator(cfgs_for_thresh{c});
     end
-    events_table=[events_table1;events_table2];
-    clear events_cell1 events_cell2 cfgs_for_adapt cfgs_for_thresh tmp
+    events_cell=[events_table1;events_table2];
+    events_table = table;
+    events_table.trials = events_cell;
+    events_table.cfgs = [cfgs_for_adapt;cfgs_for_thresh];
+    events_table.conds = [repmat({'adaptation'},[10,1]);repmat({'threshold'},[30,1])];
+    clear events_table1 events_table2 cfgs_for_adapt cfgs_for_thresh tmp
     
 elseif thresVSreal==2 % isochronous version of matrix sentence task
     % There are total of 6 conditions:
