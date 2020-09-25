@@ -101,6 +101,7 @@ end
 % set where the stimuli will be found and the dialogs
 if EngvsSpa == 1
     language='English';
+    load('EnglishWordsInfo.mat','WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
     adaptation_intro_msg = ['You will be listening simple sentences,\ncomposed of 4 words\n\n'...
         'When you are ready, \npress space bar to start sentences'];
     threshold_intro_msg = ['Now, you will listen similar sentences,\nembedded in noise\n\n'...
@@ -113,17 +114,26 @@ if EngvsSpa == 1
         'When you are ready, \npress space bar to start each sentence'];
     end_msg = 'Thank you for your time!\n\nSaving data...';
     what_sentence = 'What was the sentence?';
+    pass_list_msg = 'Catch: ';
+    pass_list_intro_msg = ['You will listen series of words\n\n'...
+        'Please try to catch the word\n'...
+        'in the beginning of each series\n'...
+        'Press space bar to start'];
+    word_catch_msg = 'Was that present?';
 elseif EngvsSpa == 2
     language='Spanish';
+    load('SpanishWordsInfo.mat','WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
     adaptation_intro_msg = ['Escucharás oraciones simples,\ncompuestas de 4 palabras\n\n'...
         'Cuando esté listo,\npresione la barra espaciadora\npara comenzar cada oración'];
     threshold_intro_msg = ['Otra vez, escuchará oraciones similares,\nincrustadas en el ruido\n\n'...
         'Por favor, trata de entender la frase que viene después\n'...
         '''................................''\n\n'...
         'Cuando esté listo,\npresione la barra espaciadora\npara comenzar cada oración'];
-    real_deal_msg;
+    real_deal_msg; %%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end_msg = '¡Gracias por tu tiempo!\n\nGuardando datos...';
     what_sentence = '¿Cuál fue la oración?';
+    pass_list_msg; %%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    word_catch_msg; %%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 end
 
 %% Create the events
@@ -158,13 +168,24 @@ if thresVSreal==1 % adapt + thresh
     clear events_cell1 events_cell2 cfgs_for_adapt cfgs_for_thresh tmp
     
 elseif thresVSreal==2 % isochronous version of matrix sentence task
-    % 
+    % There are total of 6 conditions:
+    % 1. isochronous-clean
+    % 2. isochronous-in-noise - no e-stim
+    % 2. achronous-clean
+    % 4. achronous-in-noise - no e-stim
+    % 5. isochronous-in-noise - with e-stim
+    % 6. achronous-in-noise - with e-stim
+    % E-stim conditions may be removed and other conditions may be added.
+    % All trials are composed of 1 attention sentence and 1 4-word target
+    % sentence. Each condition has 30 trials.
     [events_table] = events_wrapper([],language,[],'iso_mat_24');
     
 elseif thresVSreal==3
+    % This is a passive listening of isochronous sentences. Each condition
+    % has 10 trials.
     [events_table] = events_wrapper([],language,[],'passive_5sent');
     
-elseif thresVSreal==4 % free recall :D 
+elseif thresVSreal==4 % free recall !! Needs some more work !!
     [events_table] = events_wrapper([],language,[],'FreeRecall_3sent');
     
 elseif thresVSreal==4 % free style :D 
@@ -186,6 +207,8 @@ while sound_good~=1
         'Good','Too high','Too low','Good');
     sound_good = strcmp(sounds_good,'Good');
 end
+words_to_catch=cell(size(events_table,1),1);
+responses = cell(size(events_table,1),1);
 
 startscreen_now
 
@@ -227,6 +250,21 @@ for trialN = 1:size(events_table,1)
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
+    elseif thresVSreal==3 % put intro message for passive listening and the word to catch
+        if trialN==1
+            DrawFormattedText(window, pass_list_intro_msg,'center','center',par.textcolor);
+            Screen('Flip',window);
+            [~, key, ~] = KbWait(-1);
+            if strcmp(KbName(key), 'ESCAPE'); return; end
+        end
+        words_to_catch{trialN} = words_table{randi(6),randi(5)}{:};
+        DrawFormattedText(window, [pass_list_msg words_to_catch{trialN}],'center','center',par.textcolor);
+        Screen('Flip',window);
+        [~, key, ~] = KbWait(-1);
+        if strcmp(KbName(key), 'ESCAPE'); return; end
+        % draw cross hair
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('Flip',window);
     end
     
     PsychPortAudio('FillBuffer',pahandle, events_table.trial{trialN});
@@ -241,20 +279,34 @@ for trialN = 1:size(events_table,1)
         DrawFormattedText(window, what_sentence,'center','center',par.textcolor);
         Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
         Screen('Flip',window);
-        WaitSecs(1.75);
+        WaitSecs(1.5);
+        % this time period when patient answers, then wait for input to start next trial
+        [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
+        if strcmp(KbName(key), 'ESCAPE'); break; end
+    elseif thresVSreal==3 % ask for if the word was present
+        DrawFormattedText(window, word_catch_msg,'center','center',par.textcolor);
+        Screen('Flip',window);
+        [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
+        responses{trialN} = key;
+        if strcmp(KbName(key), 'ESCAPE'); return; end
+        % draw cross hair
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('Flip',window);
+    else
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('Flip', window);
+        [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
+        if strcmp(KbName(key), 'ESCAPE'); break; end
     end
-    % this time period when patient answers, then wait for input to start next trial
-    [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
-    if strcmp(KbName(key), 'ESCAPE'); break; end
     
 end
 
 % Draw thank you msg
 DrawFormattedText(window, end_msg,'center','center',par.textcolor);
 Screen('Flip',window);
-WaitSecs(2);
+WaitSecs(1.5);
 
-
+% gather the times
 all_times=[];
 all_times.startTime = startTime;startTime=[];
 all_times.estStopTime = estStopTime;estStopTime=[];
@@ -262,31 +314,7 @@ all_times.actualStartTime=actualStartTime;actualStartTime=[];
 all_times.time_trial_end = time_trial_end;time_trial_end=[];
 
 % Save the info
-save([save_filename '.mat'], 'par', 'EngvsSpa', 'events_table', 'freq','all_times')
-save([save_filename '.mat'], 'par','result','options','events_cell','data_threshold')
-
-
-
-
-
-
-%% Loop for events_cell (=trials)
-% 1. Intro:
-%   a. 'Now, you will listen similar sentences' stays for 3sec
-%   b. 'Please try to attend and tell us what was the sentence' stays for 3sec
-%   c. 'To start a new sentence, press space bar!' stays for 3sec
-% 2. Loop starts:
-% 3. Cross hair comes, stays as long as stimulus ends. Also there is going
-% to be the code of the stimulus in the lower left corner of the screen.
-% This code is the first column of events_cell. It is a note for
-% experimenter to check the sheet and find the sentence.
-% 4. Button press
-% 5. After stim ends, 'What was the sentence?' screen comes. If no mic
-% recording needed, it stays for 2 seconds. If mic recording, until
-% response is finished.
-% 6. Cross hair comes. End of loop.
-% 7. After loop ends, 'Thank you for your time!'
-
+save([save_filename '.mat'], 'par', 'EngvsSpa', 'events_table', 'all_times', 'thresVSreal', 'words_to_catch', 'responses')
 
 %% End of task
 
