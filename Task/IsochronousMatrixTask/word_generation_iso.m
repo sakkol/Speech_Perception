@@ -105,3 +105,27 @@ words_table = readtable('/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMa
 
 % save several things here
 save(fullfile(save_dir,'EnglishWordsInfo.mat'),'WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
+
+%% Words in adaptation and threshold
+adaptation_word_list = cell(10,20);
+for i = 1:10
+    for p=1:5
+        for w=1:4
+            adaptation_word_list{i,(4*(p-1))+w} = cfgs_for_adapt{i}.(['part' num2str(p+1)]).(['word' num2str(w)]){:};
+        end
+    end
+end
+
+threshold_word_list = cell(30,4);
+for i = 1:30
+    for p=1
+        for w=1:4
+            threshold_word_list{i,(4*(p-1))+w} = cfgs_for_thresh{i}.(['part' num2str(p+2)]).(['word' num2str(w)]){:};
+        end
+    end
+end
+
+
+
+
+
