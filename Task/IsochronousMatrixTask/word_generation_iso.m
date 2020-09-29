@@ -24,6 +24,14 @@ audiowrite(fullfile(sound_dir,'Sean-M.wav'),soundtocare(73031:86086),SampleRate)
 audiowrite(fullfile(sound_dir,'cheap-M.wav'),soundtocare(103587:113300),SampleRate);
 audiowrite(fullfile(sound_dir,'cups-M.wav'),soundtocare(115500:128074),SampleRate);
 
+% for now and kept
+[soundtocare,SampleRate] = audioread('/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/vol1/word_sounds/English/I, kept, now-M.wav');
+
+sound_dir = '/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/vol1/word_sounds/English';
+
+audiowrite(fullfile(sound_dir,'kept-M.wav'),soundtocare(8851:19190),SampleRate);
+audiowrite(fullfile(sound_dir,'now-M.wav'),soundtocare(23323:36000),SampleRate);
+
 %% After generating sounds through GoogleCloud_TTS_iso.py, change the sound volume
 
 sound_dir = '/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMatrixTask/vol1/word_sounds/English';
