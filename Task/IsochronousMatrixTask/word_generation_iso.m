@@ -106,32 +106,31 @@ words_table = readtable('/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMa
 % save several things here
 save(fullfile(save_dir,'EnglishWordsInfo.mat'),'WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
 
-%% Prepare the adaptation and threshold sounds
-load('default_conditions.mat');
-
-
 %% Words in adaptation and threshold
 load('default_conditions.mat');
 
-adaptation_word_list = cell(10,20);
+adaptation_word_list_English = cell(10,20);
 for i = 1:10
     for p=1:5
         for w=1:4
-            adaptation_word_list{i,(4*(p-1))+w} = cfgs_for_adapt{i}.(['part' num2str(p+1)]).(['word' num2str(w)]){:};
+            adaptation_word_list_English{i,(4*(p-1))+w} = cfgs_for_adapt_English{i}.(['part' num2str(p+1)]).(['word' num2str(w)]){:};
         end
     end
 end
 
-threshold_word_list = cell(30,4);
+threshold_word_list_English = cell(30,5);
 for i = 1:30
+    threshold_word_list_English{i,1} = cfgs_for_thresh_English{i}.SNR;
     for p=1
         for w=1:4
-            threshold_word_list{i,(4*(p-1))+w} = cfgs_for_thresh{i}.(['part' num2str(p+2)]).(['word' num2str(w)]){:};
+            
+            threshold_word_list_English{i,(4*(p-1))+w+1} = cfgs_for_thresh_English{i}.(['part' num2str(p+2)]).(['word' num2str(w)]){:};
         end
     end
 end
 
-save('default_conditions.mat','iso_mat_24','passive_5sent','FreeRecall_3sent','clear_table','adapt_thresh','cfgs_for_adapt_English','cfgs_for_thresh_English','adaptation_word_list','threshold_word_list')
+save('default_conditions.mat','iso_mat_24','passive_5sent','FreeRecall_3sent','clear_table','adapt_thresh',...
+    'cfgs_for_adapt_English','cfgs_for_thresh_English','adaptation_word_list_English','threshold_word_list_English')
 
 
 
