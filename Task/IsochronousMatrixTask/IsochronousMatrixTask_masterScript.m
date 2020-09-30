@@ -279,6 +279,7 @@ for trialN = 1:size(events_table,1)
     send_ttl(0, port_handle); 
     WaitSecs(0.25); % Wait until audio ends and then wait another 0.25 sec
     
+    % put screen what will be shown
     if (thresVSreal == 1 && trialN > 10) || thresVSreal == 2
         % Prompt for answer from participant. Show message for 1.75sec
         DrawFormattedText(window, what_sentence,'center','center',par.textcolor);
@@ -342,7 +343,7 @@ sca
 catch
     ListenChar(0);                                                          % Characters Show in Command Window
     ShowCursor();                                                           % Shows Cursor
-    PsychPortAudio('Close', pahandle);                                     % Close the audio device
+    PsychPortAudio('Close', pahandle);                                      % Close the audio device
     Screen('CloseAll');                                                     % Close PsychToolbox Screen
     sca
     ple                                                                     % Print Last Error

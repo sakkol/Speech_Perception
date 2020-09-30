@@ -106,7 +106,13 @@ words_table = readtable('/home/sakkol/Documents/TASKS/PREPARATIONS/IsochronousMa
 % save several things here
 save(fullfile(save_dir,'EnglishWordsInfo.mat'),'WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
 
+%% Prepare the adaptation and threshold sounds
+load('default_conditions.mat');
+
+
 %% Words in adaptation and threshold
+load('default_conditions.mat');
+
 adaptation_word_list = cell(10,20);
 for i = 1:10
     for p=1:5
@@ -125,7 +131,7 @@ for i = 1:30
     end
 end
 
-
+save('default_conditions.mat','iso_mat_24','passive_5sent','FreeRecall_3sent','clear_table','adapt_thresh','cfgs_for_adapt_English','cfgs_for_thresh_English','adaptation_word_list','threshold_word_list')
 
 
 
