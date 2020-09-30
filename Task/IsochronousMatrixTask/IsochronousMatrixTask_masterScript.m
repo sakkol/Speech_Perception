@@ -202,6 +202,7 @@ close all
 try
 
 % SOUND VOLUME SETTING FIRST
+fprintf('FIRST GET THE SOUND VOLUME CORRECT\n')
 sound_good=0;
 while sound_good~=1
     obj = audioplayer(events_table.trials{1},par.PTB_fs);
@@ -225,7 +226,7 @@ for trialN = 1:size(events_table,1)
         % at the start of the adaptation part
         DrawFormattedText(window, adaptation_intro_msg,'center','center',par.textcolor);
         Screen('Flip',window);
-        KbWait(-1);
+        [~, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); return; end
         % put cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
@@ -235,7 +236,7 @@ for trialN = 1:size(events_table,1)
         % put the dialog message
         DrawFormattedText(window, threshold_intro_msg,'center','center',par.textcolor);
         Screen('Flip',window);
-        KbWait(-1);
+        [~, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); return; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
@@ -271,7 +272,7 @@ for trialN = 1:size(events_table,1)
         Screen('Flip',window);
     end
     
-    PsychPortAudio('FillBuffer',pahandle, events_table.trial{trialN});
+    PsychPortAudio('FillBuffer',pahandle, events_table.trials{trialN}');
     startTime{trialN,1} = PsychPortAudio('Start', pahandle, repetitions, startCue, waitforDeviceStart);
     send_ttl(255, port_handle);
     [actualStartTime{trialN,1}, ~,~,estStopTime{trialN,1}] = PsychPortAudio('Stop',pahandle,1,1);
@@ -341,7 +342,7 @@ sca
 catch
     ListenChar(0);                                                          % Characters Show in Command Window
     ShowCursor();                                                           % Shows Cursor
-    %PsychPortAudio('Close', pahandle);                                     % Close the audio device
+    PsychPortAudio('Close', pahandle);                                     % Close the audio device
     Screen('CloseAll');                                                     % Close PsychToolbox Screen
     sca
     ple                                                                     % Print Last Error
