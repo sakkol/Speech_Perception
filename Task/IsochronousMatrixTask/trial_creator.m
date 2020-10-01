@@ -133,9 +133,9 @@ for p = 1:length(partfields)
     end
     
     % LvsR option
-    if strcmp(cfg.LvsR,'L')
+    if strcmp(cfg.LvsR,'R')
         curr_stim = [collected_clean_sounds,collected_noise_sounds];
-    elseif strcmp(cfg.LvsR,'R')
+    elseif strcmp(cfg.LvsR,'L')
         curr_stim = [collected_noise_sounds,collected_clean_sounds];
     elseif strcmp(cfg.LvsR,'both')
         curr_stim = [collected_noise_sounds,collected_noise_sounds];

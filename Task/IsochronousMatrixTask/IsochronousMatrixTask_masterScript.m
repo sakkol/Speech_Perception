@@ -205,7 +205,7 @@ try
 fprintf('FIRST GET THE SOUND VOLUME CORRECT\n')
 sound_good=0;
 while sound_good~=1
-    obj = audioplayer(events_table.trials{1},par.PTB_fs);
+    obj = audioplayer(events_table.trials{end},par.PTB_fs);
     playblocking(obj);
     sounds_good = questdlg('Sounds good?', ...
         'Is the sound level good?', ...
@@ -229,16 +229,6 @@ for trialN = 1:size(events_table,1)
         [~, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); break; end
         % put cross hair
-        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
-        Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
-        Screen('Flip',window);
-    elseif thresVSreal==1 && trialN==11
-        % put the dialog message
-        DrawFormattedText(window, threshold_intro_msg,'center','center',par.textcolor);
-        Screen('Flip',window);
-        [~, key, ~] = KbWait(-1);
-        if strcmp(KbName(key), 'ESCAPE'); break; end
-        % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
         Screen('Flip',window);
@@ -292,6 +282,15 @@ for trialN = 1:size(events_table,1)
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('DrawText',window,num2str(trialN+1),winRect(3)/20,winRect(4)*0.9,par.textcolor);
+        Screen('Flip',window);
+    elseif thresVSreal == 1 && trialN==10 % workaround for not showing the threshold message
+        WaitSecs(1);
+        DrawFormattedText(window, threshold_intro_msg,'center','center',par.textcolor);
+        Screen('Flip',window);
+        [~, key, ~] = KbWait(-1);
+        if strcmp(KbName(key), 'ESCAPE'); break; end
+        % draw cross hair
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
     elseif thresVSreal==3 % ask for if the word was present
         DrawFormattedText(window, word_catch_msg,'center','center',par.textcolor);
