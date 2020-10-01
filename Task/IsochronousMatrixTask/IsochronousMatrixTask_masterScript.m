@@ -227,7 +227,7 @@ for trialN = 1:size(events_table,1)
         DrawFormattedText(window, adaptation_intro_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         [~, key, ~] = KbWait(-1);
-        if strcmp(KbName(key), 'ESCAPE'); return; end
+        if strcmp(KbName(key), 'ESCAPE'); break; end
         % put cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
@@ -237,7 +237,7 @@ for trialN = 1:size(events_table,1)
         DrawFormattedText(window, threshold_intro_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         [~, key, ~] = KbWait(-1);
-        if strcmp(KbName(key), 'ESCAPE'); return; end
+        if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('DrawText',window,num2str(trialN),winRect(3)/20,winRect(4)*0.9,par.textcolor);
@@ -251,7 +251,7 @@ for trialN = 1:size(events_table,1)
         DrawFormattedText(window, real_deal_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         [~, key, ~] = KbWait(-1);
-        if strcmp(KbName(key), 'ESCAPE'); return; end
+        if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
@@ -260,13 +260,13 @@ for trialN = 1:size(events_table,1)
             DrawFormattedText(window, pass_list_intro_msg,'center','center',par.textcolor);
             Screen('Flip',window);
             [~, key, ~] = KbWait(-1);
-            if strcmp(KbName(key), 'ESCAPE'); return; end
+            if strcmp(KbName(key), 'ESCAPE'); break; end
         end
         words_to_catch{trialN} = words_table{randi(6),randi(5)}{:};
         DrawFormattedText(window, [pass_list_msg words_to_catch{trialN}],'center','center',par.textcolor);
         Screen('Flip',window);
         [~, key, ~] = KbWait(-1);
-        if strcmp(KbName(key), 'ESCAPE'); return; end
+        if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
@@ -289,12 +289,16 @@ for trialN = 1:size(events_table,1)
         % this time period when patient answers, then wait for input to start next trial
         [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); break; end
+        % draw cross hair
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('DrawText',window,num2str(trialN+1),winRect(3)/20,winRect(4)*0.9,par.textcolor);
+        Screen('Flip',window);
     elseif thresVSreal==3 % ask for if the word was present
         DrawFormattedText(window, word_catch_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
         responses{trialN} = key;
-        if strcmp(KbName(key), 'ESCAPE'); return; end
+        if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);

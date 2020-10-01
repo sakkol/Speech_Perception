@@ -22,7 +22,7 @@ grey = (black + white) / 2;
 if round(grey)==white; grey=black; end
 
 %%% For debugging make screen small (comment this, use 2nd line for the real deal)
-%[window winRect] = Screen('Openwindow', screenid, grey,[0 0 640 480]);
+% [window winRect] = Screen('Openwindow', screenid, grey,[0 0 640 480]);
 [window winRect] = Screen('Openwindow', screenid, grey);
 
 % Set text parameters
