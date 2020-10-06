@@ -30,11 +30,11 @@ par.cross_length = 40;                       % Size in pixels
 par.cross_color = 255;
 par.N_entrain_stim = 4;                      % Number of entrainment sounds prior to the probe
 par.eeg_pPort = 'DFF8';                      % For parallel port
-par.port_id = '/dev/ttyACM01';               % Something like '/dev/ttyACM01' for new Ubuntu laptop; or '/dev/tty.usbmodem14101' for Mac; or 'COM4' for Windows
+par.port_id = '/dev/ttyACM0';               % Something like '/dev/ttyACM01' for new Ubuntu laptop; or '/dev/tty.usbmodem14101' for Mac; or 'COM4' for Windows
 par.rec_comp_mic = 1;                        % if wanting to record microphone from laptop
 par.time = string(datetime('now'));          % save the date and time
 [~, par.ComputerID] = system('hostname');    % save computer ID
-par.PTB_fs = 24000;
+par.PTB_fs = 44100;
 
 %% Prompt for main settings
 non_acceptable = 1;
@@ -151,7 +151,7 @@ for ss = 1:length(adaptation_sounds)
     [y, ~] = audioread(fullfile(adaption_sounds_dir, list_adaptation_sound_files(ss).name));
     adaptation_sounds{ss,2} = [y,y]'; % Because it is 1 column
     if par.PTB_fs ~= 24000 % 24000 is what audio is in
-        adaptation_sounds{ss,2} = resample(adaptation_sounds{ss,2}',par.PTB_fs,24000)';
+        adaptation_sounds{ss,2} = resample(adaptation_sounds{ss,2},par.PTB_fs,24000);
     end
 end
 % Load all the stimuli for the 'Threshold Phase' from directory called
@@ -168,7 +168,7 @@ for ss = 1:length(threshold_sounds)
     [y, ~] = audioread(fullfile(threshold_sounds_dir, list_threshold_sound_files(ss).name));
     threshold_sounds{ss,2} = y';
     if par.PTB_fs ~= 24000 % 24000 is what audio is in
-        threshold_sounds{ss,2} = resample(threshold_sounds{ss,2}',par.PTB_fs,24000)';
+        threshold_sounds{ss,2} = resample(threshold_sounds{ss,2},par.PTB_fs,24000);
     end
 end
 
@@ -304,7 +304,7 @@ for trialN = 1:length(events_cell)
     this_trial_sounds = events_cell{trialN,5};
     this_trial_code = events_cell{trialN,1};
     if par.PTB_fs ~= 24000 % 24000 is what audio is in
-        this_trial_sounds = resample(this_trial_sounds',par.PTB_fs,24000)';
+        this_trial_sounds = resample(this_trial_sounds,par.PTB_fs,24000);
     end
     
     % Create cross and write code to screen for this trial
