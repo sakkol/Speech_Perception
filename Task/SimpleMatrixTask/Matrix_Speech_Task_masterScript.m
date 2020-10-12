@@ -374,7 +374,7 @@ sca
 catch
     ListenChar(0);                                                          % Characters Show in Command Window
     ShowCursor();                                                           % Shows Cursor
-    %PsychPortAudio('Close', pahandle);                                     % Close the audio device
+    PsychPortAudio('Close', pahandle);                                      % Close the audio device
     Screen('CloseAll');                                                     % Close PsychToolbox Screen
     sca
     ple                                                                     % Print Last Error
