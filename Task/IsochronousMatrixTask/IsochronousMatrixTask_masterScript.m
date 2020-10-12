@@ -76,7 +76,7 @@ end
 %% Setup second part
 % Create directory structure to store data
 if ~exist(log_dir,'dir'),mkdir(log_dir),end                                % General directory
-save_filename = [log_dir filesep par.runID];                               % The file that will store the end results
+save_filename = fullfile(log_dir, par.runID);                              % The file that will store the end results
 
 % Anonymous functions for TTL
 if ttl_sender == 1
@@ -214,6 +214,12 @@ while sound_good~=1
 end
 words_to_catch=cell(size(events_table,1),1);
 responses = cell(size(events_table,1),1);
+startTime = cell(size(events_table,1),1);
+actualStartTime = cell(size(events_table,1),1);
+estStopTime = cell(size(events_table,1),1);
+time_trial_end = cell(size(events_table,1),1);
+
+save([save_filename '_tmp0.mat'], 'par', 'EngvsSpa', 'events_table', 'thresVSreal')
 
 startscreen_now
 
@@ -287,7 +293,7 @@ for trialN = 1:size(events_table,1)
         WaitSecs(1);
         DrawFormattedText(window, threshold_intro_msg,'center','center',par.textcolor);
         Screen('Flip',window);
-        [~, key, ~] = KbWait(-1);
+        [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
@@ -306,6 +312,12 @@ for trialN = 1:size(events_table,1)
         Screen('Flip', window);
         [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); break; end
+    end
+    
+    % save what is in here every 5 trials
+    if mod(trialN,5)==0
+        save([save_filename 'tmp' num2str(trialN/5) '.mat'], 'par','EngvsSpa','events_table',...
+            'startTime','estStopTime','actualStartTime','time_trial_end','thresVSreal','words_to_catch','responses')
     end
     
 end

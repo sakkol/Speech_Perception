@@ -83,18 +83,18 @@ else % for edfs, where
     analog_struct.fs = ecog.analog.fs;
 end
 
-% Analog2digital of the noise channel
-if strcmpi(tmp_events.trial_details{1}.LvsR, 'L')
-    lr=1;
-else
-    lr=2;
-end
 if isfield(ecog.analog,'trial') % amplitude threshold
+    % Analog2digital of the noise channel
+    if strcmpi(tmp_events.trial_details{1}.LvsR, 'L')
+        lr=1;
+    else
+        lr=2;
+    end
     thr_ampl = 0.01; % amplitude threshold
     noise_ch = demean(analog_struct.trial{1}(lr,:));
-else % for edfs 
+else % for edfs
     thr_ampl = 50000;
-    noise_ch = demean(analog_struct.trial{1}(lr,:));
+    noise_ch = demean(analog_struct.trial{1}(1,:));
 end
 % If needed: check for threshold
 figure; plot(noise_ch);
@@ -268,80 +268,3 @@ post = 6; % seconds (longest trial is ~8.5 seconds)
 
 % save wlt and data
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data','-v7.3');
-
-
-%% Remove if above is doing fine
-% 
-% 
-% % First resample for saving space and memory
-% cfg             = [];
-% cfg.resamplefs  = 1000;
-% ecog_avg.ftrip  = ft_resampledata(cfg,ecog_avg.ftrip);
-% fs              = ecog_avg.ftrip.fsample;
-% 
-% % Make trial structure
-% 
-% trl           = [];
-% trl(:,1)      = floor( events.speech_onsets*fs - fs*pre );
-% trl(:,2)      = floor( events.speech_onsets*fs + fs*post );
-% trl(:,3)      = floor( -pre*fs );
-% 
-% % Epoch
-% cfg      = [];
-% cfg.trl  = trl;
-% epoched_data    = ft_redefinetrial(cfg,ecog_avg.ftrip); clear ecog_avg % save some memory
-% % replace NaNs with zeros in first trial (if trial started fast)
-% epoched_data.trial{1}(isnan(epoched_data.trial{1})) = 0;
-% 
-% % def preproc parameters
-% cfg_preproc                     = [];
-% cfg_preproc.channel             = 'all';
-% % cfg_preproc.padding             = 4;
-% % cfg_preproc.demean              = 'yes';
-% cfg_preproc.detrend             = 'yes';
-% cfg_preproc.dftfilter           = 'yes';
-% cfg_preproc.dftfreq             = [60 120 180];
-% % cfg_preproc.baselinewindow      = [-.5 -.05];
-% epoched_data                     = ft_preprocessing(cfg_preproc, epoched_data);
-% 
-% % compute trials
-% cfg             = [];
-% cfg.keeptrials  = 'yes';
-% epoched_data     = ft_timelockanalysis(cfg,epoched_data);
-% 
-% if sum(sum(sum(isnan(epoched_data.trial))))
-%     warning('\n\n\n\t\t\tTHERE WERE %s TRIALS THAT HAVE NANs, REPLACING WITH ZEROS',sum(sum(sum(isnan(epoched_data.trial)))))
-%     % replace NaNs with zeros
-%     epoched_data.trial(isnan(epoched_data.trial)) = 0;
-% end
-% 
-% 
-% % Wavelet
-% cfg                   = [];
-% cfg.method            = 'wavelet';
-% freq                  = [1 200];
-% nf                    = length(freq(1):3:freq(2));
-% cfg.foi               = logspace(log10(freq(1)),log10(freq(2)),nf);
-% cfg.width             = 6;
-% cfg.toi               = -6:0.01:8;
-% cfg.keeptrials        = 'yes';
-% cfg.keeptaper         = 'yes';
-% cfg.output            = 'fourier';
-% 
-% cfg.outputfile = fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt_tmp.mat']); % save wavelet tmp file
-% % epoched_wlt.wlt       = ft_freqanalysis(cfg,epoched_wlt);
-% ft_freqanalysis(cfg,epoched_data);
-% % epoched_wlt.wlt       = addRayleigh_to_ft(epoched_wlt.wlt); Rayleigh can
-% % be added for control only. But because it combines all trials, it is not
-% % clever to do it here.
-% 
-% 
-% % read tmp file and curb 1-1 sec from ends
-% cfg=[];
-% cfg.latency        = [-4 6];
-% cfg.inputfile = fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt_tmp.mat']);
-% epoched_wlt=ft_selectdata(cfg);
-% 
-% % save wlt and data and delete tmp
-% save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data','-v7.3');
-% delete(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt_tmp.mat']));
