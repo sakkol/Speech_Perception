@@ -352,7 +352,7 @@ DrawFormattedText(window, end_msg,'center','center',par.textcolor);
 Screen('Flip',window);
 WaitSecs(2);
 % Save the info
-save([save_filename '.mat'], 'par','result','options','events_cell','data_threshold','recordedaudio','freq','all_times_real')
+save([save_filename '.mat'], 'par','events_cell','data_threshold','recordedaudio','freq','all_times_real')
 
 end
 %% End of task
@@ -378,4 +378,11 @@ catch
     Screen('CloseAll');                                                     % Close PsychToolbox Screen
     sca
     ple                                                                     % Print Last Error
+    
+    % If MMB trigger box was used, close it
+    if ttl_sender == 2
+        fclose(port_handle);
+        delete(port_handle);
+        clear port_handle
+    end
 end

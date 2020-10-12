@@ -341,13 +341,19 @@ PsychPortAudio('Close', pahandle);                                          % Cl
 Screen('CloseAll');                                                         % Close PsychToolbox Screen
 sca
 
-%% IF ANY ERRORS
-
 catch
+    %% IF ANY ERRORS
     ListenChar(0);                                                          % Characters Show in Command Window
     ShowCursor();                                                           % Shows Cursor
     PsychPortAudio('Close', pahandle);                                      % Close the audio device
     Screen('CloseAll');                                                     % Close PsychToolbox Screen
     sca
     ple                                                                     % Print Last Error
+    
+    % If MMB trigger box was used, close it
+    if ttl_sender == 2
+        fclose(port_handle);
+        delete(port_handle);
+        clear port_handle
+    end
 end
