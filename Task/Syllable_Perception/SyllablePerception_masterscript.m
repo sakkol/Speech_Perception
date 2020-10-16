@@ -40,7 +40,7 @@ dlg_title = 'Enter information';
 
 while non_acceptable
     prompt = {'Run ID',...
-        'How many syllables to present, enter multiples of 32',...
+        'How many syllables to present, enter multiples of 64',...
         'TTL Pulse (1 = None, 2 = MMB, 3 = Parallel Port)'};
     def = {'B1_NS001','1','1','1'};
     answer = inputdlg(prompt,dlg_title,1,def);
@@ -56,8 +56,8 @@ while non_acceptable
     if exist(log_dir,'dir')
         dlg_title = 'Run ID EXIST ALREADY!';
         non_acceptable = 1;
-    elseif rem(trial_count,32) ~= 0
-        dlg_title = 'Invalid choice for number of trials, multiples of 32!!';
+    elseif rem(trial_count,64) ~= 0
+        dlg_title = 'Invalid choice for number of trials, multiples of 64!!';
         non_acceptable = 1;
     elseif ~ismember(ttl_sender,[1, 2, 3])
         dlg_title = 'Invalid choice for TTL sender!';
@@ -94,14 +94,14 @@ elseif ttl_sender == 3 % Set TTLs for parallel port
 end
 
 % send a highpitched noise before starting
-questdlg('Remove the headphone from patient''s ear!', ...
-        'Remove the headphone from patient''s ear!', ...
+questdlg('Remove the splitter cable from the computer!', ...
+        'Remove the splitter cable from the computer!', ...
         'ok','OK','OK');
 hpn = [rand(44000,2)*0.1;zeros(4000,2);rand(4000,2);zeros(4000,2);rand(4000,2);zeros(4000,2);rand(4000,2)];
 obj = audioplayer(hpn,par.PTB_fs);
 playblocking(obj);
-questdlg('Now put it back into patient''s ear!', ...
-        'Now put it back into patient''s ear!', ...
+questdlg('Now put it back in, thanks!', ...
+        'Now put it back in, thanks!', ...
         'ok','OK','OK');
 
 % set where the stimuli will be found and the dialogs
