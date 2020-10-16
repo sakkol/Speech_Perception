@@ -93,6 +93,17 @@ elseif ttl_sender == 3 % Set TTLs for parallel port
     send_ttl = @(pulse_code, ttl_handle) io64(eeg_obj,ttl_handle, pulse_code);
 end
 
+% send a highpitched noise before starting
+questdlg('Remove the headphone from patient''s ear!', ...
+        'Remove the headphone from patient''s ear!', ...
+        'ok','OK','OK');
+hpn = [rand(44000,2)*0.1;zeros(4000,2);rand(4000,2);zeros(4000,2);rand(4000,2);zeros(4000,2);rand(4000,2)];
+obj = audioplayer(hpn,par.PTB_fs);
+playblocking(obj);
+questdlg('Now put it back into patient''s ear!', ...
+        'Now put it back into patient''s ear!', ...
+        'ok','OK','OK');
+
 % set where the stimuli will be found and the dialogs
 adaptation_intro_msg = ['You will be listening single syllables\nTell us what you heard\n\n'...
     'When you are ready, \npress space bar to start sentences'];
