@@ -4,7 +4,6 @@ load('syll_table.mat','syll_table')
 
 mixed_table = repmat(syll_table,[trial_count/32,1]);
 rng('shuffle')
-mixed_table = mixed_table(randperm(size(mixed_table,1)),:);
 mixed_table.estim(1:trial_count/2)=1;
 mixed_table.estim((trial_count/2)+1:end)=0;
 mixed_table = mixed_table(randperm(size(mixed_table,1)),:);
