@@ -82,8 +82,12 @@ for p = 1:length(partfields)
         
         % loop the words to get clean versions with iso/achronous regularity
         for w=1:length(wordfields)
-            
-            speech_audio = WordsInfo.Stim{strcmpi(WordsInfo.StimName,curr_part.(wordfields{w}))};
+            if isstring(curr_part.(wordfields{w}))
+                speech_audio = WordsInfo.Stim{strcmpi(WordsInfo.StimName,curr_part.(wordfields{w}))};
+            elseif isvector(curr_part.(wordfields{w})) || ismatrix(curr_part.(wordfields{w}))
+                speech_audio = curr_part.(wordfields{w});
+            end
+                
             if isempty(speech_audio),error('There is something wrong here'),end
             if size(speech_audio,2)==2 % it may have two channels, get only one for now
                 speech_audio(:,2) = [];
@@ -139,6 +143,15 @@ for p = 1:length(partfields)
         curr_stim = [collected_noise_sounds,collected_clean_sounds];
     elseif strcmp(cfg.LvsR,'both')
         curr_stim = [collected_noise_sounds,collected_noise_sounds];
+    elseif strcmp(cfg.LvsR,'LcleanRnoise')
+        if cfg.part2.estim == 1
+            cn = dsp.ColoredNoise('Color','pink','SamplesPerFrame',SampleRate,'NumChannels',1);
+            generic_noise = cn();clear cn;generic_noise=[generic_noise;generic_noise;generic_noise;generic_noise;generic_noise];
+            generic_noise = generic_noise*0.1;
+            curr_stim = [collected_noise_sounds,generic_noise(1:length(collected_noise_sounds),1)];
+        else
+            curr_stim = [collected_noise_sounds,collected_clean_sounds];
+        end
     end
     
     all_trial=[all_trial;curr_stim];
