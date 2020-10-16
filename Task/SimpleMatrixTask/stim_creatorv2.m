@@ -343,6 +343,10 @@ if strcmp(cfg.LvsR,'L')
 elseif strcmp(cfg.LvsR,'R')
     stimulus = [stim_channel',stimulus(:,2)];
     presented_stim=stimulus(:,2);
+elseif strcmp(cfg.LvsR,'LcleanRnoise')
+    cn = dsp.ColoredNoise('Color','pink','SamplesPerFrame',SampleRate,'NumChannels',1);
+    common_noise = cn();clear cn;common_noise=[common_noise;common_noise;common_noise;common_noise;common_noise];
+    stimulus = [stimulus,common_noise(1:length(stimulus))];
 end
 
 % Save (optional)
