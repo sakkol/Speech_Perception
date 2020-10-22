@@ -17,7 +17,7 @@ for t=1:trial_count
     
     cfg=[];
     cfg.language='English';
-    cfg.SNR=20;
+    cfg.SNR=30;
     cfg.LvsR='LcleanRnoise';
     cfg.noise='pink';
     cfg.part1.length=0.5;
