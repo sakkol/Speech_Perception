@@ -400,6 +400,10 @@ epoched_HFA_bc = ft_selectdata(cfg, epoched_wlt);
 
 voiced_events = find(ismember(info.events.SyllablePresented,voiced_syll) & ismember(info.events.Accr,'1'))';
 unvoiced_events = find(ismember(info.events.SyllablePresented,unvoiced_syll) & ismember(info.events.Accr,'1'))';
+% remove the first 38 trials
+voiced_events = voiced_events(~ismember(voiced_events,[1:43,69,73]));
+unvoiced_events = unvoiced_events(~ismember(unvoiced_events,[1:43,69,73]));
+
 totitle1 = 'Voiced syllables';
 totitle2 = 'Unvoiced syllables';
 syll_time = 0.5;
@@ -418,7 +422,7 @@ unvoiced_ERP = ft_selectdata(cfg, epoched_data);
 
 %% Plotting
 bwr = load('bwr_cmap.mat');
-save_folder = fullfile(Sbj_Metadata.results,'Quick_results',curr_block);
+save_folder = fullfile(Sbj_Metadata.results,'Quick_results_38removed',curr_block);
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
 
 
