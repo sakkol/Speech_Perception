@@ -82,7 +82,7 @@ for p = 1:length(partfields)
         
         % loop the words to get clean versions with iso/achronous regularity
         for w=1:length(wordfields)
-            if isstring(curr_part.(wordfields{w}))
+            if ischar(curr_part.(wordfields{w}){1})
                 speech_audio = WordsInfo.Stim{strcmpi(WordsInfo.StimName,curr_part.(wordfields{w}))};
             elseif isvector(curr_part.(wordfields{w})) || ismatrix(curr_part.(wordfields{w}))
                 speech_audio = curr_part.(wordfields{w});

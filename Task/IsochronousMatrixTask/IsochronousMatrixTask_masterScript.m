@@ -116,8 +116,8 @@ if EngvsSpa == 1
     what_sentence = 'What was the sentence?';
     pass_list_msg = 'Catch: ';
     pass_list_intro_msg = ['You will listen series of words\n\n'...
-        'Please try to catch the word\n'...
-        'in the beginning of each series\n'...
+        'Please try to catch the word shown on screen\n'...
+        'Press space bar if present, Press Enter if not\n'...
         'Press space bar to start'];
     word_catch_msg = 'Was that present?';
 elseif EngvsSpa == 2
@@ -258,14 +258,18 @@ for trialN = 1:size(events_table,1)
             [~, key, ~] = KbWait(-1);
             if strcmp(KbName(key), 'ESCAPE'); break; end
         end
+        WaitSecs(0.2);
         words_to_catch{trialN} = words_table{randi(6),randi(5)}{:};
-        DrawFormattedText(window, [pass_list_msg words_to_catch{trialN}],'center','center',par.textcolor);
+        curr_mes = [pass_list_msg words_to_catch{trialN}];
+        DrawFormattedText(window, curr_mes,'center','center',par.textcolor);
         Screen('Flip',window);
-        [~, key, ~] = KbWait(-1);
-        if strcmp(KbName(key), 'ESCAPE'); break; end
+        WaitSecs(1);
+%         [~, key, ~] = KbWait(-1);
+%         if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
+        WaitSecs(0.25);
     end
     
     PsychPortAudio('FillBuffer',pahandle, events_table.trials{trialN}');
