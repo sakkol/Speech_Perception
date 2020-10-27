@@ -133,6 +133,7 @@ for c = 1:size(selections,1)
             cfg.part3.delay = (selections.E_stim_delay(c))/1000;
             
             cfg.part4 = cfg.part1;
+            cfg.part4.length = 2;
             
         elseif strcmp(selections.Number_of_sentences{c},'3sentences') || strcmp(selections.Number_of_sentences{c},'5sentences')
             pss = str2double(selections.Number_of_sentences{c}(1))+1;
