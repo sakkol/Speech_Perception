@@ -98,12 +98,12 @@ for c = 1:size(selections,1)
         cfg.part1.length=0.5;
         
         if strcmp(selections.Number_of_sentences{c},'1attention-1sentence')
-            cfg.part2.chronicity=selections.Iso_A_chronous_Natural{c};
+            cfg.part2.chronicity='iso';
             cfg.part2.frequency=selections.Frequency(c);
-            cfg.part2.word1='now';
-            cfg.part2.word2='catch';
-            cfg.part2.word3='these';
-            cfg.part2.word4='words';
+            cfg.part2.word1={'now'};
+            cfg.part2.word2={'catch'};
+            cfg.part2.word3={'these'};
+            cfg.part2.word4={'words'};
             cfg.part2.estim=0;
             
             if strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
