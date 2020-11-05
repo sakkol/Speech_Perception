@@ -28,7 +28,7 @@ par.cross_length = 40;                       % Size in pixels
 par.cross_color = 255;
 par.N_entrain_stim = 4;                      % Number of entrainment sounds prior to the probe
 par.eeg_pPort = 'DFF8';                      % For parallel port
-par.port_id = '/dev/ttyACM01';               % Something like '/dev/ttyACM01' for new Ubuntu laptop; or '/dev/tty.usbmodem14101' for Mac; or 'COM4' for Windows
+par.port_id = '/dev/ttyACM0';                % Something like '/dev/ttyACM0' for new Ubuntu laptop; or '/dev/tty.usbmodem14101' for Mac; or 'COM4' for Windows
 par.rec_comp_mic = 1;                        % if wanting to record microphone from laptop
 par.time = string(datetime('now'));          % save the date and time
 [~, par.ComputerID] = system('hostname');    % save computer ID
@@ -264,7 +264,7 @@ for trialN = 1:size(events_table,1)
         curr_mes = [pass_list_msg words_to_catch{trialN}];
         DrawFormattedText(window, curr_mes,'center','center',par.textcolor);
         Screen('Flip',window);
-        WaitSecs(1);
+        WaitSecs(1.25);
 %         [~, key, ~] = KbWait(-1);
 %         if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
@@ -319,9 +319,9 @@ for trialN = 1:size(events_table,1)
         if strcmp(KbName(key), 'ESCAPE'); break; end
     end
     
-    % save what is in here every 5 trials
-    if mod(trialN,5)==0
-        save([save_filename 'tmp' num2str(trialN/5) '.mat'], 'par','EngvsSpa','events_table',...
+    % save what is in here every 15 trials
+    if mod(trialN,15)==0 && ~(trialN == size(events_table,1))
+        save([save_filename 'tmp' num2str(trialN/15) '.mat'], 'par','EngvsSpa','events_table',...
             'startTime','estStopTime','actualStartTime','time_trial_end','thresVSreal','words_to_catch','responses')
     end
     
