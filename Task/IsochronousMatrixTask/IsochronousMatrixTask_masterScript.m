@@ -121,6 +121,16 @@ if EngvsSpa == 1
         'Press space bar if present, Press Enter if not\n'...
         'Press space bar to start'];
     word_catch_msg = 'Was that present?';
+    free_recall_intro_msg = ['You will listen to a series of words;\n'...
+        'they are either random words or sentences.\n'...
+        'Try to remember them as much as you can\n\n'...
+        'Then, you will judge result of 2 calculations\n'...
+        'Press space bar if correct, press enter if wrong\n\n'...
+        'Press space bar to start'];
+    calc_remind_message = ['If the calculation is correct press Space bar\n'... 
+                           'If wrong, press Enter'];
+    calc_corr_mess = 'Was calculation correct?';
+    free_recall_remember = 'Which words do you remember?';
 elseif EngvsSpa == 2
     language='Spanish';
     load('SpanishWordsInfo.mat','WordsInfo','avg_sig_pow','avg_noise_pow','words_table')
@@ -214,15 +224,17 @@ while sound_good~=1
     sound_good = strcmp(sounds_good,'Good');
 end
 words_to_catch=cell(size(events_table,1),1);
-responses = cell(size(events_table,1),1);
+responses = cell(size(events_table,1),2);
 startTime = cell(size(events_table,1),1);
 actualStartTime = cell(size(events_table,1),1);
 estStopTime = cell(size(events_table,1),1);
-time_trial_end = cell(size(events_table,1),1);
+time_trial_end = cell(size(events_table,1),2);
+[math.math_stimuli,math.accuracy,math.first_dig] = generate_math_stim2(size(events_table,1));
 
-save([save_filename '_tmp0.mat'], 'par', 'EngvsSpa', 'events_table', 'thresVSreal')
+save([save_filename '_tmp0.mat'], 'par', 'EngvsSpa', 'events_table', 'thresVSreal', 'math')
 
 startscreen_now
+ifi = Screen('GetFlipInterval', window);
 
 % Play the sounds
 for trialN = 1:size(events_table,1)
@@ -271,6 +283,16 @@ for trialN = 1:size(events_table,1)
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
         WaitSecs(0.25);
+    elseif thresVSreal==4 % put intro message for free recall
+        if trialN==1
+            DrawFormattedText(window, free_recall_intro_msg,'center','center',par.textcolor);
+            Screen('Flip',window);
+            [~, key, ~] = KbWait(-1);
+            if strcmp(KbName(key), 'ESCAPE'); break; end
+        end
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('Flip',window);
+        WaitSecs(1);
     end
     
     PsychPortAudio('FillBuffer',pahandle, events_table.trials{trialN}');
@@ -307,11 +329,67 @@ for trialN = 1:size(events_table,1)
         DrawFormattedText(window, word_catch_msg,'center','center',par.textcolor);
         Screen('Flip',window);
         [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
-        responses{trialN} = KbName(key);
+        responses{trialN,1} = KbName(key);
         if strcmp(KbName(key), 'ESCAPE'); break; end
         % draw cross hair
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
+    elseif thresVSreal==4 % period for free recall math task and free recal period
+        WaitSecs(2); % add 2sec additional to memory
+        % remind what to press first 3 trials
+        if trialN < 4 
+            DrawFormattedText(window, calc_remind_message,'center','center',par.textcolor);
+            Screen('Flip',window);
+            WaitSecs(2);
+            Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+            Screen('Flip',window);
+            WaitSecs(1);
+        end
+        
+        % first calculation
+        for m=1:5
+            DrawFormattedText(window, math.math_stimuli{trialN,m},'center','center',par.textcolor);
+            send_ttl(255, port_handle);
+            Screen('Flip',window);
+            send_ttl(0, port_handle);
+            WaitSecs(.5);
+            Screen('Flip',window);
+            WaitSecs(.4);
+        end
+        DrawFormattedText(window, calc_corr_mess,'center','center',par.textcolor);
+        Screen('Flip',window);
+        [time_trial_end{trialN,1}, key, ~] = KbWait(-1);
+        responses{trialN,1} = KbName(key);
+        if strcmp(KbName(key), 'ESCAPE'); break; end
+        % draw cross hair
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('Flip',window);
+        
+        WaitSecs(.5);
+        
+        % second calculation
+        for m=6:10
+            DrawFormattedText(window, math.math_stimuli{trialN,m},'center','center',par.textcolor);
+            send_ttl(255, port_handle);
+            Screen('Flip',window);
+            send_ttl(0, port_handle);
+            WaitSecs(.5);
+            Screen('Flip',window);
+            WaitSecs(.4);
+        end
+        DrawFormattedText(window, calc_corr_mess,'center','center',par.textcolor);
+        Screen('Flip',window);
+        [time_trial_end{trialN,2}, key, ~] = KbWait(-1);
+        responses{trialN,2} = KbName(key);
+        if strcmp(KbName(key), 'ESCAPE'); break; end
+        
+        % ask for the words now
+        WaitSecs(0.2);
+        DrawFormattedText(window, free_recall_remember,'center','center',par.textcolor);
+        Screen('Flip',window);
+        [~, key, ~] = KbWait(-1);
+        if strcmp(KbName(key), 'ESCAPE'); break; end
+        
     else
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip', window);
@@ -319,10 +397,10 @@ for trialN = 1:size(events_table,1)
         if strcmp(KbName(key), 'ESCAPE'); break; end
     end
     
-    % save what is in here every 15 trials
-    if mod(trialN,15)==0 && ~(trialN == size(events_table,1))
-        save([save_filename 'tmp' num2str(trialN/15) '.mat'], 'par','EngvsSpa','events_table',...
-            'startTime','estStopTime','actualStartTime','time_trial_end','thresVSreal','words_to_catch','responses')
+    % save what is in here every 10 trials
+    if mod(trialN,10)==0 && ~(trialN == size(events_table,1))
+        save([save_filename 'tmp' num2str(trialN/10) '.mat'], 'par','EngvsSpa','events_table',...
+            'startTime','estStopTime','actualStartTime','time_trial_end','thresVSreal','words_to_catch','responses', 'math')
     end
     
 end
@@ -340,7 +418,7 @@ all_times.actualStartTime=actualStartTime;actualStartTime=[];
 all_times.time_trial_end = time_trial_end;time_trial_end=[];
 
 % Save the info
-save([save_filename '.mat'], 'par', 'EngvsSpa', 'events_table', 'all_times', 'thresVSreal', 'words_to_catch', 'responses')
+save([save_filename '.mat'], 'par', 'EngvsSpa', 'events_table', 'all_times', 'thresVSreal', 'words_to_catch', 'responses', 'math')
 
 %% End of task
 
