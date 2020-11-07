@@ -103,19 +103,23 @@ xlim([1/analog_fs length(noise_ch)/analog_fs])
 print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
 
 %% Syncing mic and EEG
-% [yy,fs]=audioread('/media/sakkol/HDD1/HBML/PROJECTS_DATA/NS164_MATRIX.MP3');
+tmp = audioinfo(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_MicRecording.MP3']));
+[MicRec,MicFs]=audioread(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_MicRecording.MP3']),[1 tmp.TotalSamples]);
+save(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_MicRecording.mat']),'MicRec','MicFs')
 tmp=load(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_MicRecording.mat']));
 
-figure('Units','normalized','Position', [0 0  1 .5]);
-subplot(1,2,1)
-howlong = 180;%sec
-plot((1:(howlong*tmp.fs))/tmp.fs,tmp.yy(1:(howlong*tmp.fs),:))
+
+figure('Units','normalized','Position', [0 0  1 .8]);
+subplot(2,1,1)
+howlong = 300;%sec
+plot((1:(howlong*tmp.MicFs))/tmp.MicFs,tmp.MicRec(1:(howlong*tmp.MicFs),:))
 title('mic recording')
-subplot(122)
+subplot(212)
 % howlong = 120;%sec
-plot((1:(howlong*analog_struct.fs))/analog_struct.fs,ecog.analog.ttl(1:(howlong*ecog.analog.fs)))
+plot((1:(howlong*analog_struct.fs))/analog_struct.fs,ecog.analog.audio(1:(howlong*ecog.analog.fs)))
 title('DC channel')
 
+clear MicFs MicRec tmp
 
 %% Event onsets: load behavioral
 clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl beh_data trial_dur curr_stimdur howlong
@@ -159,7 +163,7 @@ response_time = cell2mat(beh_data.all_times.time_trial_end) - cell2mat(beh_data.
 
 % prespeech part lengths
 pre_silence_length = 0.5; % in seconds
-catchword_screentime = 1.25; % for NS164, when catch word screen shows, stays 1sec and cross comes and stays for 0.25 sec before trial starts
+catchword_screentime = 1.25; % for NS164 and NS165, when catch word screen shows, stays 1sec and cross comes and stays for 0.25 sec before trial starts
 speech_onsets = trial_onsets+repmat(pre_silence_length,size(trial_onsets));
 catchword_screen = trial_onsets-repmat(catchword_screentime,size(trial_onsets));
 
