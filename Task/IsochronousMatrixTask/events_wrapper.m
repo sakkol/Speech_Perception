@@ -117,11 +117,19 @@ for c = 1:size(selections,1)
                     curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
                 end
             elseif strcmp(selections.Word_per_sentence{c},'3-/5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
-                if mod(w3sent,2)
+                if mod(w3sent,2) % change from 3 to 5 word in each loop, so that there will be equal no of them
                     curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
                 else
                     curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                 end
+            elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
+            elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
+            elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
+            elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
             end
             
             for w=1:length(curr_sent)
@@ -161,6 +169,14 @@ for c = 1:size(selections,1)
                     else
                         curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                     end
+                elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                    curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
+                elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                    curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
+                elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                    curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
+                elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                    curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                 end
                 
                 for w=1:length(curr_sent)
