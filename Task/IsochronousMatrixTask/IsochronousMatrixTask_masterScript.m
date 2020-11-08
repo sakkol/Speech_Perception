@@ -365,7 +365,7 @@ for trialN = 1:size(events_table,1)
         Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
         Screen('Flip',window);
         
-        WaitSecs(.5);
+        WaitSecs(1);
         
         % second calculation
         for m=6:10
