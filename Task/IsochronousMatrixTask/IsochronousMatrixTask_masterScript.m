@@ -387,6 +387,7 @@ for trialN = 1:size(events_table,1)
         WaitSecs(0.2);
         DrawFormattedText(window, free_recall_remember,'center','center',par.textcolor);
         Screen('Flip',window);
+        send_ttl(255, port_handle); % this was not here for NS165
         [~, key, ~] = KbWait(-1);
         if strcmp(KbName(key), 'ESCAPE'); break; end
         
