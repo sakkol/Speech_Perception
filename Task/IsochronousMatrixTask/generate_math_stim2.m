@@ -1,7 +1,7 @@
 function [math_stimuli,accuracy,first_dig] = generate_math_stim2(trialN)
 
 %% Set several variables
-percent_accr = 0.3;
+percent_accr = 0.7;
 percent_addition = 0.5;
 math_mat = readtable('math_material.xlsx');
 math_mat.Op1 = erase(cellstr(num2str(math_mat.Op1)),' ');
