@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'IsochronousFreeRecall';
-sbj_ID = 'NS165';
+sbj_ID = 'NS166';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -195,7 +195,7 @@ post = 35; % seconds
 trl_trg           = [];
 trl_trg(:,1)      = floor( events.trial_onsets*fs - fs*pre );
 % trl_trg(:,2)      = floor( events.trial_ends*fs + fs*post );
-trl_trg(:,2)      = floor( (events.trial_onsets+events.trial_ends)*fs );
+trl_trg(:,2)      = floor( (events.trial_ends)*fs );
 trl_trg(:,3)      = floor( -pre*fs );
 
 % Epoch
