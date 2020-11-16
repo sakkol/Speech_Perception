@@ -266,6 +266,19 @@ for trialN = 1:size(events_table,1)
         Screen('Flip',window);
     elseif thresVSreal==3 % put intro message for passive listening and the word to catch
         if trialN==1
+            % Sound a pure tone to sync voice recording and EEG
+            l = 0.3;                                        % Length of tone
+            Fs = 44100;                                     % Sampling Frequency
+            t  = linspace(0, l, l*Fs);                      % Time Vector
+            w = 2*pi*1000;                                  % Radian Value To Create 1kHz Tone
+            s = sin(w*t);                                   % Create Tone %%  sound(s, Fs) % Produce Tone As Sound
+            PsychPortAudio('FillBuffer',pahandle, [s;s]);
+            PsychPortAudio('Start', pahandle, repetitions, startCue, waitforDeviceStart);
+            send_ttl(255, port_handle);
+            PsychPortAudio('Stop',pahandle,1,1);
+            clear l Fs t w s
+            
+            % now the intro message
             DrawFormattedText(window, pass_list_intro_msg,'center','center',par.textcolor);
             Screen('Flip',window);
             [~, key, ~] = KbWait(-1);
@@ -285,6 +298,19 @@ for trialN = 1:size(events_table,1)
         WaitSecs(0.25);
     elseif thresVSreal==4 % put intro message for free recall
         if trialN==1
+            % Sound a pure tone to sync voice recording and EEG
+            l = 0.3;                                        % Length of tone
+            Fs = 44100;                                     % Sampling Frequency
+            t  = linspace(0, l, l*Fs);                      % Time Vector
+            w = 2*pi*1000;                                  % Radian Value To Create 1kHz Tone
+            s = sin(w*t);                                   % Create Tone %%  sound(s, Fs) % Produce Tone As Sound
+            PsychPortAudio('FillBuffer',pahandle, [s;s]);
+            PsychPortAudio('Start', pahandle, repetitions, startCue, waitforDeviceStart);
+            send_ttl(255, port_handle);
+            PsychPortAudio('Stop',pahandle,1,1);
+            clear l Fs t w s
+            
+            % now the intro message
             DrawFormattedText(window, free_recall_intro_msg,'center','center',par.textcolor);
             Screen('Flip',window);
             [~, key, ~] = KbWait(-1);
