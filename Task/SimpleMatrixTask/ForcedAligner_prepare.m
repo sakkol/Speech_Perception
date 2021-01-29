@@ -76,7 +76,7 @@ end
 
 
 %% Now it's time to combine all the output (WIP part)
-examplesent = '/home/sakkol/Documents/Forced_Alignment/FORCE/Fast-English/TextGrid/Alan_kept_two_pretty_sofas (copy).TextGrid';
+examplesent = '/home/sakkol/Documents/Manuscripts/entrainSounds_SpeechOscillations/PassiveListening_Example/TextGrid/script.TextGrid';
 
 fid = fopen(examplesent);
 clear A
