@@ -506,7 +506,6 @@ print(fullfile(Sbj_Metadata.results,[curr_block '_block_comp_onlyclean_percent.j
 
 %% Plotting wavelet plot (with bad trials)
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data');
-%  Baseline correct time-freq data
 load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
 syllable_couples = {'pa','ba';'ta','da';'fa','va';'sa','za'};
 unvoiced_syll = {'pa';'ta';'fa';'sa'};
@@ -558,12 +557,12 @@ epoched_HFA_bc = ft_selectdata(cfg, epoched_wlt);
 
 voiced_events = find(ismember(info.events.SyllablePresented,voiced_syll) & ismember(info.events.Accr,'1'))';
 unvoiced_events = find(ismember(info.events.SyllablePresented,unvoiced_syll) & ismember(info.events.Accr,'1'))';
-% remove the first 38 trials
-voiced_events = voiced_events(~ismember(voiced_events,[1:43,69,73]));
-unvoiced_events = unvoiced_events(~ismember(unvoiced_events,[1:43,69,73]));
+% remove the first 38 trials where the electrodes were connected to TDT
+% voiced_events = voiced_events(~ismember(voiced_events,[1:43,57,65,69,73,88]));
+% unvoiced_events = unvoiced_events(~ismember(unvoiced_events,[1:43,57,65,69,73,88]));
 
 totitle1 = 'Voiced syllables';
-totitle2 = 'Unvoiced syllables';
+totitle2 = 'Voiceless syllables';
 syll_time = 0.5;
 response_time = mean(info.events.duration);
 
@@ -579,10 +578,9 @@ unvoiced_ERP = ft_selectdata(cfg, epoched_data);
 
 
 %% Plotting wavelet plot (withOUT bad trials)
-bwr = load('bwr_cmap.mat');
-save_folder = fullfile(Sbj_Metadata.results,'Quick_results_38removed',curr_block);
+% save_folder = fullfile(Sbj_Metadata.results,'Quick_results_38removed_v2',curr_block);
+save_folder = fullfile(Sbj_Metadata.results,'Quick_results_v2',curr_block);
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
-
 
 for el = 1:length(epoched_data.label)
     
@@ -681,7 +679,7 @@ for el = 1:length(epoched_data.label)
         c.Label.String = 'Power (relative)';
     end
     
-     colormap(bwr.rgb_vals);
+     colormap(master_ColorMaps('plasma'));
     
      % main title
     sgtitle(['Elec: ' epoched_data.label{el} ' - Location: ' info.channelinfo.Desikan_Killiany{el}], 'FontSize',16,'FontWeight','bold')
