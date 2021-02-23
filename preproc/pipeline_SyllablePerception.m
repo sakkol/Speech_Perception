@@ -1014,3 +1014,156 @@ title({['Comparing accuracy of voiced between no-EStim vs EStim, p-val: ' num2st
 
 print(fullfile(Sbj_Metadata.results,['2ndhalf_' curr_block '_block_comp_onlyclean_percent.jpg']),'-djpeg','-r300')
 % print(fullfile(Sbj_Metadata.results,[curr_block '_block_comp.jpg']),'-djpeg','-r300')
+
+%% Confusion matrix for syllable responses
+
+% first all syllables separated
+syllable_couples = {'pa','ba';'ta','da';'fa','va';'sa','za'};
+unvoiced_syll = {'pa';'ta';'fa';'sa'};
+voiced_syll = {'ba';'da';'va';'za'};
+sylls = [unvoiced_syll;voiced_syll];
+for i=1:2
+    load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{i},[Sbj_Metadata.BlockLists{i} '_info.mat']));
+    info.events.Accr = num2cell(strcmp(info.events.SyllablePresented,info.events.Response));
+    info.events.Accr(strcmp(info.events.Response,'')) = {'noresp'};
+    
+    matr_accr_count=zeros([8,9]);
+    matr_accr_all=zeros([8,9]);
+    for s1 = 1:8
+        for s2 = 1:8
+            matr_accr_count(s1,s2) = sum(strcmp(info.events.SyllablePresented,sylls{s1}) & strcmp(info.events.Response,sylls{s2}));
+            matr_accr_all(s1,s2) = sum(strcmp(info.events.SyllablePresented,sylls{s1}));
+            
+        end
+        matr_accr_count(s1,9) = sum(strcmp(info.events.SyllablePresented,sylls{s1}) & strcmp(info.events.Response,''));
+        matr_accr_all(s1,9) = sum(strcmp(info.events.SyllablePresented,sylls{s1}));
+    end
+    
+    % plot the confusion matrix
+    figure('Position', [100 100  1000 800]);
+    imagesc(100*matr_accr_count./matr_accr_all)
+    xticklabels([sylls;'No-resp.'])
+    yticklabels(sylls)
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    for s1 = 1:8
+        for s2 = 1:8
+            text(s2,s1,[num2str(matr_accr_count(s1,s2)) '/' num2str(matr_accr_all(s1,s2))],'HorizontalAlignment','center','Color','w', 'FontSize',13,'FontWeight','bold')
+        end
+        text(9,s1,[num2str(matr_accr_count(s1,9)) '/' num2str(matr_accr_all(s1,9))],'HorizontalAlignment','center','Color','w', 'FontSize',13,'FontWeight','bold')
+    end
+    colormap(master_ColorMaps('plasma'));
+    colorbar('eastoutside')
+    title(['Responses to syllables presented in ' Sbj_Metadata.BlockLists{i} ' block'],'Interpreter','none')
+    xlabel('Response')
+    ylabel('Syllable Presented')
+    
+    % save
+    print(fullfile(Sbj_Metadata.results,'confusion_matrix',[Sbj_Metadata.BlockLists{i} '_ConfMatrResponses.jpg']),'-djpeg','-r300')
+
+end
+
+% second: fricatives vs non-fricatives
+fricative_syll = {'fa';'va';'sa';'za'};
+nonfricative_syll = {'pa';'ba';'ta';'da'};
+sylls=[];
+sylls{1} = fricative_syll;
+sylls{2} = nonfricative_syll;
+syll_lbls = {'fricative syll';'nonfricative syll'};
+
+for i=1:2
+    load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{i},[Sbj_Metadata.BlockLists{i} '_info.mat']));
+    info.events.Accr = num2cell(strcmp(info.events.SyllablePresented,info.events.Response));
+    info.events.Accr(strcmp(info.events.Response,'')) = {'noresp'};
+    
+    matr_accr_count=zeros([2,3]);
+    matr_accr_all=zeros([2,3]);
+    for s1 = 1:2
+        for s2 = 1:2
+            matr_accr_count(s1,s2) = sum(ismember(info.events.SyllablePresented,sylls{s1}) & ismember(info.events.Response,sylls{s2}));
+            matr_accr_all(s1,s2) = sum(ismember(info.events.SyllablePresented,sylls{s1}));
+            
+        end
+        matr_accr_count(s1,3) = sum(ismember(info.events.SyllablePresented,sylls{s1}) & strcmp(info.events.Response,''));
+        matr_accr_all(s1,3) = sum(ismember(info.events.SyllablePresented,sylls{s1}));
+    end
+    
+    % plot the confusion matrix
+    figure('Position', [100 100  1000 800]);
+    imagesc(100*matr_accr_count./matr_accr_all)
+    xticks(1:3);yticks(1:3)
+    xticklabels([syll_lbls;'No-resp.'])
+    yticklabels(syll_lbls)
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    for s1 = 1:2
+        for s2 = 1:2
+            text(s2,s1,[num2str(matr_accr_count(s1,s2)) '/' num2str(matr_accr_all(s1,s2))],'HorizontalAlignment','center','Color','w', 'FontSize',13,'FontWeight','bold')
+        end
+        text(3,s1,[num2str(matr_accr_count(s1,3)) '/' num2str(matr_accr_all(s1,3))],'HorizontalAlignment','center','Color','w', 'FontSize',13,'FontWeight','bold')
+    end
+    colormap(master_ColorMaps('plasma'));
+    colorbar('eastoutside')
+    title(['Responses to syllables presented in ' Sbj_Metadata.BlockLists{i} ' block'],'Interpreter','none')
+    xlabel('Response')
+    ylabel('Syllable Presented')
+    
+    % save
+    print(fullfile(Sbj_Metadata.results,'confusion_matrix',[Sbj_Metadata.BlockLists{i} '_ConfMatr_fricative.jpg']),'-djpeg','-r300')
+
+end
+
+
+% third: alveolar vs non-alveolar
+alveolar_syll = {'ta';'da';'sa';'za'};
+nonalveolar_syll = {'pa';'ba';'fa';'va'};
+sylls=[];
+sylls{1} = alveolar_syll;
+sylls{2} = nonalveolar_syll;
+syll_lbls = {'alveolar syll';'nonalveolar syll'};
+
+for i=1:2
+    load(fullfile(Sbj_Metadata.iEEG_data,Sbj_Metadata.BlockLists{i},[Sbj_Metadata.BlockLists{i} '_info.mat']));
+    info.events.Accr = num2cell(strcmp(info.events.SyllablePresented,info.events.Response));
+    info.events.Accr(strcmp(info.events.Response,'')) = {'noresp'};
+    
+    matr_accr_count=zeros([2,3]);
+    matr_accr_all=zeros([2,3]);
+    for s1 = 1:2
+        for s2 = 1:2
+            matr_accr_count(s1,s2) = sum(ismember(info.events.SyllablePresented,sylls{s1}) & ismember(info.events.Response,sylls{s2}));
+            matr_accr_all(s1,s2) = sum(ismember(info.events.SyllablePresented,sylls{s1}));
+            
+        end
+        matr_accr_count(s1,3) = sum(ismember(info.events.SyllablePresented,sylls{s1}) & strcmp(info.events.Response,''));
+        matr_accr_all(s1,3) = sum(ismember(info.events.SyllablePresented,sylls{s1}));
+    end
+    
+    % plot the confusion matrix
+    figure('Position', [100 100  1000 800]);
+    imagesc(100*matr_accr_count./matr_accr_all)
+    xticks(1:3);yticks(1:3)
+    xticklabels([syll_lbls;'No-resp.'])
+    yticklabels(syll_lbls)
+    set(gca, 'FontSize',13,'FontWeight','bold');
+    for s1 = 1:2
+        for s2 = 1:2
+            text(s2,s1,[num2str(matr_accr_count(s1,s2)) '/' num2str(matr_accr_all(s1,s2))],'HorizontalAlignment','center','Color','w', 'FontSize',13,'FontWeight','bold')
+        end
+        text(3,s1,[num2str(matr_accr_count(s1,3)) '/' num2str(matr_accr_all(s1,3))],'HorizontalAlignment','center','Color','w', 'FontSize',13,'FontWeight','bold')
+    end
+    colormap(master_ColorMaps('plasma'));
+    colorbar('eastoutside')
+    title(['Responses to syllables presented in ' Sbj_Metadata.BlockLists{i} ' block'],'Interpreter','none')
+    xlabel('Response')
+    ylabel('Syllable Presented')
+    
+    % save
+    print(fullfile(Sbj_Metadata.results,'confusion_matrix',[Sbj_Metadata.BlockLists{i} '_ConfMatr_alveolar.jpg']),'-djpeg','-r300')
+
+end
+
+
+
+
+
+
+
