@@ -31,7 +31,7 @@ par.cross_color = 255;
 par.N_entrain_stim = 4;                      % Number of entrainment sounds prior to the probe
 par.eeg_pPort = 'DFF8';                      % For parallel port
 par.port_id = '/dev/ttyACM0';               % Something like '/dev/ttyACM01' for new Ubuntu laptop; or '/dev/tty.usbmodem14101' for Mac; or 'COM4' for Windows
-par.rec_comp_mic = 1;                        % if wanting to record microphone from laptop
+par.rec_comp_mic = 0;                        % if wanting to record microphone from laptop
 par.time = string(datetime('now'));          % save the date and time
 [~, par.ComputerID] = system('hostname');    % save computer ID
 par.PTB_fs = 44100;
@@ -151,7 +151,7 @@ for ss = 1:length(adaptation_sounds)
     [y, ~] = audioread(fullfile(adaption_sounds_dir, list_adaptation_sound_files(ss).name));
     adaptation_sounds{ss,2} = [y,y]'; % Because it is 1 column
     if par.PTB_fs ~= 24000 % 24000 is what audio is in
-        adaptation_sounds{ss,2} = resample(adaptation_sounds{ss,2},par.PTB_fs,24000);
+        adaptation_sounds{ss,2} = resample(adaptation_sounds{ss,2}',par.PTB_fs,24000)';
     end
 end
 % Load all the stimuli for the 'Threshold Phase' from directory called
@@ -168,7 +168,7 @@ for ss = 1:length(threshold_sounds)
     [y, ~] = audioread(fullfile(threshold_sounds_dir, list_threshold_sound_files(ss).name));
     threshold_sounds{ss,2} = y';
     if par.PTB_fs ~= 24000 % 24000 is what audio is in
-        threshold_sounds{ss,2} = resample(threshold_sounds{ss,2},par.PTB_fs,24000);
+        threshold_sounds{ss,2} = resample(threshold_sounds{ss,2}',par.PTB_fs,24000)';
     end
 end
 
@@ -273,6 +273,7 @@ if thresVSreal == 2
 elseif thresVSreal == 3
     events_cell = nonoise_event_creator(main_stim_loc,slowVSfast);
 end
+save([save_filename '0.mat'], 'par','events_cell')
 
 %% Loop for events_cell (=trials)
 % 1. Intro:
@@ -352,7 +353,7 @@ DrawFormattedText(window, end_msg,'center','center',par.textcolor);
 Screen('Flip',window);
 WaitSecs(2);
 % Save the info
-save([save_filename '.mat'], 'par','events_cell','data_threshold','recordedaudio','freq','all_times_real')
+save([save_filename '.mat'], 'par','events_cell','recordedaudio','freq','all_times_real')
 
 end
 %% End of task
