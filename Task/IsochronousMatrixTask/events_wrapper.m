@@ -86,6 +86,8 @@ for c = 1:size(selections,1)
     
     for t = 1:str2double(selections.trial_no_per_block{c})
         
+        trial_words = {};
+        
         cfg=[];
         cfg.language=selections.Language{c};
         if strcmp(selections.Clean_vs_In_noise{c},'clean')
@@ -106,6 +108,8 @@ for c = 1:size(selections,1)
             cfg.part2.word4={'words'};
             cfg.part2.estim=0;
             
+            trial_words = {'now','catch','these','words'};
+            
             if strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
                 curr_sent = all4wordsent(w4sent,:);w4sent=w4sent+1;
             elseif strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
@@ -117,16 +121,26 @@ for c = 1:size(selections,1)
                     curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
                 end
             elseif strcmp(selections.Word_per_sentence{c},'3-/5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
-                if mod(w3sent,2)
+                if mod(w3sent,2) % change from 3 to 5 word in each loop, so that there will be equal no of them
                     curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
                 else
                     curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                 end
+            elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
+            elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
+            elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
+            elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
             end
             
             for w=1:length(curr_sent)
                 cfg.part3.(['word' num2str(w)]) = curr_sent(w);
             end
+            trial_words = [trial_words,curr_sent];
+            
             cfg.part3.chronicity=selections.Iso_A_chronous_Natural{c};
             cfg.part3.frequency=selections.Frequency(c);
             cfg.part3.estim=~strcmp(selections.Electrical_stim{c},'Control no-stim condition');
@@ -139,10 +153,8 @@ for c = 1:size(selections,1)
             pss = str2double(selections.Number_of_sentences{c}(1))+1;
             
             % loop sentences (equals to "parts" field)
-            for p=2:pss
-                % select general parameters
-                cfg.(['part' num2str(p)]).chronicity=selections.Iso_A_chronous_Natural;
-                cfg.(['part' num2str(p)]).frequency=selections.Frequency;
+            p=2;
+            while p<pss+1
                 
                 % select words from randomly generated list
                 if strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
@@ -161,14 +173,34 @@ for c = 1:size(selections,1)
                     else
                         curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                     end
+                elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                    curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
+                elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                    curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
+                elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
+                    curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
+                elseif strcmp(selections.Word_per_sentence{c},'5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
+                    curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                 end
                 
+                % if there are words used in this trial already, change it
+                if strcmp(select_block,'FreeRecall_3sent')
+                    if any(ismember(trial_words,curr_sent))
+                        continue
+                    end
+                end
+                
+                % select general parameters
+                cfg.(['part' num2str(p)]).chronicity=selections.Iso_A_chronous_Natural;
+                cfg.(['part' num2str(p)]).frequency=selections.Frequency;
                 for w=1:length(curr_sent)
                     cfg.(['part' num2str(p)]).(['word' num2str(w)]) = curr_sent(w);
                 end
+                trial_words = [trial_words,curr_sent];
                 cfg.(['part' num2str(p)]).chronicity=selections.Iso_A_chronous_Natural{c};
                 cfg.(['part' num2str(p)]).frequency=selections.Frequency(c);
                 
+                p = p+1;
             end
             
             cfg.(['part' num2str(p+1)]) = cfg.part1;
@@ -177,6 +209,7 @@ for c = 1:size(selections,1)
         
         [events_table.trials{s}, events_table.cfgs{s}] = trial_creator(cfg);
         events_table.cond_info{s} = selections(c,:);
+        events_table.trial_words{s} = trial_words;
         s=s+1;
         
     end

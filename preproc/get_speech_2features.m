@@ -23,10 +23,10 @@ for bi = 1:[length(CF)-1]
 end
 
 % Average narrow band filtered signals to get broadband envelope (with minor smoothing)
-amp_env = smooth(mean(spectrogram,1),500);
+amp_env = smooth(mean(spectrogram,1),0.01*Fs);
 
 % Calculate the first derivative of envelope (which means changes in rate
 % of envelope)  (with minor smoothing)
-deriv_amp_env = [smooth(diff(amp_env),500);0];
+deriv_amp_env = [smooth(diff(amp_env),0.01*Fs);0];
 
 end

@@ -26,6 +26,7 @@ default_table = ...
 if ~exist('select_block_input','var') || isempty(select_block_input)
     fig_title = 'PLEASE SELECT AND ARRANGE THE CONDITIONS!';
     d = default_table;
+    select_block_input=[];
 elseif ismember(select_block_input,fieldnames(tmp))
     tmp.(select_block_input).Language(:) = {language};
     tmp.(select_block_input).Left_vs_Right(:) = {LvsR};
@@ -45,7 +46,7 @@ elecstim_cond_list = {  'Control no-stim condition',...
 % Column names and column format
 columnname = {'Activate Conditions','Language','Frequency','Left vs Right','Number of sentences','trial no per block','Sentence vs Scrambled','Iso/A-chronous/Natural','Clean vs In-noise','Word per sentence','Electrical stim','E-stim delay'};
 columnformat = {'logical',{'English','Spanish'},'numeric',{'L','R','both'},{'1attention-1sentence','3sentences','5sentences'},{'10','15','25','30'},...
-    {'Sentence','Scrambled'},{'iso','a','natural'},{'clean','in-noise'},{'4-word','3-/5-word'},elecstim_cond_list,'numeric'}; %// Set the entries of the popup menu in a cell array. When the format is 'logical', the output in the table is a checkbox.
+    {'Sentence','Scrambled'},{'iso','a','natural'},{'clean','in-noise'},{'4-word','3-/5-word','3-word'},elecstim_cond_list,'numeric'}; %// Set the entries of the popup menu in a cell array. When the format is 'logical', the output in the table is a checkbox.
 
 no_error = 1;cnt=1;
 while no_error % keeps you in the loop until you want to quit or everything is perfect
@@ -67,7 +68,7 @@ t = uitable(h,...
 % ui to select from default options
 c0 = uicontrol(h,'Style','popupmenu',...
     'Units', 'Normalized','Position', [0.72 0.925 0.1 0.05],...
-    'String', {'','iso_mat_24','FR_3sent','passive_5sent','clear_table'},...
+    'String', {'','iso_mat_24','FreeRecall_3sent','passive_5sent','clear_table'},...
     'Callback', {@selection_block,t},...
     'FontSize',14);
 cnon = uicontrol(h,'Style','edit','Enable','off',...
@@ -187,8 +188,8 @@ select_block = srcstr{srcval};
 switch select_block
     case 'iso_mat_24'
         selected_block = table2cell(tmp.iso_mat_24);
-    case 'FR_3sent'
-        selected_block = table2cell(tmp.FR_3sent);
+    case 'FreeRecall_3sent'
+        selected_block = table2cell(tmp.FreeRecall_3sent);
     case 'passive_5sent'
         selected_block = table2cell(tmp.passive_5sent);
     case 'clear_table'

@@ -2,7 +2,7 @@ function [events_table] = event_wrapper_syll(trial_count)
 
 load('syll_table.mat','syll_table')
 
-mixed_table = repmat(syll_table,[trial_count/32,1]);
+mixed_table = repmat(syll_table,[trial_count/16,1]);
 rng('shuffle')
 mixed_table.estim(1:trial_count/2)=1;
 mixed_table.estim((trial_count/2)+1:end)=0;

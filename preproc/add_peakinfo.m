@@ -105,3 +105,55 @@ end
 fprintf('\nSaving...\n')
 peakInfotable = struct2table(peakInfostr);
 save(fullfile('/home/sakkol/Documents/Codes_git/Speech_Perception/preproc/Spanish_all_info.mat'),'peakInfotable')
+
+%% Spanish passive listening, peakInfo
+save_dir = '/home/sakkol/Documents/TASKS/PREPARATIONS/Spanish_speech_preparations/LibriVOX/peakInfo';
+
+cd /home/sakkol/Documents/TASKS/PREPARATIONS/Spanish_speech_preparations/LibriVOX/Grimm_4historias
+dirs = dir('*.wav');
+Spanish_info.speechstim=[];
+Spanish_info.peakRate=[];
+Spanish_info.peakEnv=[];
+Spanish_info.amp_envel=[];
+Spanish_info.deriv_amp_env=[];Spanish_info.stim_name=[];
+ifPlot = 0;
+for t=1:length(dirs)
+    [y,fs]=audioread(dirs(t).name);
+    Spanish_info.speechstim{end+1,1} = y;
+    Spanish_info.speechstim{end,1} = fs;
+    
+    % peak info part
+    [Spanish_info.peakRate{end+1,1}, Spanish_info.peakEnv{end+1,1}, Spanish_info.amp_envel{end+1,1}, Spanish_info.deriv_amp_env{end+1,1}] = get_speech_peaks(y,fs,ifPlot);
+    
+    Spanish_info.stim_name{end+1,1} = dirs(t).name;
+    
+    if ifPlot
+        % add some more info, word boundaries
+        sgtitle(['Stim is: ' dirs(t).name], 'FontSize',16,'FontWeight','bold', 'Interpreter', 'none')
+        print(fullfile(save_dir,[erase(dirs(t).name,'.wav') '.jpg']),'-djpeg','-r300')
+        close all
+    end
+end
+
+cd /home/sakkol/Documents/TASKS/PREPARATIONS/Spanish_speech_preparations/LibriVOX/Grimm_ElGato_conBotes
+dirs = dir('*.wav');
+for t=1:length(dirs)
+    [y,fs]=audioread(dirs(t).name);
+    Spanish_info.speechstim{end+1,1} = y;
+    Spanish_info.speechstim{end,1} = fs;
+    
+    % peak info part
+    [Spanish_info.peakRate{end+1,1}, Spanish_info.peakEnv{end+1,1}, Spanish_info.amp_envel{end+1,1}, Spanish_info.deriv_amp_env{end+1,1}] = get_speech_peaks(y,fs,ifPlot);
+    
+    Spanish_info.stim_name{end+1,1} = dirs(t).name;
+    
+    if ifPlot
+        % add some more info, word boundaries
+        sgtitle(['Stim is: ' dirs(t).name], 'FontSize',16,'FontWeight','bold', 'Interpreter', 'none')
+        print(fullfile(save_dir,[erase(dirs(t).name,'.wav') '.jpg']),'-djpeg','-r300')
+        close all
+    end
+end
+
+save(fullfile(save_dir,'Spanish_info.mat'),'Spanish_info')
+
