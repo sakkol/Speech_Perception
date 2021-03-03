@@ -5,7 +5,7 @@ sbj_ID = 'NS170';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{1}
+curr_block = Sbj_Metadata.BlockLists{2}
 params = AllBlockInfo2params(Sbj_Metadata,curr_block)
 
 %% Import
@@ -49,6 +49,8 @@ temp.trial{1} = ecog.ftrip.trial{1}(good_chns,:);
 temp.nChans = length(good_chns);
 cfg = ft_databrowser(cfg, temp);
 
+clear cfg temp
+
 %% If you added bad (or SOZ, spikey, out) chans to xls. Read xls in again
 % this will overwrite several fields in the ecog structure
 % [labelfile,ecog] = read_labelfile(params.labelfile,ecog);
@@ -85,37 +87,117 @@ else % for edfs
     thr_ampl = 2000000;
     noise_ch = demean(analog_struct.trial{1}(1,:));
 end
-refract_tpts = floor(0.1*analog_struct.fs); % 0.1 second only
 
-digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
-trial_onsets_tpts=find(digital_trig_chan==1);
-analog_fs = analog_struct.fs;
-
-% math onsets
-Calc1_Op1 = trial_onsets_tpts(2:11:end)';
-Calc1_plus = trial_onsets_tpts(3:11:end)';
-Calc1_Op2 = trial_onsets_tpts(4:11:end)';
-Calc1_equals = trial_onsets_tpts(5:11:end)';
-Calc1_Op3 = trial_onsets_tpts(6:11:end)';
-Calc2_Op1 = trial_onsets_tpts(7:11:end)';
-Calc2_plus = trial_onsets_tpts(8:11:end)';
-Calc2_Op2 = trial_onsets_tpts(9:11:end)';
-Calc2_equals = trial_onsets_tpts(10:11:end)';
-Calc2_Op3 = trial_onsets_tpts(11:11:end)';
-trial_onsets_tpts = trial_onsets_tpts(1:11:end)';
-math_onsets = [array2table(Calc1_Op1),array2table(Calc1_plus),array2table(Calc1_Op2),array2table(Calc1_equals),array2table(Calc1_Op3),...
-               array2table(Calc2_Op1),array2table(Calc2_plus),array2table(Calc2_Op2),array2table(Calc2_equals),array2table(Calc2_Op3)];
+ttl_onsets = ecog.digital.PtC4.onset;
 
 % plot events
 figure('Units','normalized','Position', [0 0  1 .5]);
-plot(1/analog_fs:1/analog_fs:length(noise_ch)/analog_fs,noise_ch); hold on
-for i=1:length(trial_onsets_tpts)
-    plot([trial_onsets_tpts(i)/analog_fs trial_onsets_tpts(i)/analog_fs],ylim)
+plot(1/analog_struct.fs:1/analog_struct.fs:length(noise_ch)/analog_struct.fs,noise_ch); hold on
+ylims=ylim;
+for i=1:length(ttl_onsets)
+    plot([ttl_onsets(i) ttl_onsets(i)],ylim)
+    text(ttl_onsets(i),4*ylims(2)/5,num2str(i))
+%     plot([trial_onsets_tpts(i) trial_onsets_tpts(i)],ylim)
+%     text(trial_onsets_tpts(i),4*ylims(2)/5,num2str(i))
 end
-title([num2str(length(trial_onsets_tpts)) ' onsets found']);
+title([num2str(length(ttl_onsets)) ' TTL onsets found']);
 xlabel('Time (s)')
-xlim([1/analog_fs length(noise_ch)/analog_fs])
-print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
+xlim([1/analog_struct.fs length(noise_ch)/analog_struct.fs])
+print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','_ttls.jpg'),'-djpeg','-r300')
+
+%% Loop over trials to get events and behavioral data
+% load beh data
+tmp = load(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '.mat']));
+
+words_info = cell([size(tmp.events_table, 1), 1]);
+math_info = cell([size(tmp.events_table, 1), 1]);
+SoundStimuli = cell([size(tmp.events_table, 1), 1]);
+condition_info = cell([size(tmp.events_table, 1), 1]);
+Sound_cfgs = cell([size(tmp.events_table, 1), 1]);
+math_onsets = cell([size(tmp.events_table, 1), 1]);
+Calc1_RT = zeros(size(tmp.events_table,1), 1);
+Calc2_RT = zeros(size(tmp.events_table,1), 1);
+FreeRecall1_onset = zeros(size(tmp.events_table,1), 1);
+FreeRecall2_onset = zeros(size(tmp.events_table,1), 1);
+trial_onsets = zeros(size(tmp.events_table,1), 1);
+to = 1;
+for t = 1:size(tmp.events_table,1)
+    % words in
+    for p=2:4
+        for w=1:4
+            words_info{t,1}{p-1,w} = tmp.events_table.cfgs{t}.(['part' num2str(p)]).(['word' num2str(w)]);
+        end
+    end
+    
+    % arrange sound stimuli
+    SoundStimuli{t,1} = tmp.events_table.trials{t};
+    condition_info{t,1} = tmp.events_table.conds{t};
+    Sound_cfgs{t,1} = tmp.events_table.cfgs{t};
+    
+    % check if calculation was run
+    if isempty(tmp.math_responses{t,1})
+        trial_onsets(t,1) = ttl_onsets(to);
+        FreeRecall1_onset(t,1) = ttl_onsets(to+1);
+        to = to + 2;
+    else
+        trial_onsets(t,1) = ttl_onsets(to);
+        FreeRecall1_onset(t,1) = ttl_onsets(to+1);
+        FreeRecall2_onset(t,1) = ttl_onsets(to+14);
+        
+        Calc1_RT(t,1) = ttl_onsets(to+7) - ttl_onsets(to+6);
+        Calc2_RT(t,1) = ttl_onsets(to+13) - ttl_onsets(to+12);
+        
+        % math onsets
+        Calc1_Op1 = ttl_onsets(to+2);
+        Calc1_plus = ttl_onsets(to+3);
+        Calc1_Op2 = ttl_onsets(to+4);
+        Calc1_equals = ttl_onsets(to+5);
+        Calc1_Op3 = ttl_onsets(to+6);
+        Calc2_Op1 = ttl_onsets(to+8);
+        Calc2_plus = ttl_onsets(to+9);
+        Calc2_Op2 = ttl_onsets(to+10);
+        Calc2_equals = ttl_onsets(to+11);
+        Calc2_Op3 = ttl_onsets(to+12);
+        math_onsets{t,1} = [array2table(Calc1_Op1),array2table(Calc1_plus),array2table(Calc1_Op2),array2table(Calc1_equals),array2table(Calc1_Op3),...
+            array2table(Calc2_Op1),array2table(Calc2_plus),array2table(Calc2_Op2),array2table(Calc2_equals),array2table(Calc2_Op3)];
+
+        
+        % check if patient was accurate
+        Calc1_acc = (tmp.math.accuracy(t,1)==1 && tmp.math_responses{t,1}.whichButton==1) || (tmp.math.accuracy(t,1)==0 && tmp.math_responses{t,1}.whichButton == 3);
+        Calc2_acc = (tmp.math.accuracy(t,2)==1 && tmp.math_responses{t,2}.whichButton==1) || (tmp.math.accuracy(t,2)==0 && tmp.math_responses{t,2}.whichButton==3);
+        Calc1_first_dig = tmp.math.first_dig(t,1);
+        Calc2_first_dig = tmp.math.first_dig(t,2);
+        Calc1_stim = tmp.math.math_stimuli(t,1:5);
+        Calc2_stim = tmp.math.math_stimuli(t,6:10);
+        
+        math_info{t,1} = [array2table(Calc1_acc),array2table(Calc2_acc),array2table(Calc1_first_dig),array2table(Calc2_first_dig),cell2table(Calc1_stim),cell2table(Calc2_stim)];
+        to = to + 15;
+    end
+end
+
+
+trial_ends = trial_onsets+[diff(trial_onsets)-1;60];
+
+% plot event onsets
+figure('Units','normalized','Position', [0 0  1 .5]);
+plot(1/analog_struct.fs:1/analog_struct.fs:length(noise_ch)/analog_struct.fs,noise_ch); hold on
+ylims=ylim;
+for i=1:length(trial_onsets)
+    plot([trial_onsets(i) trial_onsets(i)],ylim)
+    text(trial_onsets(i),4*ylims(2)/5,num2str(i))
+%     plot([trial_onsets_tpts(i) trial_onsets_tpts(i)],ylim)
+%     text(trial_onsets_tpts(i),4*ylims(2)/5,num2str(i))
+end
+title([num2str(length(trial_onsets)) ' onsets found']);
+xlabel('Time (s)')
+xlim([1/analog_struct.fs length(noise_ch)/analog_struct.fs])
+print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','event_onsets.jpg'),'-djpeg','-r300')
+
+
+
+% Collect trial events
+events = [cell2table(SoundStimuli),cell2table(condition_info),cell2table(Sound_cfgs),array2table(trial_onsets),cell2table(math_onsets),...
+    array2table(Calc1_RT),array2table(Calc2_RT),array2table(FreeRecall1_onset),array2table(FreeRecall2_onset),array2table(trial_ends),cell2table(words_info),cell2table(math_info)];
 
 %% Syncing mic and EEG
 tmp = audioinfo(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_MicRecording.MP3']));
@@ -135,49 +217,6 @@ plot((1:(howlong*analog_struct.fs))/analog_struct.fs,ecog.analog.audio(1:(howlon
 title('DC channel')
 
 clear MicFs MicRec tmp
-
-%% Create each event point
-clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl beh_data trial_dur curr_stimdur
-% trial onsets and ends
-% convert event time from Accl recording to EEG recording sampling rate
-% (should be in column)
-trial_onsets = (trial_onsets_tpts/ecog.analog.fs);
-trial_ends = trial_onsets+[diff(trial_onsets);60];
-
-% load beh data
-tmp = load(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '.mat']));
-
-for t = 1:size(tmp.events_table,1)
-    % words in 
-    for p=2:4
-        for w=1:4
-        words_info{t,1}{p-1,w} = tmp.events_table.cfgs{t}.(['part' num2str(p)]).(['word' num2str(w)]);
-        end
-    end
-    
-    Calc1_RT(t,1) = tmp.all_times.time_trial_end{t,1} - tmp.all_times.actualStartTime{t,1};
-    Calc2_RT(t,1) = tmp.all_times.time_trial_end{t,2} - tmp.all_times.actualStartTime{t,1};
-    FreeRecall_onset(t,1) = Calc2_RT(t,1)+0.2;
-    
-    % check if patient was accurate
-    Calc1_acc(t,1) = (tmp.math.accuracy(t,1)==1 & strcmp(tmp.responses{t,1},'space')) || (tmp.math.accuracy(t,1)==0 & strcmp(tmp.responses{t,1},'Return'));
-    Calc2_acc(t,1) = (tmp.math.accuracy(t,2)==1 & strcmp(tmp.responses{t,2},'space')) || (tmp.math.accuracy(t,2)==0 & strcmp(tmp.responses{t,2},'Return'));
-    Calc1_first_dig(t,1) = tmp.math.first_dig(t,1);
-    Calc2_first_dig(t,2) = tmp.math.first_dig(t,2);
-    Calc1_stim{t,1} = tmp.math.math_stimuli(t,1:5);
-    Calc2_stim{t,1} = tmp.math.math_stimuli(t,6:10);
-    
-    math_info{t,1} = [array2table(Calc1_acc),array2table(Calc2_acc),array2table(Calc1_first_dig),array2table(Calc2_first_dig),cell2table(Calc1_stim),cell2table(Calc2_stim)];
-    
-    % arrange sound stimuli
-    SoundStimuli{t,1} = tmp.events_table.trials{t};
-    condition_info{t,1} = tmp.events_table.cond_info{t};
-    Sound_cfgs{t,1} = tmp.events_table.cfgs{t};
-end
-
-% Collect trial events
-events = [cell2table(SoundStimuli),cell2table(condition_info),cell2table(Sound_cfgs),array2table(trial_onsets),math_onsets,...
-    array2table(Calc1_RT),array2table(Calc2_RT),array2table(FreeRecall_onset),array2table(trial_ends),cell2table(words_info),cell2table(math_info)];
 
 %% trial based rejection
 fs = ecog.ftrip.fsample;
