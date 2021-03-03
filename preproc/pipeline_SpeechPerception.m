@@ -5,7 +5,7 @@ sbj_ID = 'NS170';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{1}
+curr_block = Sbj_Metadata.BlockLists{2}
 params = AllBlockInfo2params(Sbj_Metadata,curr_block)
 
 %% if response table hasn't been filled, fill it here
@@ -55,7 +55,7 @@ temp.label = ecog.ftrip.label(good_chns);
 temp.trial{1} = ecog.ftrip.trial{1}(good_chns,:);
 temp.nChans = length(good_chns);
 cfg = ft_databrowser(cfg, temp);
-clear temp good_chns
+clear temp good_chns cfg
 
 %% If you added bad (or SOZ, spikey, out) chans to xls. Read xls in again
 % this will overwrite several fields in the ecog structure
@@ -99,7 +99,7 @@ end
 % If needed: check for threshold
 figure; plot(noise_ch);
 title('Check for threshold');
-refract_tpts = floor(2*analog_struct.fs); % 2 second only
+refract_tpts = floor(10*analog_struct.fs); % 2 second only
 digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
 analog_fs = analog_struct.fs;
 
@@ -116,13 +116,36 @@ end
 % plot events
 figure('Units','normalized','Position', [0 0  1 .5]);
 plot(1/analog_fs:1/analog_fs:length(noise_ch)/analog_fs,noise_ch); hold on
+ylims=ylim;
 for i=1:length(trial_onsets_tpts)
     plot([trial_onsets_tpts(i)/analog_fs trial_onsets_tpts(i)/analog_fs],ylim)
+    text(trial_onsets_tpts(i)/analog_struct.fs,4*ylims(2)/5,num2str(i))
 end
 title([num2str(length(trial_onsets_tpts)) ' onsets found']);
 xlabel('Time (s)')
 xlim([1/analog_fs length(noise_ch)/analog_fs])
 print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
+
+
+
+% plot events
+trial_onsets = ecog.digital.PtAB.onset(1:2:end);
+trial_ends = trial_onsets+[diff(trial_onsets)-1;60];
+trial_durs = trial_ends-trial_onsets;
+
+figure('Units','normalized','Position', [0 0  1 .5]);
+plot(1/analog_struct.fs:1/analog_struct.fs:length(noise_ch)/analog_struct.fs,noise_ch); hold on
+ylims=ylim;
+for i=1:length(trial_onsets)
+    plot([trial_onsets(i) trial_onsets(i)],ylim)
+    text(trial_onsets(i),4*ylims(2)/5,num2str(i))
+%     plot([trial_onsets_tpts(i) trial_onsets_tpts(i)],ylim)
+%     text(trial_onsets_tpts(i),4*ylims(2)/5,num2str(i))
+end
+title([num2str(length(trial_onsets)) ' onsets found']);
+xlabel('Time (s)')
+xlim([1/analog_struct.fs length(noise_ch)/analog_struct.fs])
+print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','event_onsets.jpg'),'-djpeg','-r300')
 
 %% Create each event point
 clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl beh_data trial_dur curr_stimdur
