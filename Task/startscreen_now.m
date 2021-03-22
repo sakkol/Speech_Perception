@@ -35,6 +35,6 @@ nrchannels = 2;                                      % Number of Channels
 fs = par.PTB_fs;                                     % Frequency of Sampling
 repetitions = 1;                                     % Number of Times to Play Sound Each Time (Keep at 1)
 startCue = 0;                                        % Start Immeadiately
-pahandle = PsychPortAudio('Open', [], 1, 1, fs, nrchannels); % Open Psych-Audio Port
+pahandle = PsychPortAudio('Open', [], [], 3, fs, nrchannels); % Open Psych-Audio Port
 PsychPortAudio('Volume', pahandle, 1);
 waitforDeviceStart = 1;                 % Integrate Device and Sound Driver
