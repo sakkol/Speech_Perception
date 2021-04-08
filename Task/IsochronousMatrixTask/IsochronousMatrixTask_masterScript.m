@@ -362,6 +362,24 @@ for trialN = 1:size(events_table,1)
         Screen('Flip',window);
     elseif thresVSreal==4 % period for free recall math task and free recal period
         WaitSecs(2); % add 2sec additional to memory
+	
+        % First Free Recall
+        DrawFormattedText(window, free_recall_remember,'center','center',par.textcolor);
+        Screen('Flip',window);
+        send_ttl(255, port_handle);
+        
+        % based on correct recalls, press enter to move to next trial
+        [~, key, ~] = KbWait(-1);
+        KBpresses{trialN,1} = KbName(key);
+        if strcmp(KbName(key), 'ESCAPE'); break; end
+        if strcmp(KbName(key), 'space')
+            continue
+        end
+        % wait 1sec before starting the calculations
+        Screen('DrawLines', window, cross_Coords,CrossWidth, par.cross_color, [xCenter yCenter]);
+        Screen('Flip',window);
+        WaitSecs(1);
+	
         % remind what to press first 3 trials
         if trialN < 4 
             DrawFormattedText(window, calc_remind_message,'center','center',par.textcolor);
