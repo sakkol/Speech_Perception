@@ -1,4 +1,4 @@
-function [amp_env,deriv_amp_env,spectrogram] = get_speech_2features(speech,Fs,scale)
+function [amp_env,deriv_amp_env,spectrogram,CF] = get_speech_2features(speech,Fs,scale)
 % intermediary function for get_speech_peaks.m and also can be used to
 % directly get the amplitude envelope and the first derivative of the
 % amplitude envelope (no rectification).

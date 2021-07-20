@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'IsochronousFreeRecall';
-sbj_ID = 'NS170';
+sbj_ID = 'NS172';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -72,24 +72,11 @@ else % for edfs, where
     analog_struct.trial{1} = ecog.analog.ttl;
     analog_struct.fs = ecog.analog.fs;
 end
-
-% If needed: check for threshold
-figure; plot(analog_struct.trial{1}(1,:));
-title('Check for threshold');
-
-% Analog2digital of the noise channel
-if isfield(ecog.analog,'trial') % amplitude threshold
-    thr_ampl = 0.01; % amplitude threshold
-    noise_ch = analog_struct.trial{1}(1,:);
-else % for edfs 
-    thr_ampl = 2000000;
-    noise_ch = demean(analog_struct.trial{1}(1,:));
-end
-refract_tpts = floor(0.1*analog_struct.fs); % 0.1 second only
-
-digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
-trial_onsets_tpts=find(digital_trig_chan==1);
 analog_fs = analog_struct.fs;
+analog_struct.time{1} = 1/analog_fs:1/analog_fs:length(analog_struct.trial{1})/analog_fs;
+
+% % getting events from digitaldata
+% trial_onsets_tpts = ecog.digital.PtC4.onset(1:end)' * analog_fs;
 
 % math onsets
 Calc1_Op1 = trial_onsets_tpts(2:11:end)';
@@ -102,7 +89,7 @@ Calc2_plus = trial_onsets_tpts(8:11:end)';
 Calc2_Op2 = trial_onsets_tpts(9:11:end)';
 Calc2_equals = trial_onsets_tpts(10:11:end)';
 Calc2_Op3 = trial_onsets_tpts(11:11:end)';
-trial_onsets_tpts = trial_onsets_tpts(1:11:end)';
+FreeRecall_onset_tpts = trial_onsets_tpts(12:11:end)';
 math_onsets = [array2table(Calc1_Op1),array2table(Calc1_plus),array2table(Calc1_Op2),array2table(Calc1_equals),array2table(Calc1_Op3),...
                array2table(Calc2_Op1),array2table(Calc2_plus),array2table(Calc2_Op2),array2table(Calc2_equals),array2table(Calc2_Op3)];
 
@@ -115,7 +102,7 @@ end
 title([num2str(length(trial_onsets_tpts)) ' onsets found']);
 xlabel('Time (s)')
 xlim([1/analog_fs length(noise_ch)/analog_fs])
-print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','-r300')
+print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','_all_events.jpg'),'-djpeg','-r300')
 
 %% Syncing mic and EEG
 tmp = audioinfo(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '_MicRecording.MP3']));
@@ -136,12 +123,42 @@ title('DC channel')
 
 clear MicFs MicRec tmp
 
+%% Now create sound events
+% If needed: check for threshold
+figure; plot(analog_struct.time{1},demean(analog_struct.trial{1}(1,:)));
+title('Check for threshold');
+
+% Analog2digital of the noise channel
+if isfield(ecog.analog,'trial') % amplitude threshold
+    thr_ampl = 0.2; % amplitude threshold
+    noise_ch = analog_struct.trial{1}(1,:);
+else % for edfs 
+    thr_ampl = 2000000;
+    noise_ch = demean(analog_struct.trial{1}(1,:));
+end
+refract_tpts = floor(16*analog_struct.fs); % 0.1 second only
+
+digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
+trial_onsets_tpts=find(digital_trig_chan==1);
+
+% plot events
+figure('Units','normalized','Position', [0 0  1 .5]);
+plot(1/analog_fs:1/analog_fs:length(noise_ch)/analog_fs,noise_ch); hold on
+for i=1:length(trial_onsets_tpts)
+    plot([trial_onsets_tpts(i)/analog_fs trial_onsets_tpts(i)/analog_fs],ylim)
+end
+title([num2str(length(trial_onsets_tpts)) ' onsets found']);
+xlabel('Time (s)')
+xlim([1/analog_fs length(noise_ch)/analog_fs])
+print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','_trial_onsets.jpg'),'-djpeg','-r300')
+
 %% Create each event point
 clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl beh_data trial_dur curr_stimdur
 % trial onsets and ends
 % convert event time from Accl recording to EEG recording sampling rate
 % (should be in column)
-trial_onsets = (trial_onsets_tpts/ecog.analog.fs);
+trial_onsets = (trial_onsets_tpts'/ecog.analog.fs);
+FreeRecall_onset = FreeRecall_onset_tpts/analog_fs;
 trial_ends = trial_onsets+[diff(trial_onsets);60];
 
 % load beh data
@@ -157,7 +174,6 @@ for t = 1:size(tmp.events_table,1)
     
     Calc1_RT(t,1) = tmp.all_times.time_trial_end{t,1} - tmp.all_times.actualStartTime{t,1};
     Calc2_RT(t,1) = tmp.all_times.time_trial_end{t,2} - tmp.all_times.actualStartTime{t,1};
-    FreeRecall_onset(t,1) = Calc2_RT(t,1)+0.2;
     
     % check if patient was accurate
     Calc1_acc(t,1) = (tmp.math.accuracy(t,1)==1 & strcmp(tmp.responses{t,1},'space')) || (tmp.math.accuracy(t,1)==0 & strcmp(tmp.responses{t,1},'Return'));
@@ -179,6 +195,45 @@ end
 events = [cell2table(SoundStimuli),cell2table(condition_info),cell2table(Sound_cfgs),array2table(trial_onsets),math_onsets,...
     array2table(Calc1_RT),array2table(Calc2_RT),array2table(FreeRecall_onset),array2table(trial_ends),cell2table(words_info),cell2table(math_info)];
 
+%% Check and correct delays
+% ttl_chan = ecog.analog.ttl;
+ttl_chan = [];
+% audio_chan = ecog.analog.audio;
+audio_chan = ecog.analog.trial{1}(1,:);
+ttlaudio_smplRate = ecog.analog.fs;
+
+current_onsets = events.trial_onsets;
+for i=1:length(events.SoundStimuli)
+    xx{i,1} = events.SoundStimuli{i,1}(:,1);
+end
+sound_files = [xx, repmat({44100},length(events.SoundStimuli),1)];
+
+% new way with cross corr
+ecog.analog.time = (1:length(ecog.analog.trial{1}))/ecog.analog.fs;
+cor_delays=-1.2:0.001:1.2;
+delays=zeros(length(current_onsets),1);
+for t = 1:length(current_onsets)
+    curr_rec_audio = audio_chan(nearest(ecog.analog.time,current_onsets(t)-2):nearest(ecog.analog.time,current_onsets(t)+(length(sound_files{t})/44100)+2));
+    curr_soundF = resample(sound_files{t,1},round(ecog.analog.fs),sound_files{t,2});
+    corr_res=[];
+    for ttt = 1:length(cor_delays)
+        tt=cor_delays(ttt);
+        filledsound = zeros(length(curr_rec_audio),1);
+        filledsound(round((2+tt)*ecog.analog.fs):round((2+tt)*ecog.analog.fs)+length(curr_soundF)-1) = curr_soundF;
+        corr_res(ttt,1) = corr(filledsound,curr_rec_audio');
+    end
+    delays(t,1) = cor_delays(max(corr_res)==corr_res);
+end
+current_onsets_corr = current_onsets+delays;
+% current_onsets_corr = info.events.trial_onsets;
+
+% run the function
+[delay_table] = find_delays(ttl_chan/10000000,audio_chan,ttlaudio_smplRate,current_onsets_corr,sound_files);
+
+% add the changes
+events.trial_onsets = current_onsets_corr+delay_table(:,3);
+events.trial_ends = [diff(events.trial_onsets);60];
+
 %% trial based rejection
 fs = ecog.ftrip.fsample;
 % Notch filter, demean
@@ -191,7 +246,7 @@ cont_notched = ft_preprocessing(cfg,ecog.ftrip);
 
 % speech onset locked
 pre = 0; % seconds 
-post = 35; % seconds 
+post = 15; % seconds 
 trl_trg           = [];
 trl_trg(:,1)      = floor( events.trial_onsets*fs - fs*pre );
 % trl_trg(:,2)      = floor( events.trial_ends*fs + fs*post );
@@ -232,7 +287,8 @@ save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'eco
 
 % Re-reference - epoch - save
 % Average ref
-ecog.ftrip = cont_notched; % nothched or not-notched
+ecog_avg=ecog;
+ecog_avg.ftrip = cont_notched; % nothched or not-notched
 plot_stuff=0;
 ignore_szr_chans=1;
 ecog_avg=ecog_avg_ref(ecog,plot_stuff,ignore_szr_chans);
