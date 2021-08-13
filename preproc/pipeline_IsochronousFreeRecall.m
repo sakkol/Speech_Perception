@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'IsochronousFreeRecall';
-sbj_ID = 'NS172';
+sbj_ID = 'NS174';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -47,6 +47,7 @@ temp = ecog.ftrip;
 temp.label = ecog.ftrip.label(good_chns);
 temp.trial{1} = ecog.ftrip.trial{1}(good_chns,:);
 temp.nChans = length(good_chns);
+cfg.channel = temp.label(1:20);
 cfg = ft_databrowser(cfg, temp);
 
 %% If you added bad (or SOZ, spikey, out) chans to xls. Read xls in again
@@ -74,9 +75,10 @@ else % for edfs, where
 end
 analog_fs = analog_struct.fs;
 analog_struct.time{1} = 1/analog_fs:1/analog_fs:length(analog_struct.trial{1})/analog_fs;
+noise_ch = demean(analog_struct.trial{1}(1,:));
 
 % % getting events from digitaldata
-% trial_onsets_tpts = ecog.digital.PtC4.onset(1:end)' * analog_fs;
+trial_onsets_tpts = ecog.digital.onset(1:end)';
 
 % math onsets
 Calc1_Op1 = trial_onsets_tpts(2:11:end)';
@@ -130,7 +132,7 @@ title('Check for threshold');
 
 % Analog2digital of the noise channel
 if isfield(ecog.analog,'trial') % amplitude threshold
-    thr_ampl = 0.2; % amplitude threshold
+    thr_ampl = 0.1; % amplitude threshold
     noise_ch = analog_struct.trial{1}(1,:);
 else % for edfs 
     thr_ampl = 2000000;
@@ -158,7 +160,7 @@ clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl b
 % convert event time from Accl recording to EEG recording sampling rate
 % (should be in column)
 trial_onsets = (trial_onsets_tpts'/ecog.analog.fs);
-FreeRecall_onset = FreeRecall_onset_tpts/analog_fs;
+FreeRecall_onset = FreeRecall_onset_tpts/ecog.analog.fs;
 trial_ends = trial_onsets+[diff(trial_onsets);60];
 
 % load beh data
@@ -232,7 +234,8 @@ current_onsets_corr = current_onsets+delays;
 
 % add the changes
 events.trial_onsets = current_onsets_corr+delay_table(:,3);
-events.trial_ends = [diff(events.trial_onsets);60];
+events.trial_length = [diff(events.trial_onsets);60];
+events.trial_ends = events.trial_onsets + events.trial_length;
 
 %% trial based rejection
 fs = ecog.ftrip.fsample;
