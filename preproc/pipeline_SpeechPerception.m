@@ -1,12 +1,12 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS170';
+sbj_ID = 'NS144_2';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{2}
-params = AllBlockInfo2params(Sbj_Metadata,curr_block)
+curr_block = Sbj_Metadata.BlockLists{1}
+Sbj_Metadata.params = AllBlockInfo2params(Sbj_Metadata,curr_block)
 
 %% if response table hasn't been filled, fill it here
 eventcell2responseT
@@ -15,18 +15,38 @@ eventcell2responseT
 SP_beh_analysis(Sbj_Metadata,curr_block)
 
 %% Import
-[ecog] = TDT2ecog(params);
+if ~strcmpi(Sbj_Metadata.params.CurrBlockInfo.EEGDAT,'edf')
+    [ecog] = TDT2ecog(Sbj_Metadata.params);
+    
+    % bring in the stimulation output channel and save it in fieldtrip format
+    data=TDTbin2mat(Sbj_Metadata.params.directory);
+    if isfield(data.streams,'Stim')
+        ecog.TDT_stim_output.trial{1} = data.streams.Stim.data;
+        ecog.TDT_stim_output.fs = data.streams.Stim.fs;
+        ecog.TDT_stim_output.time{1} = (1:length(ecog.TDT_stim_output.trial{1}))/ecog.TDT_stim_output.fs;
+    elseif isfield(data.streams,'eS1r')
+        ecog.TDT_stim_output.trial{1} = data.streams.eS1r.data;
+        ecog.TDT_stim_output.fs = data.streams.eS1r.fs;
+        ecog.TDT_stim_output.time{1} = (1:length(ecog.TDT_stim_output.trial{1}))/ecog.TDT_stim_output.fs;
+    else
+        error('Check stim channel')
+    end
+    clear data
+else
+    % for edfs
+    Sbj_Metadata.params.edf = fullfile(Sbj_Metadata.params.directory,[Sbj_Metadata.params.filename, '.edf']);
+    Sbj_Metadata.params.analog.audioL          = 'DC8';
+    Sbj_Metadata.params.analog.audioR          = 'DC2';
+    % params.analog.micro          = 'C210';
+    ecog=edf2ecog(Sbj_Metadata.params);
+%     tmp = ecog.ftrip.time;ecog.ftrip.time={[]};ecog.ftrip.time{1}=tmp;clear tmp
+    
+    % not needed, just can stay here as a reminder: data = edf2fieldtrip(params.edf)
+end
+
 % data=TDTbin2mat(params.directory);
 % 
 % save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_TDT_data.mat']),'data','-v7.3');
-
-% % for edfs
-params.edf = fullfile(params.directory,[params.filename, '.edf']);
-params.analog.ttl            = 'DC1';
-params.analog.audio          = 'DC2';
-% params.analog.micro          = 'C210';
-ecog=edf2ecog(params);
-tmp = ecog.ftrip.time;ecog.ftrip.time={[]};ecog.ftrip.time{1}=tmp;clear tmp
 
 % not needed, just can stay here as a reminder: data = edf2fieldtrip(params.edf)
 
@@ -268,10 +288,11 @@ save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'eco
 
 % Re-reference
 % Average ref
-ecog.ftrip = cont_notched; % nothched or not-noteched
+ecog_avg = ecog;
+ecog_avg.ftrip = cont_notched; % nothched or not-noteched
 plot_stuff=0;
 ignore_szr_chans=1;
-ecog_avg=ecog_avg_ref(ecog,plot_stuff,ignore_szr_chans);
+ecog_avg=ecog_avg_ref(ecog_avg,plot_stuff,ignore_szr_chans);
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_avg.mat']),'ecog_avg','-v7.3');
 
 % Also BIPOLAR reference

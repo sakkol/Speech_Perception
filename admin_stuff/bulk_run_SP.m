@@ -30,30 +30,31 @@ for s = 1:length(indx)
     SP_word_evoked(Sbj_Metadata)
 end
 
-%% SP_Efields
-SP_root = fullfile(data_root,'PROJECTS_DATA',project_name);
-SP_res = fullfile(SP_root,'Collected_Results','Efields');
-if ~exist(SP_res,'dir'),mkdir(SP_res),end
+%% run the EFields
+EA_root = fullfile(data_root,'PROJECTS_DATA',project_name);
+EA_res = fullfile(EA_root,'Collected_Results','Efields');
+if ~exist(EA_res,'dir'),mkdir(EA_res),end
 
-AllBlockInfo = readtable(fullfile(SP_root,[project_name '_BlockInfo.xlsx']));
 aroundPeak = 1;
+elecsOI = {'allchans','goodchans','selectchans','selectgoodchans'};
 
-sbj_IDs = unique(AllBlockInfo.sbj_ID(~ismember(AllBlockInfo.sbj_ID,'NS144_2')));
-for s = 1:length(sbj_IDs)
-    sbj_ID = sbj_IDs{s};
-    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
-    
-    whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & AllBlockInfo.preproc_FU==1);
-    for b = 1:length(whichblocks)
-        curr_block = whichblocks{b};
-        EA_efields(Sbj_Metadata,curr_block,aroundPeak)
-        to_print_folder = fullfile(Sbj_Metadata.results,'Efields',curr_block);
-        if ~aroundPeak
-            copyfile(fullfile(to_print_folder,[curr_block, '_efield_plot.jpg']),fullfile(SP_res,[sbj_ID '_' curr_block '_efield_plot.jpg']));
-        else
-            copyfile(fullfile(to_print_folder,[curr_block, '_efield_plot_aroundPeak.jpg']),fullfile(SP_res,[sbj_ID '_' curr_block '_efield_plot_aroundPeak.jpg']));
+AllBlockInfo = readtable(fullfile(EA_root,[project_name '_BlockInfo.xlsx']));
+
+subjects = {'NS148','NS148_2','NS144_2','NS150','NS170'};
+
+for e = 2:3%:length(elecsOI)
+    for s = 1:length(subjects)
+        sbj_ID = subjects{s};
+        Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
+        
+        whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & strcmp(AllBlockInfo.conditions_code,'1,8,9') & AllBlockInfo.preproc_FU==1);
+        for b = 1:length(whichblocks)
+            curr_block = whichblocks{b};
+            BlockInfo = makeBlockInfo(Sbj_Metadata,curr_block);
+            
+            EA_efields(Sbj_Metadata,curr_block,aroundPeak,{[BlockInfo.StimSide{1} 'omni'],BlockInfo.StimSide{1}},elecsOI{e})
+            close all
         end
-        close all
     end
 end
 
