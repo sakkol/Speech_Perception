@@ -40,14 +40,16 @@ elecsOI = {'allchans','goodchans','selectchans','selectgoodchans'};
 
 AllBlockInfo = readtable(fullfile(EA_root,[project_name '_BlockInfo.xlsx']));
 
-subjects = {'NS148','NS148_2','NS144_2','NS150','NS170'};
+% subjects = {'NS148','NS148_2','NS144_2','NS150','NS170'};
+subjects = {'NS174_2'};
 
-for e = 2:3%:length(elecsOI)
+for e = 1:length(elecsOI)
     for s = 1:length(subjects)
         sbj_ID = subjects{s};
         Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
         
-        whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & strcmp(AllBlockInfo.conditions_code,'1,8,9') & AllBlockInfo.preproc_FU==1);
+        whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & AllBlockInfo.preproc_FU==1);
+%         whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & strcmp(AllBlockInfo.conditions_code,'1,8,9') & AllBlockInfo.preproc_FU==1);
         for b = 1:length(whichblocks)
             curr_block = whichblocks{b};
             BlockInfo = makeBlockInfo(Sbj_Metadata,curr_block);
@@ -201,5 +203,26 @@ for s = 1:length(indx)
     SP_comp_resp_acoustics(Sbj_Metadata)
 end
 
+%% Correlating the SNR and Accuracy of control condition across patients
+AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[project_name '_BlockInfo.xlsx']));
+sbj_block = AllBlockInfo(contains(AllBlockInfo.conditions_code,'1')&AllBlockInfo.preproc_FU==1,1:2);
+sbj_block = table2cell(sbj_block);
+
+% filter for specific patients
+sbj_block = sbj_block(ismember(sbj_block(:,1),subjects),1:2);
+% filter for onlt the first block
+sbj_tmp = unique(sbj_block(:,1));sbj_block_tmp = cell(length(sbj_tmp),2);
+for s = 1:length(sbj_tmp)
+    sbj_block_tmp{s,1} = sbj_tmp{s};
+    x = sbj_block(strcmp(sbj_block(:,1),sbj_tmp{s}),2);
+    sbj_block_tmp{s,2} = x{1};
+end
+sbj_block = sbj_block_tmp;
+
+
+SP_AccrSNR_corr(sbj_block);
+
+print(fullfile(data_root,'PROJECTS_DATA',project_name,'Collected_Results','AccrSNR_corr',[strjoin(sbj_block(:,1),'_') '_allblocks.png']),'-dpng','-r300')
+print(fullfile(data_root,'PROJECTS_DATA',project_name,'Collected_Results','AccrSNR_corr',[strjoin(sbj_block(:,1),'_') '_firstblocks.png']),'-dpng','-r300')
 
 

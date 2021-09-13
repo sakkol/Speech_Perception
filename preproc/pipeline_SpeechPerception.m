@@ -1,11 +1,11 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS144_2';
+sbj_ID = 'NS174_2';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{1}
+curr_block = Sbj_Metadata.BlockLists{3}
 Sbj_Metadata.params = AllBlockInfo2params(Sbj_Metadata,curr_block)
 
 %% if response table hasn't been filled, fill it here
@@ -74,6 +74,7 @@ temp = ecog.ftrip;
 temp.label = ecog.ftrip.label(good_chns);
 temp.trial{1} = ecog.ftrip.trial{1}(good_chns,:);
 temp.nChans = length(good_chns);
+cfg.channel = temp.label(1:15);
 cfg = ft_databrowser(cfg, temp);
 clear temp good_chns cfg
 
@@ -150,7 +151,7 @@ print(fullfile(Sbj_Metadata.iEEG_data,curr_block,'PICS','events.jpg'),'-djpeg','
 
 % plot events
 trial_onsets = ecog.digital.PtAB.onset(1:2:end);
-trial_ends = trial_onsets+[diff(trial_onsets)-1;60];
+trial_ends = trial_onsets+[diff(trial_onsets)-1;20];
 trial_durs = trial_ends-trial_onsets;
 
 figure('Units','normalized','Position', [0 0  1 .5]);
@@ -179,7 +180,7 @@ trial_durs = trial_ends-trial_onsets;
 % prespeech part lengths (depending on if it is slow or fast)
 % (this may be needed, because there may be delay before speech starts)
 prespeech_noise_length = 0.5; % in seconds
-curr_blockinfo = params.CurrBlockInfo;
+curr_blockinfo = Sbj_Metadata.params.CurrBlockInfo;
 if strcmp(curr_blockinfo.slowVSfast,'slow')
     prestim_att_length = 73093/24000; % in secs
 elseif strcmp(curr_blockinfo.slowVSfast,'fast')
@@ -312,3 +313,18 @@ post = 6; % seconds (longest trial is ~8.5 seconds)
 
 % save wlt and data
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data','-v7.3');
+
+%% Run the EFields analysis
+aroundPeak = 1;
+elecsOI = {'allchans','goodchans','selectchans','selectgoodchans'};
+
+BlockInfo = makeBlockInfo(Sbj_Metadata,curr_block);
+for e = 1:4
+    EA_efields(Sbj_Metadata,curr_block,aroundPeak,{[BlockInfo.StimSide{1} 'omni'],BlockInfo.StimSide{1}},elecsOI{e})
+    close all
+end
+
+% % save the select channels for EA_efields use
+% selectchans = info.channelinfo.Label(contains(info.channelinfo.Label,{'LTp','LDp','LDa','LDh','LTx','LTi','LTc','LTs','LPc'}) & isnan(info.channelinfo.outofthebrain))
+% cd(fullfile(Sbj_Metadata.sbjDir));
+% save selectchans.mat selectchans
