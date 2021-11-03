@@ -1,4 +1,4 @@
-function [events_table] = event_wrapper_syll(trial_count)
+function [events_table] = event_wrapper_syll(trial_count,SNR_chosen)
 
 load('syll_table.mat','syll_table')
 
@@ -17,7 +17,7 @@ for t=1:trial_count
     
     cfg=[];
     cfg.language='English';
-    cfg.SNR=30;
+    cfg.SNR=SNR_chosen;
     cfg.LvsR='LcleanRnoise';
     cfg.noise='pink';
     cfg.part1.length=0.5;
@@ -29,7 +29,7 @@ for t=1:trial_count
     cfg.part2.delay=0;
     
     cfg.part3.length=0.8;
-    [events_table.trials{t}, events_table.cfgs{t}] = trial_creator(cfg);
+    [events_table.trials{t}, events_table.cfgs{t}] = trial_creator_syll(cfg);
     
     events_table.cond_info{t} = mixed_table(t,:);
 end
