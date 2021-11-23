@@ -28,8 +28,8 @@ par.cross_length = 40;                       % Size in pixels
 par.cross_color = 255;
 par.N_entrain_stim = 4;                      % Number of entrainment sounds prior to the probe
 par.eeg_pPort = 'DFF8';                      % For parallel port
-par.port_id = 'COM3';                        % Something like '/dev/ttyACM0' for new Ubuntu laptop; or '/dev/tty.usbmodem14101' for Mac; or 'COM4' for Windows
-par.rec_comp_mic = 1;                        % if wanting to record microphone from laptop
+par.port_id = '/dev/ttyACM0';                        % Something like '/dev/ttyACM0' for new Ubuntu laptop; or '/dev/tty.usbmodem14101' for Mac; or 'COM4' for Windows
+par.rec_comp_mic = 0;                        % if wanting to record microphone from laptop
 par.time = string(datetime('now'));          % save the date and time
 [~, par.ComputerID] = system('hostname');    % save computer ID
 par.PTB_fs = 44100;
@@ -41,8 +41,9 @@ dlg_title = 'Enter information';
 while non_acceptable
     prompt = {'Run ID',...
         'How many syllables to present, enter multiples of 64',...
-        'TTL Pulse (1 = None, 2 = MMB, 3 = Parallel Port)'};
-    def = {'B1_NS001','1','1','1'};
+        'TTL Pulse (1 = None, 2 = MMB, 3 = Parallel Port)',...
+        'SNR for syllables (def=20)'};
+    def = {'B1_NS001','1','1','20'};
     answer = inputdlg(prompt,dlg_title,1,def);
     
     if isempty(answer); errordlg('Exiting task. Rerun script for dialogue', 'Aborting'); return; end
@@ -50,6 +51,7 @@ while non_acceptable
     par.runID = answer{1};
     trial_count = str2double(answer{2});
     ttl_sender = str2double(answer{3});
+    SNR_chosen = str2double(answer{4});
     
     log_dir = fullfile(curr_dir, 'log', par.runID);
     % Put in bits that checks to make sure input is acceptable
@@ -94,13 +96,16 @@ elseif ttl_sender == 3 % Set TTLs for parallel port
 end
 
 % send a highpitched noise before starting
-questdlg('Remove the splitter cable from the computer!', ...
-        'and plug splitter into Marantz input!', ...
-        'ok','OK','OK');
+% questdlg('Remove the splitter cable from the computer!', ...
+%         'and plug splitter into Marantz input!', ...
+%         'ok','OK','OK');
 %hpn = [rand(44000,2)*0.1;zeros(4000,2);rand(4000,2);zeros(4000,2);rand(4000,2);zeros(4000,2);rand(4000,2)];
 %obj = audioplayer(hpn,par.PTB_fs);
 %playblocking(obj);
-questdlg('Now put splitter back in, thanks!', ...
+% questdlg('Now put splitter back in, thanks!', ...
+%         'Dont forget to connect mic, thanks!', ...
+%         'ok','OK','OK');
+questdlg('Patient should have only L headphone in the ear!', ...
         'Dont forget to connect mic, thanks!', ...
         'ok','OK','OK');
 
@@ -129,7 +134,7 @@ word_catch_msg = 'Was that present?';
 % first column is the sound to play; second is cfgs, the output from
 % trial_creator function; third is cond_info, the condition info.
 
-[events_table] = event_wrapper_syll(trial_count);
+[events_table] = event_wrapper_syll(trial_count,SNR_chosen);
 syllable_couples = {'pa','ba';'ta','da';'fa','va';'sa','za'};
 
 %% Setup Psychtoolbox and Screen
