@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'IsochronousListening';
-sbj_ID = 'NS165';
+sbj_ID = 'NS174_2';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -47,6 +47,7 @@ temp = ecog.ftrip;
 temp.label = ecog.ftrip.label(good_chns);
 temp.trial{1} = ecog.ftrip.trial{1}(good_chns,:);
 temp.nChans = length(good_chns);
+cfg.channel = temp.label(1:15);
 cfg = ft_databrowser(cfg, temp);
 
 %% If you added bad (or SOZ, spikey, out) chans to xls. Read xls in again
@@ -86,10 +87,13 @@ else % for edfs
     noise_ch = demean(analog_struct.trial{1}(1,:));
 end
 refract_tpts = floor(1*analog_struct.fs); % 1 second only
+analog_fs = analog_struct.fs;
 
 digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
 trial_onsets_tpts=find(digital_trig_chan==1);
-analog_fs = analog_struct.fs;
+
+% take it from digital channel
+trial_onsets_tpts = floor(ecog.digital.onset * ecog.analog.fs);
 
 % plot events
 figure('Units','normalized','Position', [0 0  1 .5]);
@@ -138,7 +142,7 @@ beh_data = load(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '.m
 % end
 
 % Create each event point
-trial_onsets = (trial_onsets_tpts'/ecog.analog.fs);
+trial_onsets = (trial_onsets_tpts/ecog.analog.fs);
 trial_durs = zeros(length(trial_onsets_tpts),1);
 accuracy = zeros(length(trial_onsets_tpts),1);
 % Responses were Enter for absent, space for present words
@@ -178,6 +182,43 @@ events = [array2table(sbjID),array2table(block),array2table(event_ids),events,ar
 
 clear block sbjID event_ids trial_onsets att_sent_onset speech_onsets trial_ends trial_durs accuracy response_time tmp...
     c t catchword_screen catchword_screentime cfg w p all_words wordfields curr_part curr_partfields trial_onsets_tpts tmp_events i pre_silence_length
+
+%% Check and correct delays
+% ttl_chan = ecog.analog.ttl;
+ttl_chan = [];
+% audio_chan = ecog.analog.audio;
+audio_chan = ecog.analog.trial{1}(1,:);
+ttlaudio_smplRate = ecog.analog.fs;
+
+current_onsets = events.trial_onsets;
+sound_files = [events.trials, repmat({44100},length(events.trials),1)];for t=1:height(sound_files),sound_files{t,1}=sound_files{t,1}(:,1);end
+
+% new way with cross corr
+ecog.analog.time = (1:length(ecog.analog.trial{1}))/ecog.analog.fs;
+cor_delays=-1.2:0.001:1.2;
+delays=zeros(length(current_onsets),1);
+for t = 1:length(current_onsets)
+    curr_rec_audio = audio_chan(nearest(ecog.analog.time,current_onsets(t)-2):nearest(ecog.analog.time,current_onsets(t)+events.trial_durs(t)+2));
+    curr_soundF = resample(sound_files{t,1},round(ecog.analog.fs),sound_files{t,2});
+    corr_res=[];
+    for ttt = 1:length(cor_delays)
+        tt=cor_delays(ttt);
+        filledsound = zeros(length(curr_rec_audio),1);
+        filledsound(round((2+tt)*ecog.analog.fs):round((2+tt)*ecog.analog.fs)+length(curr_soundF)-1) = curr_soundF;
+        corr_res(ttt,1) = corr(filledsound,curr_rec_audio');
+    end
+    delays(t,1) = cor_delays(max(corr_res)==corr_res);
+end
+current_onsets_corr = current_onsets+delays;
+% current_onsets_corr = info.events.trial_onsets;
+
+% run the function
+[delay_table] = find_delays(ttl_chan/10000000,audio_chan,ttlaudio_smplRate,current_onsets_corr,sound_files);
+
+% add the changes
+events.trial_onsets = current_onsets_corr+delay_table(:,3);
+events.trial_ends = events.trial_onsets+events.trial_durs;
+
 
 
 %% trial based rejection
@@ -227,12 +268,12 @@ clear trials_clean trials_all trl_trg good_chns fs
 cfg=[];
 cfg.events = events;
 cfg.ecog = ecog;
-cfg.elecInfo = ecog.params.labelfile;
+cfg.elecInfo = params.labelfile;
 info = create_info(cfg);
 save(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']),'info');
 
 % save the auditory responsive electrodes from Auditory Localizer to here too
-[AudRespElecs] = get_AudRespElecs(Sbj_Metadata,project_name);
+% [AudRespElecs] = get_AudRespElecs(Sbj_Metadata,project_name);
 
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'ecog','-v7.3');
 
@@ -245,8 +286,8 @@ ecog_avg=ecog_avg_ref(ecog,plot_stuff,ignore_szr_chans);
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_avg.mat']),'ecog_avg','-v7.3');
 
 % Also BIPOLAR reference
-ecog_bp=ecog_bipolarize(ecog);
-save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']),'ecog_bp','-v7.3');
+% ecog_bp=ecog_bipolarize(ecog);
+% save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_bp.mat']),'ecog_bp','-v7.3');
 
 %% Wavelet analysis
 clearvars -except Sbj_Metadata curr_block AudRespElecs
