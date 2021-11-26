@@ -6,7 +6,8 @@ Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stan
 
 % Get params directly from BlockList excel sheet
 curr_block = Sbj_Metadata.BlockLists{1}
-params = AllBlockInfo2params(Sbj_Metadata,curr_block)
+params = AllBlockInfo2params(Sbj_Metadata,curr_block);
+Sbj_Metadata.params = AllBlockInfo2params(Sbj_Metadata,curr_block);
 
 %% Import
 if ~strcmpi(params.CurrBlockInfo.EEGDAT,'edf')
@@ -22,6 +23,19 @@ else
     
     % not needed, just can stay here as a reminder: data = edf2fieldtrip(params.edf)
 end
+
+% data=TDTbin2mat(Sbj_Metadata.params.directory);
+
+% cfg = [];
+% cfg.dataset = char(fullfile(Sbj_Metadata.rawdata,curr_block, [curr_block '.edf']));
+% cfg.continuous = 'yes';% Import the edf file
+% disp([' --> Reading EDF data ' cfg.dataset]);
+% dataedf=ft_preprocessing(cfg);
+
+% load data from nwb:
+addpath(genpath('/home/sakkol/Documents/Codes_git/matnwb'));
+nwbfile = '/media/sakkol/HDD1/HBML/PROJECTS_DATA/IsochronousListening/NS176/raw/B8_DingTask/sub-NS176_ses-implant01_task-IsochronousListening_ieeg.nwb';
+ecog = nwb2ecog(nwbfile);
 
 %% Find bad channels using PSD
 % find_bad_chans(ecog);
@@ -41,6 +55,9 @@ cfg.preproc.bsfilter       = 'yes';
 cfg.preproc.bsfiltord      = 3;
 cfg.preproc.bsfreq         = [59 61; 119 121; 179 181];
 % cfg.preproc.bsfreq         = [59 61; 119 121; 179 181; 200 1000]; %sabina (visualisation purposes only, for noisy data)
+cfg.preproc.lpfilter='yes';
+cfg.preproc.lpfiltord=3;
+cfg.preproc.lpfreq=100;
 cfg.preproc.demean         = 'yes';
 good_chns = get_good_chans(ecog,2);
 temp = ecog.ftrip;
@@ -49,6 +66,8 @@ temp.trial{1} = ecog.ftrip.trial{1}(good_chns,:);
 temp.nChans = length(good_chns);
 cfg.channel = temp.label(1:15);
 cfg = ft_databrowser(cfg, temp);
+
+clear cfg temp
 
 %% If you added bad (or SOZ, spikey, out) chans to xls. Read xls in again
 % this will overwrite several fields in the ecog structure
@@ -80,20 +99,20 @@ title('Check for threshold');
 
 % Analog2digital of the noise channel
 if isfield(ecog.analog,'trial') % amplitude threshold
-    thr_ampl = 0.01; % amplitude threshold
+    thr_ampl = 0.025; % amplitude threshold
     noise_ch = analog_struct.trial{1}(1,:);
 else % for edfs 
     thr_ampl = 300000;
     noise_ch = demean(analog_struct.trial{1}(1,:));
 end
-refract_tpts = floor(1*analog_struct.fs); % 1 second only
+refract_tpts = floor(11*analog_struct.fs); % 1 second only
 analog_fs = analog_struct.fs;
 
 digital_trig_chan=analog2digital_trig(noise_ch,thr_ampl,refract_tpts,0);
 trial_onsets_tpts=find(digital_trig_chan==1);
 
 % take it from digital channel
-trial_onsets_tpts = floor(ecog.digital.onset * ecog.analog.fs);
+% trial_onsets_tpts = floor(ecog.digital.onset * ecog.analog.fs);
 
 % plot events
 figure('Units','normalized','Position', [0 0  1 .5]);
@@ -129,6 +148,44 @@ clear MicFs MicRec tmp
 clear analog_fs noise_ch digital_trig_chan refract_tpts analog_struct thr_ampl beh_data trial_dur curr_stimdur howlong
 beh_data = load(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '.mat']));
 
+%% Check and correct delays
+% ttl_chan = ecog.analog.ttl;
+ttl_chan = [];
+% audio_chan = ecog.analog.audio;
+audio_chan = ecog.analog.trial{1}(1,:);
+ttlaudio_smplRate = ecog.analog.fs;
+
+current_onsets = (trial_onsets_tpts'/ecog.analog.fs);
+Stimuli=cell(height(beh_data.events_table),1);
+trial_durs=zeros(height(beh_data.events_table),1);
+for i=1:height(current_onsets)
+    Stimuli{i,1} = beh_data.events_table.trials{i,1}(:,1);
+    trial_durs(i,1) = length(Stimuli{i})/44100;
+end
+sound_files = [Stimuli, repmat({44100},length(Stimuli),1)];
+
+% new way with cross corr
+ecog.analog.time = (1:length(ecog.analog.trial{1}))/ecog.analog.fs;
+cor_delays=-.9:0.001:.9;
+delays=zeros(length(current_onsets),1);
+for t = 1:length(current_onsets)
+    curr_rec_audio = audio_chan(nearest(ecog.analog.time,current_onsets(t)-2):nearest(ecog.analog.time,current_onsets(t)+trial_durs(t)+2));
+    curr_soundF = resample(sound_files{t,1},round(ecog.analog.fs),sound_files{t,2});
+    corr_res=[];
+    for ttt = 1:length(cor_delays)
+        tt=cor_delays(ttt);
+        filledsound = zeros(length(curr_rec_audio),1);
+        filledsound(round((2+tt)*ecog.analog.fs):round((2+tt)*ecog.analog.fs)+length(curr_soundF)-1) = curr_soundF;
+        corr_res(ttt,1) = corr(filledsound,curr_rec_audio');
+    end
+    delays(t,1) = cor_delays(max(corr_res)==corr_res);
+end
+current_onsets_corr = current_onsets+delays;
+
+% run the function
+[delay_table] = find_delays(ttl_chan/10000000,audio_chan,ttlaudio_smplRate,current_onsets_corr,sound_files);
+
+%% Create event structure
 % enter_code = beh_data.responses{1,2};
 % space_code = beh_data.responses{2,2};
 % for i=1:length(beh_data.responses)
@@ -142,7 +199,7 @@ beh_data = load(fullfile(Sbj_Metadata.behavioral_root,curr_block,[curr_block '.m
 % end
 
 % Create each event point
-trial_onsets = (trial_onsets_tpts/ecog.analog.fs);
+trial_onsets = current_onsets_corr+delay_table(:,3);
 trial_durs = zeros(length(trial_onsets_tpts),1);
 accuracy = zeros(length(trial_onsets_tpts),1);
 % Responses were Enter for absent, space for present words
@@ -182,43 +239,6 @@ events = [array2table(sbjID),array2table(block),array2table(event_ids),events,ar
 
 clear block sbjID event_ids trial_onsets att_sent_onset speech_onsets trial_ends trial_durs accuracy response_time tmp...
     c t catchword_screen catchword_screentime cfg w p all_words wordfields curr_part curr_partfields trial_onsets_tpts tmp_events i pre_silence_length
-
-%% Check and correct delays
-% ttl_chan = ecog.analog.ttl;
-ttl_chan = [];
-% audio_chan = ecog.analog.audio;
-audio_chan = ecog.analog.trial{1}(1,:);
-ttlaudio_smplRate = ecog.analog.fs;
-
-current_onsets = events.trial_onsets;
-sound_files = [events.trials, repmat({44100},length(events.trials),1)];for t=1:height(sound_files),sound_files{t,1}=sound_files{t,1}(:,1);end
-
-% new way with cross corr
-ecog.analog.time = (1:length(ecog.analog.trial{1}))/ecog.analog.fs;
-cor_delays=-1.2:0.001:1.2;
-delays=zeros(length(current_onsets),1);
-for t = 1:length(current_onsets)
-    curr_rec_audio = audio_chan(nearest(ecog.analog.time,current_onsets(t)-2):nearest(ecog.analog.time,current_onsets(t)+events.trial_durs(t)+2));
-    curr_soundF = resample(sound_files{t,1},round(ecog.analog.fs),sound_files{t,2});
-    corr_res=[];
-    for ttt = 1:length(cor_delays)
-        tt=cor_delays(ttt);
-        filledsound = zeros(length(curr_rec_audio),1);
-        filledsound(round((2+tt)*ecog.analog.fs):round((2+tt)*ecog.analog.fs)+length(curr_soundF)-1) = curr_soundF;
-        corr_res(ttt,1) = corr(filledsound,curr_rec_audio');
-    end
-    delays(t,1) = cor_delays(max(corr_res)==corr_res);
-end
-current_onsets_corr = current_onsets+delays;
-% current_onsets_corr = info.events.trial_onsets;
-
-% run the function
-[delay_table] = find_delays(ttl_chan/10000000,audio_chan,ttlaudio_smplRate,current_onsets_corr,sound_files);
-
-% add the changes
-events.trial_onsets = current_onsets_corr+delay_table(:,3);
-events.trial_ends = events.trial_onsets+events.trial_durs;
-
 
 
 %% trial based rejection
@@ -279,6 +299,7 @@ save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog.mat']),'eco
 
 % Re-reference
 % Average ref
+ecog_orig=ecog;
 ecog.ftrip = cont_notched; % nothched or not-noteched
 plot_stuff=0;
 ignore_szr_chans=1;
@@ -295,10 +316,8 @@ load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_ecog_avg.mat']))
 load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
 events = info.events; clear info
 
-ecog=ecog_avg;
 selected_chans = AudRespElecs;
 select_bad_chans
-clear ecog
 
 % select only auditory responsive electrodes/select electrodes
 cfg                = [];
@@ -308,10 +327,16 @@ ecog_avg.ftrip     = ft_selectdata(cfg, ecog_avg.ftrip);
 % speech onset locked
 pre  = 1.5; % seconds
 post = 14; % seconds
-[epoched_data, epoched_wlt] = master_waveletTF(ecog_avg.ftrip,events.speech_onsets,pre,post,[0.3 200]);
+[epoched_data, epoched_wlt] = master_waveletTF(ecog_avg.ftrip,events.speech_onsets,pre,post,[0.1 200]);
 
 % save wlt and data
 save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data','-v7.3');
+
+% %% might be useful
+% all_event_conds=info.events.cond_info{1};
+% for t=2:80
+%     all_event_conds = [all_event_conds;info.events.cond_info{t}];
+% end
 
 %% Prelim analysis
 ElecLoc=readtable(fullfile(erase(Sbj_Metadata.data_root,'PROJECTS_DATA'),'DERIVATIVES','freesurfer','ElecLoc_master.xlsx'));
@@ -368,8 +393,9 @@ for el = 1:length(epoched_wlt.label)
 %     else
 %         to_title2 = 'target unresponsive';
 %     end
-    title({['PSD (mean+SEM); word frequency ' num2str(isofrequency) 'Hz'];...
-        ['Elec:' curr_label ' in ' ElecLoc.Area_dtl{strcmp(ElecLoc.Subject,Sbj_Metadata.sbj_ID) & strcmp(ElecLoc.Label,curr_label)}]})
+    title({['PSD (mean+SEM); word frequency ' num2str(isofrequency) 'Hz']})
+%     title({['PSD (mean+SEM); word frequency ' num2str(isofrequency) 'Hz'];...
+%         ['Elec:' curr_label ' in ' ElecLoc.Area_dtl{strcmp(ElecLoc.Subject,Sbj_Metadata.sbj_ID) & strcmp(ElecLoc.Label,curr_label)}]})
     set(gca, 'FontSize',12);
     ylims = ylim;
 %     plot(xlim, [isofrequency isofrequency],'k')
