@@ -73,6 +73,7 @@ all3wordscramb = all3wordscramb(randperm(length(all3wordscramb)),:);
 %% first create then shuffle the trials
 w3sent=1;w4sent=1;w5sent=1;
 w3scram=1;w4scram=1;w5scram=1;
+mod35=1;
 
 events_table=table;
 events_table.trials(1:sum(str2double(selections.trial_no_per_block)))={''};
@@ -115,17 +116,19 @@ for c = 1:size(selections,1)
             elseif strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
                 curr_sent = all4wordscramb(w4scram,:);w4scram=w4scram+1;
             elseif strcmp(selections.Word_per_sentence{c},'3-/5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
-                if mod(w3scram,2) % change from 3 to 5 word in each loop, so that there will be equal no of them
+                if mod(mod35,2) % change from 3 to 5 word in each loop, so that there will be equal no of them
                     curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
                 else
                     curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
                 end
+                mod35=mod35+1;
             elseif strcmp(selections.Word_per_sentence{c},'3-/5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
-                if mod(w3sent,2) % change from 3 to 5 word in each loop, so that there will be equal no of them
+                if mod(mod35,2) % change from 3 to 5 word in each loop, so that there will be equal no of them
                     curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
                 else
                     curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                 end
+                mod35=mod35+1;
             elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
                 curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
             elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
@@ -162,17 +165,19 @@ for c = 1:size(selections,1)
                 elseif strcmp(selections.Word_per_sentence{c},'4-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
                     curr_sent = all4wordscramb(w4scram,:);w4scram=w4scram+1;
                 elseif strcmp(selections.Word_per_sentence{c},'3-/5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
-                    if mod(w3scram,2)
+                    if mod(mod35,2)
                         curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
                     else
                         curr_sent = all5wordscramb(w5scram,:);w5scram=w5scram+1;
                     end
+                    mod35=mod35+1;
                 elseif strcmp(selections.Word_per_sentence{c},'3-/5-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
-                    if mod(w3sent,2)
+                    if mod(mod35,2)
                         curr_sent = all3wordsent(w3sent,:);w3sent=w3sent+1;
                     else
                         curr_sent = all5wordsent(w5sent,:);w5sent=w5sent+1;
                     end
+                    mod35=mod35+1;
                 elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Scrambled')
                     curr_sent = all3wordscramb(w3scram,:);w3scram=w3scram+1;
                 elseif strcmp(selections.Word_per_sentence{c},'3-word') && strcmp(selections.Sentence_vs_Scrambled{c},'Sentence')
