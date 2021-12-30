@@ -339,7 +339,10 @@ save(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoc
 % end
 
 %% Prelim analysis
-ElecLoc=readtable(fullfile(erase(Sbj_Metadata.data_root,'PROJECTS_DATA'),'DERIVATIVES','freesurfer','ElecLoc_master.xlsx'));
+% ElecLoc=readtable(fullfile(erase(Sbj_Metadata.data_root,'PROJECTS_DATA'),'DERIVATIVES','freesurfer','ElecLoc_master.xlsx'));
+load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_wlt.mat']),'epoched_wlt','epoched_data');
+load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']),'info')
+events=info.events;
 save_folder = fullfile(Sbj_Metadata.results,'iso_4word_sentenceVSscrambled');
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
 
@@ -349,21 +352,11 @@ cfg.output='abs';
 cfg.keeptrials = 'yes';
 epoched_wlt=ft_freqdescriptives(cfg,epoched_wlt);
 
-iso_4_sentence = [];
-iso_4_scrambled = [];
-for t=1:size(events,1)
-    if strcmp(events.cond_info{t}.Sentence_vs_Scrambled,'Sentence') && ...
-            strcmp(events.cond_info{t}.Iso_A_chronous_Natural,'iso') && ...
-            strcmp(events.cond_info{t}.Word_per_sentence,'4-word')
-        iso_4_sentence(1,end+1) = t;
-    elseif strcmp(events.cond_info{t}.Sentence_vs_Scrambled,'Scrambled') && ...
-            strcmp(events.cond_info{t}.Iso_A_chronous_Natural,'iso') && ...
-            strcmp(events.cond_info{t}.Word_per_sentence,'4-word')
-        iso_4_scrambled(1,end+1) = t;
-    end
-end
+iso_4_sentence = IL_event_nos(events, 'all', 'Sentence', 'iso', '4-word');
+iso_4_scrambled = IL_event_nos(events, 'all', 'Scrambled', 'iso', '4-word');
+
 cfg                = [];
-cfg.latency        = [0 8];
+cfg.latency        = [0 20/events.cfgs{1}.part3.frequency];
 cfg.trials         = iso_4_sentence;
 iso_4_sentence_wlt = ft_selectdata(cfg, epoched_wlt);
 cfg.trials         = iso_4_scrambled;
