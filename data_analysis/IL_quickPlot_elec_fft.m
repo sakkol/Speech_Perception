@@ -1,12 +1,12 @@
-function IL_quickPlot_elec(Sbj_Metadata,curr_block,elec)
+function IL_quickPlot_elec_fft(Sbj_Metadata,curr_block,elec,to_save_name)
 
 
 
 
-load(fullfile(Sbj_Metadata.iEEG_data, curr_block, 'elec_TF', [elec '_' curr_block '_mtmconvol_fourier.mat']),'epoched_wlt');
+load(fullfile(Sbj_Metadata.iEEG_data, curr_block, 'elec_TF', [elec '_' curr_block '_' to_save_name '_mtmfft_fourier.mat']),'epoched_wlt');
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block, [curr_block '_info.mat']),'info')
 events=info.events;
-save_folder = fullfile(Sbj_Metadata.results,'Quick_plot_elec');
+save_folder = fullfile(Sbj_Metadata.results,'Quick_plot_elec_fft');
 if ~exist(save_folder,'dir'),mkdir(save_folder),end
 
 % from fourierspectrum to powerspectrum
@@ -33,7 +33,7 @@ epoched_hfa = ft_selectdata(cfg, epoched_hfa);
 epoched_hfa = master_smoothData(epoched_hfa);
 
 % load ERP
-load(fullfile(Sbj_Metadata.iEEG_data, curr_block, 'elec_TF', [elec '_' curr_block '_mtmconvol_fourier.mat']),'epoched_data');
+load(fullfile(Sbj_Metadata.iEEG_data, curr_block, 'elec_TF', [elec '_' curr_block '_' to_save_name '_mtmfft_fourier.mat']),'epoched_data');
 epoched_data = master_smoothData(epoched_data);
 
 isofrequency = events.cond_info{1}.Frequency;
@@ -239,7 +239,7 @@ for el = 1:length(epoched_wlt.label)
             elseif l4==2
                 title('HFA')
                 xlim([-.1 ((loop2{l2})*5/isofrequency)+.1])
-                ylim([.5 2])
+                ylim([.5 5])
                 ylabel('Power (relative)')
                 xlabel('Time (s)')
             elseif l4==3
