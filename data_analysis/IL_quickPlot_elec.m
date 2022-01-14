@@ -30,7 +30,7 @@ cfg=[];
 cfg.frequency=[70 200];
 cfg.avgoverfreq='yes';
 epoched_hfa = ft_selectdata(cfg, epoched_hfa);
-epoched_hfa = master_smoothData(epoched_hfa);
+epoched_hfa = master_smoothData(epoched_hfa,.2);
 
 % load ERP
 load(fullfile(Sbj_Metadata.iEEG_data, curr_block, 'elec_TF', [elec '_' curr_block '_mtmconvol_fourier.mat']),'epoched_data');
@@ -239,7 +239,7 @@ for el = 1:length(epoched_wlt.label)
             elseif l4==2
                 title('HFA')
                 xlim([-.1 ((loop2{l2})*5/isofrequency)+.1])
-                ylim([.5 2])
+                ylim([.5 5])
                 ylabel('Power (relative)')
                 xlabel('Time (s)')
             elseif l4==3

@@ -44,9 +44,9 @@ fs = ftrip.fsample; % sampling rate
 
 % Make trial structure
 trl           = [];
-trl(:,1)      = floor( event_secs*fs - fs*(pre+2) ); % adding 2 second for lower frequencies, will cut it out later
-trl(:,2)      = floor( event_secs*fs + fs*(post+2) );
-trl(:,3)      = floor( -(pre+2)*fs );
+trl(:,1)      = floor( event_secs*fs - fs*(pre+6) ); % adding 2 second for lower frequencies, will cut it out later
+trl(:,2)      = floor( event_secs*fs + fs*(post+6) );
+trl(:,3)      = floor( -(pre+6)*fs );
 
 % Epoch
 cfg           = [];
@@ -71,7 +71,7 @@ cfg.method            = 'mtmconvol';
 cfg.taper             = 'hanning';
 cfg.foi               = foi;
 cfg.toi               = -pre:0.01:post;
-cfg.t_ftimwin         = [5*ones(sum(cfg.foi<10),1);.5*ones(sum(cfg.foi>10),1)];
+cfg.t_ftimwin         = [6*ones(sum(cfg.foi<10),1);.1*ones(sum(cfg.foi>10),1)];
 % cfg.t_ftimwin         = 16./cfg.foi;
 cfg.keeptrials        = 'yes';
 cfg.keeptaper         = 'yes';
