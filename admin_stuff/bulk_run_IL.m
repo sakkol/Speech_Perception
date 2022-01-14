@@ -123,33 +123,3 @@ for s = 1:length(indx)
         end
     end
 end
-
-%% save trial numbers in a non-table format to be read by Python FOOOF script
-
-for s = 1:length(indx)
-    sbj_ID = subjects{indx(s)};
-    Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
-    
-    whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & AllBlockInfo.preproc_FU==1);
-    for b = 1:length(whichblocks)
-        curr_block = whichblocks{b};
-        fprintf([sbj_ID,'-',curr_block,'\n'])
-        load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
-
-% 3-4-5 -- iso-a -- sentence-scrambled -- wlt-hfa-erp
-loop1={'iso','a'};
-loop2={4,3,5};
-loop3={'sentence','scrambled'};
-loop4={'wlt','hfa','data'};
-trial_nos=[];
-for l1=1:2
-    for l2=1:3
-        for l3=1:2
-            trial_nos.([loop1{l1} '_' num2str(loop2{l2}) '_' loop3{l3}]) = IL_get_eventsOI(info.events, loop3{l3}, loop1{l1}, loop2{l2});
-        end
-    end
-end
-save(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_trial_nos.mat']),'trial_nos')
-
-    end
-end

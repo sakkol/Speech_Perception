@@ -52,13 +52,14 @@ for l1=1:2
             for l4=1:3
                 cfg                = [];
                 cfg.latency        = [-.1 (loop2{l2}*5/isofrequency)+.1];
-                cfg.trials         = IL_get_eventsOI(events, loop3{l3}, loop1{l1}, loop2{l2});
+                cfg.trials         = IL_get_eventsOI(events, loop3{l3}, loop1{l1}, loop2{l2}, [1 0]); % only the accurate trials
                 sampstr.([loop1{l1} '_' num2str(loop2{l2}) '_' loop3{l3} '_' loop4{l4}]) = ft_selectdata(cfg,datastr.(['epoched_' loop4{l4}]));
             end
         end
     end
 end
 
+ranksumresults=[];
 %% Now plot
 for el = 1:length(epoched_wlt.label)
     figure('Units','normalized','Position', [0 0  1 1]);
@@ -69,47 +70,53 @@ for el = 1:length(epoched_wlt.label)
             subplot(3,3,subplotno(3,l4,l2))
             %% subplot for PSD
             if l4==1
-                for_avg=squeeze(nanmean(sampstr.(['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}]).powspctrm(:,el,:,:),4));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(epoched_wlt.freq)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
+                % first iso sentence
+                [s1, for_avg] = IL_powerpeak_plot(sampstr,['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}],'r');
+                [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_sentence_24Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s1,isofrequency);
+                if l2==1
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_sentence_12Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s1,isofrequency/2);
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_sentence_06Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s1,isofrequency/4);
+                elseif l2==2
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_sentence_08Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s1,isofrequency/3);
+                elseif l2==3
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_sentence_048Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s1,isofrequency/5);
                 end
-%                 s1=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','r');
-                s1=plot(epoched_wlt.freq,nanmean(for_avg,1),'r');
-                % check significance of the peaks
-                [significant,tresults] = IL_power_peak_stat(for_avg,epoched_wlt.freq,2.4)
-
-                for_avg=squeeze(nanmean(sampstr.(['iso_' num2str(loop2{l2}) '_scrambled_' loop4{l4}]).powspctrm(:,el,:,:),4));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(epoched_wlt.freq)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
+                
+                % second iso scr
+                [s2, for_avg] = IL_powerpeak_plot(sampstr,['iso_' num2str(loop2{l2}) '_scrambled_' loop4{l4}],'b');
+                [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_scrambled_24Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s2,isofrequency);
+                if l2==1
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_scrambled_12Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s2,isofrequency/2);
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_scrambled_06Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s2,isofrequency/4);
+                elseif l2==2
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_scrambled_08Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s2,isofrequency/3);
+                elseif l2==3
+                    [~,ranksumresults.(['iso_' num2str(loop2{l2}) '_scrambled_048Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s2,isofrequency/5);
                 end
-%                 s2=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','b');
-                s2=plot(epoched_wlt.freq,nanmean(for_avg,1),'b');
-
-                for_avg=squeeze(nanmean(sampstr.(['a_' num2str(loop2{l2}) '_sentence_' loop4{l4}]).powspctrm(:,el,:,:),4));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(epoched_wlt.freq)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
+                
+                % third a sent
+                [s3, for_avg] = IL_powerpeak_plot(sampstr,['a_' num2str(loop2{l2}) '_sentence_' loop4{l4}],'g');
+                [~,ranksumresults.(['a_' num2str(loop2{l2}) '_sentence_24Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s3,isofrequency);
+                if l2==1
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_sentence_12Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s3,isofrequency/2);
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_sentence_06Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s3,isofrequency/4);
+                elseif l2==2
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_sentence_08Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s3,isofrequency/3);
+                elseif l2==3
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_sentence_048Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s3,isofrequency/5);
                 end
-%                 s3=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','g');
-                s3=plot(epoched_wlt.freq,nanmean(for_avg,1),'g');
-
-                for_avg=squeeze(nanmean(sampstr.(['a_' num2str(loop2{l2}) '_scrambled_' loop4{l4}]).powspctrm(:,el,:,:),4));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(epoched_wlt.freq)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
+                
+                % fourth a scr
+                [s4, for_avg] = IL_powerpeak_plot(sampstr,['a_' num2str(loop2{l2}) '_scrambled_' loop4{l4}],'m');
+                [~,ranksumresults.(['a_' num2str(loop2{l2}) '_scrambled_24Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s4,isofrequency);
+                if l2==1
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_scrambled_12Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s4,isofrequency/2);
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_scrambled_06Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s4,isofrequency/4);
+                elseif l2==2
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_scrambled_08Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s4,isofrequency/3);
+                elseif l2==3
+                    [~,ranksumresults.(['a_' num2str(loop2{l2}) '_scrambled_048Hz'])] = IL_powerpeak_stat(for_avg,epoched_wlt.freq,s4,isofrequency/5);
                 end
-%                 s4=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','m');
-                s4=plot(epoched_wlt.freq,nanmean(for_avg,1),'m');
 
                 % additional stuff: frequency lines
                 plot([isofrequency isofrequency], ylim,'k','HandleVisibility','off')
@@ -124,46 +131,10 @@ for el = 1:length(epoched_wlt.label)
 
                 %% Subplot for HFA
             elseif l4==2 % hfa
-                for_avg=squeeze(nanmean(sampstr.(['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}]).powspctrm(:,el,:,:),1));
-                for_time = sampstr.(['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}]);
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s1=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','r');
-                s1=plot(for_time.time,nanmean(for_avg,1),'r');
-
-                for_avg=squeeze(nanmean(sampstr.(['iso_' num2str(loop2{l2}) '_scrambled_' loop4{l4}]).powspctrm(:,el,:,:),1));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s2=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','b');
-                s2=plot(for_time.time,nanmean(for_avg,1),'b');
-
-                for_avg=squeeze(nanmean(sampstr.(['a_' num2str(loop2{l2}) '_sentence_' loop4{l4}]).powspctrm(:,el,:,:),1));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s3=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','g');
-                s3=plot(for_time.time,nanmean(for_avg,1),'g');
-
-                for_avg=squeeze(nanmean(sampstr.(['a_' num2str(loop2{l2}) '_scrambled_' loop4{l4}]).powspctrm(:,el,:,:),1));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s4=shadedErrorBar(epoched_wlt.freq,mean(for_avg,1),stderr(for_avg),'lineprops','m');
-                s4=plot(for_time.time,nanmean(for_avg,1),'m');
+                IL_powerpeak_plot(sampstr,['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}],'r');
+                IL_powerpeak_plot(sampstr,['iso_' num2str(loop2{l2}) '_scrambled_' loop4{l4}],'b');
+                IL_powerpeak_plot(sampstr,['a_' num2str(loop2{l2}) '_sentence_' loop4{l4}],'g');
+                IL_powerpeak_plot(sampstr,['a_' num2str(loop2{l2}) '_scrambled_' loop4{l4}],'m');
 
                 % lines for sentence onsets
                 plot([0 0], ylim,'k','HandleVisibility','off')
@@ -172,46 +143,10 @@ for el = 1:length(epoched_wlt.label)
                 end
             %% Subplot for ERP:
             else
-                for_avg=squeeze(nanmean(sampstr.(['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}]).trial(:,el,:),1));
-                for_time = sampstr.(['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}]);
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s1=shadedErrorBar(sample_data.time,mean(for_avg,1),stderr(for_avg),'lineprops','r');
-                s1=plot(for_time.time,nanmean(for_avg,1),'r');
-
-                for_avg=squeeze(nanmean(sampstr.(['iso_' num2str(loop2{l2}) '_scrambled_' loop4{l4}]).trial(:,el,:),1));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s2=shadedErrorBar(sample_data.time,mean(for_avg,1),stderr(for_avg),'lineprops','b');
-                s2=plot(for_time.time,nanmean(for_avg,1),'b');
-
-                for_avg=squeeze(nanmean(sampstr.(['a_' num2str(loop2{l2}) '_sentence_' loop4{l4}]).trial(:,el,:),1));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s3=shadedErrorBar(sample_data.time,mean(for_avg,1),stderr(for_avg),'lineprops','g');
-                s3=plot(for_time.time,nanmean(for_avg,1),'g');
-
-                for_avg=squeeze(nanmean(sampstr.(['a_' num2str(loop2{l2}) '_scrambled_' loop4{l4}]).trial(:,el,:),1));
-                hold on;
-                if isnan(for_avg)
-                    for_avg=nan([1,length(for_time.time)]);
-                elseif isvector(for_avg)
-                    for_avg=for_avg';
-                end
-%                 s4=shadedErrorBar(sample_data.time,mean(for_avg,1),stderr(for_avg),'lineprops','m');
-                s4=plot(for_time.time,nanmean(for_avg,1),'m');
+                IL_powerpeak_plot(sampstr,['iso_' num2str(loop2{l2}) '_sentence_' loop4{l4}],'r');
+                IL_powerpeak_plot(sampstr,['iso_' num2str(loop2{l2}) '_scrambled_' loop4{l4}],'b');
+                IL_powerpeak_plot(sampstr,['a_' num2str(loop2{l2}) '_sentence_' loop4{l4}],'g');
+                IL_powerpeak_plot(sampstr,['a_' num2str(loop2{l2}) '_scrambled_' loop4{l4}],'m');
 
                 % lines for sentence onsets
                 plot([0 0], ylim,'k','HandleVisibility','off')
@@ -257,13 +192,14 @@ for el = 1:length(epoched_wlt.label)
     xxx=makeBlockInfo(Sbj_Metadata,curr_block);
     ax = axes;
     ax.Visible = 'off';
-    text(gca,.5,1.07,[curr_label ' in ' info.channelinfo.Desikan_Killiany{strcmp(info.channelinfo.Label,elec)} '; ' xxx.Stim_type{1} ' Isochronous Listening Task; block: ' curr_block '; ' ERP_HFA_TF],...
-        'Units','normalized','FontSize',18,'FontWeight','bold','HorizontalAlignment','center')
+    text(gca,.5,1.07,[curr_label ' in ' info.channelinfo.Desikan_Killiany{strcmp(info.channelinfo.Label,elec)} '; ' xxx.Stim_type{1} ' task; block: ' curr_block],...
+        'Units','normalized','FontSize',18,'FontWeight','bold','HorizontalAlignment','center','Interpreter','none')
 %     sgtitle([curr_label ' in ' info.channelinfo.Desikan_Killiany{el} '; Isochronous Listening Task; block: ' curr_block])
     
     % Save the figure
     fprintf('\t-Saving electrode #%d %s, out of %d\n',el,curr_label,length(epoched_wlt.label))
-    print(fullfile(save_folder,[curr_label , '_' curr_block '_' ERP_HFA_TF '_Qplot_elec.jpg']),'-djpeg','-r300')
+    print(fullfile(save_folder,[curr_label , '_' curr_block '_' ERP_HFA_TF '_powerstats.jpg']),'-djpeg','-r300')
+    save(fullfile(save_folder,[curr_label , '_' curr_block '_' ERP_HFA_TF '_powerstats.mat']),'ranksumresults')
     close all
     
 end
