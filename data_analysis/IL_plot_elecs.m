@@ -3,41 +3,50 @@ ERP_HFA_TF = 'elec_TF';
 to_comp = find(cellfun(@iscell,comparison));
 
 % preallocation
-sbjs_elecs = cell(size(subject_block,1),2);all_classes=[];
+sbjs_elecs = cell(size(subject_block,1),2);
+all_classes=[];
 for sb = 1:size(subject_block,1)
     sbj_ID = subject_block{sb,1};
     Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
     save_folder = fullfile(Sbj_Metadata.results,'power_peaks');
     curr_block= subject_block{sb,2};
-    load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']))
+    load(fullfile(Sbj_Metadata.iEEG_data,curr_block,[curr_block '_info.mat']),'info')
     
     % preallocation
     sbjs_elecs{sb,1} = Sbj_Metadata.fsname;
     sbjs_elecs{sb,2} = get_info_goodchans(info);
-    classes=cell(length(sbjs_elecs{sb,2}),1);
+    classes=repmat({{'Non-resp/Other'}},length(sbjs_elecs{sb,2}),1);
     
-    % loop the electrodes
+    % loop the electrodes to get significant classifications
     for el = 1:length(sbjs_elecs{sb,2})
         elec = info.channelinfo.Label{el};
         load(fullfile(save_folder,[elec , '_' curr_block '_' ERP_HFA_TF '_powerstats.mat']),'ranksumresults')
-        
-        classes(el,:) = IL_ranksum_class(ranksumresults,comparison);
+        t = IL_ranksum_SignClass(ranksumresults);
+        if ~isempty(t),classes{el} = t;end
     end
     
-    all_classes = [all_classes;classes];
+    % remove unresp/other electrodes
+    nons = ~cellfun(@(x)isequal(x,1),cellfun(@(x)strcmp(x,'Non-resp/Other'),classes,'UniformOutput',0));
+    classes = classes(nons);
+    sbjs_elecs{sb,2} = sbjs_elecs{sb,2}(nons);
     
+    all_classes = [all_classes;classes];
 end
 
-elecClassColors = IL_classColors(all_classes,comparison);
-
-
-
-
-
-
+% assign color to each electrode
+[elec_colors,elec_classes] = IL_classColors(all_classes,comparison);
 [AllSubElecNames,AllSubElecCoords] = gather_allelecsinfo(sbjs_elecs,'FSAVERAGE');
+nons = ~cellfun(@(x)isequal(x,1),cellfun(@(x)strcmp(x,'Non-resp/Other'),elec_classes,'UniformOutput',0));
+elec_colors = elec_colors(nons,:);
+elec_classes = elec_classes(nons);
+AllSubElecNames = AllSubElecNames(nons);
+AllSubElecCoords = AllSubElecCoords(nons,:);
 
-color_elecs_wData('fsaverage',all_classes,AllSubElecNames,AllSubElecCoords,'discrete',[3 18],'t-values','inferno',edgeColoredElecs)
+IL_color_elecs_wData('fsaverage',elec_classes,AllSubElecNames,AllSubElecCoords,'discrete',[],'Classes',elec_colors,[])
 
+% save
+toname = join(string(cellfun(@(x)join(x,'&'),comparison,'UniformOutput',0)),'_');
+save_folder = '/media/sakkol/HDD1/HBML/PROJECTS_DATA/IsochronousListening/Collected_Results';
+print(fullfile(save_folder,[toname '_signElecs.jpg']),'-djpeg','-r300')
 
 end
