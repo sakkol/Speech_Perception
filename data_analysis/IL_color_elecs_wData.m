@@ -217,7 +217,7 @@ if strcmp(contVSdiscr,'discrete')
     end
     l.FontSize=20;
     l.LineWidth = 1;
-    l.Location = 'southoutside';
+    l.Location = 'south';
     l.Color = [0.9412    0.9412    0.9412]; % change background color so that whites would be seen
     
     a=get(l); %gets properties of colorbar

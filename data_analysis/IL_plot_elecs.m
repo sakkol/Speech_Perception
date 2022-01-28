@@ -1,6 +1,8 @@
 function IL_plot_elecs(subject_block,comparison)
 ERP_HFA_TF = 'elec_TF';
-to_comp = find(cellfun(@iscell,comparison));
+% to_comp = find(cellfun(@iscell,comparison));
+data_root = '/media/sakkol/HDD1/HBML/';
+project_name = 'IsochronousListening';
 
 % preallocation
 sbjs_elecs = cell(size(subject_block,1),2);
@@ -43,9 +45,11 @@ AllSubElecNames = AllSubElecNames(nons);
 AllSubElecCoords = AllSubElecCoords(nons,:);
 
 IL_color_elecs_wData('fsaverage',elec_classes,AllSubElecNames,AllSubElecCoords,'discrete',[],'Classes',elec_colors,[])
+totitle = char(join(string(cellfun(@(x)join(x,'&'),comparison,'UniformOutput',0)),' : '));
+text(gca,.5,1.07,['Any combiation of ' totitle],'Units','normalized','FontSize',18,'FontWeight','bold','HorizontalAlignment','center')
 
 % save
-toname = join(string(cellfun(@(x)join(x,'&'),comparison,'UniformOutput',0)),'_');
+toname = char(join(string(cellfun(@(x)join(x,'&'),comparison,'UniformOutput',0)),'_'));
 save_folder = '/media/sakkol/HDD1/HBML/PROJECTS_DATA/IsochronousListening/Collected_Results';
 print(fullfile(save_folder,[toname '_signElecs.jpg']),'-djpeg','-r300')
 
