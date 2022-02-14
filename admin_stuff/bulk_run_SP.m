@@ -225,4 +225,31 @@ SP_AccrSNR_corr(sbj_block);
 print(fullfile(data_root,'PROJECTS_DATA',project_name,'Collected_Results','AccrSNR_corr',[strjoin(sbj_block(:,1),'_') '_allblocks.png']),'-dpng','-r300')
 print(fullfile(data_root,'PROJECTS_DATA',project_name,'Collected_Results','AccrSNR_corr',[strjoin(sbj_block(:,1),'_') '_firstblocks.png']),'-dpng','-r300')
 
+%% Noise Invariance
+% Idea: looking at the electrodes that respond solely to speech vs sounds
+AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[project_name '_BlockInfo.xlsx']));
+sbj_block = AllBlockInfo(AllBlockInfo.manuscript==1,1:2);
+sbj_block = table2cell(sbj_block);
+
+elecsOI = {'allElecs','selectElecs'};
+for elec = 1:2
+    for s=1:size(sbj_block,1)
+        SP_noiseInvariance(sbj_block(s,:),elecsOI{elec})
+    end
+    SP_noiseInvariance(sbj_block,elecsOI{elec})
+end
+
+%% entrainment - accuracy correlation
+% Idea: looking at the electrodes that respond solely to speech vs sounds
+AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[project_name '_BlockInfo.xlsx']));
+sbj_block = AllBlockInfo(AllBlockInfo.manuscript==1,1:2);
+sbj_block = table2cell(sbj_block);
+
+elecsOI = {'allElecs','selectElecs'};
+for elec = 1:2
+    for s=1:size(sbj_block,1)
+        SP_tracking_accuracy(sbj_block(s,:),elecsOI{elec})
+    end
+    SP_tracking_accuracy(sbj_block,elecsOI{elec})
+end
 
