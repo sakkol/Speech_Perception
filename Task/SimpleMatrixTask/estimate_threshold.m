@@ -70,6 +70,7 @@ options.threshPC       = threshLevel;
 result = psignifit(data_threshold,options);
 p1=plotPsych(result);
 print([save_filename '_psignifit.jpg'],'-djpeg','-r300')
+save([save_filename '_psignifit.mat'],'result','options')
 current_SNR = getThreshold(result,0.5)
 % close p1
 
