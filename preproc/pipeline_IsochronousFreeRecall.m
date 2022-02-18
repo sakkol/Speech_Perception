@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'IsochronousFreeRecall';
-sbj_ID = 'NS174';
+sbj_ID = 'NS178';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -41,14 +41,19 @@ cfg.preproc.bsfilter       = 'yes';
 cfg.preproc.bsfiltord      = 3;
 cfg.preproc.bsfreq         = [59 61; 119 121; 179 181];
 % cfg.preproc.bsfreq         = [59 61; 119 121; 179 181; 200 1000]; %sabina (visualisation purposes only, for noisy data)
+cfg.preproc.lpfilter='yes';
+cfg.preproc.lpfiltord=3;
+cfg.preproc.lpfreq=100;
 cfg.preproc.demean         = 'yes';
 good_chns = get_good_chans(ecog,2);
 temp = ecog.ftrip;
 temp.label = ecog.ftrip.label(good_chns);
 temp.trial{1} = ecog.ftrip.trial{1}(good_chns,:);
 temp.nChans = length(good_chns);
-cfg.channel = temp.label(1:20);
+cfg.channel = temp.label(1:15);
 cfg = ft_databrowser(cfg, temp);
+
+clear cfg temp
 
 %% If you added bad (or SOZ, spikey, out) chans to xls. Read xls in again
 % this will overwrite several fields in the ecog structure
@@ -99,7 +104,7 @@ math_onsets = [array2table(Calc1_Op1),array2table(Calc1_plus),array2table(Calc1_
 figure('Units','normalized','Position', [0 0  1 .5]);
 plot(1/analog_fs:1/analog_fs:length(noise_ch)/analog_fs,noise_ch); hold on
 for i=1:length(trial_onsets_tpts)
-    plot([trial_onsets_tpts(i)/analog_fs trial_onsets_tpts(i)/analog_fs],ylim)
+    plot([trial_onsets_tpts(i) trial_onsets_tpts(i)],ylim)
 end
 title([num2str(length(trial_onsets_tpts)) ' onsets found']);
 xlabel('Time (s)')
@@ -205,6 +210,7 @@ audio_chan = ecog.analog.trial{1}(1,:);
 ttlaudio_smplRate = ecog.analog.fs;
 
 current_onsets = events.trial_onsets;
+xx=[];
 for i=1:length(events.SoundStimuli)
     xx{i,1} = events.SoundStimuli{i,1}(:,1);
 end

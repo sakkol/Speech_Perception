@@ -1,7 +1,7 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'IsochronousListening';
-sbj_ID = 'NS174_3';
+sbj_ID = 'NS178';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
@@ -33,9 +33,9 @@ end
 % dataedf=ft_preprocessing(cfg);
 
 % load data from nwb:
-addpath(genpath('/home/sakkol/Documents/Codes_git/matnwb'));
-nwbfile = '/media/sakkol/HDD1/HBML/PROJECTS_DATA/IsochronousListening/NS176/raw/B8_DingTask/sub-NS176_ses-implant01_task-IsochronousListening_ieeg.nwb';
-ecog = nwb2ecog(nwbfile);
+% addpath(genpath('/home/sakkol/Documents/Codes_git/matnwb'));
+% nwbfile = '/media/sakkol/HDD1/HBML/PROJECTS_DATA/IsochronousListening/NS176/raw/B8_DingTask/sub-NS176_ses-implant01_task-IsochronousListening_ieeg.nwb';
+% ecog = nwb2ecog(nwbfile);
 
 %% Find bad channels using PSD
 % find_bad_chans(ecog);
@@ -158,7 +158,7 @@ ttlaudio_smplRate = ecog.analog.fs;
 current_onsets = (trial_onsets_tpts'/ecog.analog.fs);
 Stimuli=cell(height(beh_data.events_table),1);
 trial_durs=zeros(height(beh_data.events_table),1);
-for i=1:height(current_onsets)
+for i=1:size(current_onsets,2)
     Stimuli{i,1} = beh_data.events_table.trials{i,1}(:,1);
     trial_durs(i,1) = length(Stimuli{i})/44100;
 end
