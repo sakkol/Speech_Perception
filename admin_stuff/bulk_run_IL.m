@@ -111,6 +111,7 @@ for s = 1:length(indx)
     Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
     
     whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & AllBlockInfo.preproc_FU==1);
+    if isempty(whichblocks),continue,end
     for b = 1:length(whichblocks)
         curr_block = whichblocks{b};
         fprintf([sbj_ID,'-',curr_block,'\n'])
@@ -132,6 +133,7 @@ for s = 1:length(indx)
     Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
     
     whichblocks = AllBlockInfo.BlockList(ismember(AllBlockInfo.sbj_ID,sbj_ID) & AllBlockInfo.preproc_FU==1);
+    if isempty(whichblocks),continue,end
     for b = 1
         curr_block = whichblocks{b};
         

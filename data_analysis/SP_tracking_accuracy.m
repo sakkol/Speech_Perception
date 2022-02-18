@@ -8,10 +8,6 @@ project_name = 'Speech_Perception';
 if ~exist('elecsOI','var') || isempty(elecsOI)
     elecsOI = 'allElecs';
 end
-if ~strcmp(elecsOI,'allElecs')
-    ElecLoc=readtable(fullfile(data_root,'DERIVATIVES','freesurfer','ElecLoc_master.xlsx'));
-    area_OI = {'HG','STG'};
-end
 % steps = 1; % x10ms (Because it is sampled in 100Hz, 1 point is 10ms)
 max_delay = 40; % x10ms = 400ms
 
@@ -58,8 +54,9 @@ for s = 1:size(sbj_block,1)
     [good_chans,good_chans_idx] = get_info_goodchans(info);
     % get the elecsOI
     if ~strcmp(elecsOI,'allElecs')
+        ElecLoc=readtable(fullfile(data_root,'DERIVATIVES','freesurfer','ElecLoc_master.xlsx'));
         elecarea = ElecLoc(strcmp(ElecLoc.Subject,sbj_ID),:);
-        elecs_OI = elecarea(ismember(elecarea.Area,area_OI),:);
+        elecs_OI = elecarea(ismember(elecarea.Area,elecsOI),:);
         good_chans_idx = good_chans_idx & ismember(info.channelinfo.Label,elecs_OI.Label);
         good_chans = good_chans(ismember(good_chans,elecs_OI.Label));
     end
@@ -145,6 +142,7 @@ else
     Sbj_Metadata = 'fsaverage';
 end
 if ~exist(save_folder,'dir'),mkdir(save_folder);end
+if iscell(elecsOI),elecsOI = strjoin(elecsOI,'_');end
 % gather electrodes
 [AllSubElecNames,AllSubElecCoords] = gather_allelecsinfo(sbjs_elecs,coordName);
 

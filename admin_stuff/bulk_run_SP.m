@@ -231,8 +231,8 @@ AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[projec
 sbj_block = AllBlockInfo(AllBlockInfo.manuscript==1,1:2);
 sbj_block = table2cell(sbj_block);
 
-elecsOI = {'allElecs','selectElecs'};
-for elec = 1:2
+elecsOI = {'allElecs','HG','STG',{'HG','STG'}};
+for elec = 1:length(elecsOI)
     for s=1:size(sbj_block,1)
         SP_noiseInvariance(sbj_block(s,:),elecsOI{elec})
     end
@@ -245,8 +245,8 @@ AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[projec
 sbj_block = AllBlockInfo(AllBlockInfo.manuscript==1,1:2);
 sbj_block = table2cell(sbj_block);
 
-elecsOI = {'allElecs','selectElecs'};
-for elec = 1:2
+elecsOI = {'allElecs','HG','STG',{'HG','STG'}};
+for elec = 1:length(elecsOI)
     for s=1:size(sbj_block,1)
         SP_tracking_accuracy(sbj_block(s,:),elecsOI{elec})
     end

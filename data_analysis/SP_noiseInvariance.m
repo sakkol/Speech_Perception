@@ -7,10 +7,6 @@ project_name = 'Speech_Perception';
 if ~exist('elecsOI','var') || isempty(elecsOI)
     elecsOI = 'allElecs';
 end
-if ~strcmp(elecsOI,'allElecs')
-    ElecLoc=readtable(fullfile(data_root,'DERIVATIVES','freesurfer','ElecLoc_master.xlsx'));
-    area_OI = {'HG','STG'};
-end
 % steps = 1; % x10ms (Because it is sampled in 100Hz, 1 point is 10ms)
 max_delay = 40; % x10ms = 400ms
 
@@ -62,13 +58,14 @@ for s = 1:size(sbj_block,1)
     end
     
     % remove bad channels
-    [good_chans,good_chans_idx] = get_info_goodchans(info);
+    [~,good_chans_idx] = get_info_goodchans(info);
     % get the elecsOI
     if ~strcmp(elecsOI,'allElecs')
+        ElecLoc=readtable(fullfile(data_root,'DERIVATIVES','freesurfer','ElecLoc_master.xlsx'));
         elecarea = ElecLoc(strcmp(ElecLoc.Subject,sbj_ID),:);
-        elecs_OI = elecarea(ismember(elecarea.Area,area_OI),:);
+        elecs_OI = elecarea(ismember(elecarea.Area,elecsOI),:);
         good_chans_idx = good_chans_idx & ismember(info.channelinfo.Label,elecs_OI.Label);
-        good_chans = good_chans(ismember(good_chans,elecs_OI.Label));
+%         good_chans = good_chans(ismember(good_chans,elecs_OI.Label));
     end
     
     % find the max in each correlation delay
@@ -100,6 +97,7 @@ else
     Sbj_Metadata = 'fsaverage';
 end
 if ~exist(save_folder,'dir'),mkdir(save_folder);end
+if iscell(elecsOI),elecsOI = strjoin(elecsOI,'_');end
 % gather electrodes
 [AllSubElecNames,AllSubElecCoords] = gather_allelecsinfo(sbjs_elecs,coordName);
 
@@ -115,12 +113,12 @@ if ~(sum(all_collapsed_comb(:,1)==0)==length(all_collapsed_comb(:,1))) % this is
 % first plot the correlation values
 color_elecs_wData(Sbj_Metadata,all_collapsed_comb(:,1),AllSubElecNames,AllSubElecCoords,'continuous',[],'r-values','inferno')
 text(gca,.5,1.07,'Max correlation values','Units','normalized','FontSize',18,'FontWeight','bold','HorizontalAlignment','center')
-print(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' elecsOI '_rvals_outlierRM.jpg']),'-djpeg','-r300')
+print(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' elecsOI '_rvals.jpg']),'-djpeg','-r300')
 
 % second plot the correlation lag
-color_elecs_wData(Sbj_Metadata,all_collapsed_comb(:,2),AllSubElecNames,AllSubElecCoords,'continuous',[],'r-values','inferno')
+color_elecs_wData(Sbj_Metadata,all_collapsed_comb(:,2),AllSubElecNames,AllSubElecCoords,'continuous',[],'ROL','inferno')
 text(gca,.5,1.07,'Max correlation lag','Units','normalized','FontSize',18,'FontWeight','bold','HorizontalAlignment','center')
-print(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' elecsOI '_ROL_outlierRM.jpg']),'-djpeg','-r300')
+print(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' elecsOI '_ROL.jpg']),'-djpeg','-r300')
 close all
 
 % lastly: correlate the delay and lag
@@ -134,7 +132,7 @@ h.LineWidth = .75;legend('hide');
 xlabel('Correlation');ylabel('Delay')
 set(gca,'FontSize',14)
 title(['Correlating delay with max HFA-envelope correlation across electrodes - rho=' num2str(ccoorr_c) ' (p=' num2str(ccoorr_r) ')']);
-print(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' elecsOI '_ROL_rval_corr_outlierRM.jpg']),'-djpeg','-r300')
+print(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' elecsOI '_ROL_rval_corr.jpg']),'-djpeg','-r300')
 close all
 end
 

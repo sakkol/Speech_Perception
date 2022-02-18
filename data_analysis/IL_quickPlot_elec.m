@@ -51,7 +51,7 @@ for l1=1:2
             for l4=1:3
                 cfg                = [];
                 cfg.latency        = [-.1 (loop2{l2}*5/isofrequency)+.1];
-                cfg.trials         = IL_get_eventsOI(events, loop3{l3}, loop1{l1}, loop2{l2});
+                cfg.trials         = IL_get_eventsOI(events, loop3{l3}, loop1{l1}, loop2{l2},[0,1]);
                 sampstr.([loop1{l1} '_' num2str(loop2{l2}) '_' loop3{l3} '_' loop4{l4}]) = ft_selectdata(cfg,datastr.(['epoched_' loop4{l4}]));
             end
         end

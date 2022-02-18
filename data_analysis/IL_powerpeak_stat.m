@@ -8,7 +8,7 @@ to_comp1 = mean(for_avg(:,y),2);
 to_comp2 = mean(for_avg(:,[y-3:y-2,y+2:y+3]),2);%to_comp1 = mean(for_avg(:,inds),2);
 
 if ~isnan(to_comp1)
-    [p,significant,stats] = ranksum(to_comp1,to_comp2,'alpha',0.05);
+    [p,significant,stats] = ranksum(to_comp1,to_comp2,'alpha',0.01);
     ranksumresults.h=significant;
     ranksumresults.p=p;
     ranksumresults.stats=stats;
