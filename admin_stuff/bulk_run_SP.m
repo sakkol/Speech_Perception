@@ -239,7 +239,7 @@ for elec = 1:length(elecsOI)
     SP_noiseInvariance(sbj_block,elecsOI{elec})
 end
 
-%% entrainment - accuracy correlation
+%% entrainment - accuracy correlation for attention sentence
 % Idea: looking at the electrodes that respond solely to speech vs sounds
 AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[project_name '_BlockInfo.xlsx']));
 sbj_block = AllBlockInfo(AllBlockInfo.manuscript==1,1:2);
@@ -248,8 +248,23 @@ sbj_block = table2cell(sbj_block);
 elecsOI = {'allElecs','HG','STG',{'HG','STG'}};
 for elec = 1:length(elecsOI)
     for s=1:size(sbj_block,1)
-        SP_tracking_accuracy(sbj_block(s,:),elecsOI{elec})
+        SP_TrackingAttention_Accuracy(sbj_block(s,:),elecsOI{elec})
     end
-    SP_tracking_accuracy(sbj_block,elecsOI{elec})
+    SP_TrackingAttention_Accuracy(sbj_block,elecsOI{elec})
+end
+
+
+%% entrainment - accuracy correlation for target sentence
+% Idea: looking at the electrodes that respond solely to speech vs sounds
+AllBlockInfo = readtable(fullfile(data_root,'PROJECTS_DATA',project_name,[project_name '_BlockInfo.xlsx']));
+sbj_block = AllBlockInfo(AllBlockInfo.manuscript==1,1:2);
+sbj_block = table2cell(sbj_block);
+
+elecsOI = {'allElecs','HG','STG',{'HG','STG'}};
+for elec = 1:length(elecsOI)
+    for s=1:size(sbj_block,1)
+        SP_TrackingTarget_Accuracy(sbj_block(s,:),elecsOI{elec})
+    end
+    SP_TrackingTarget_Accuracy(sbj_block,elecsOI{elec})
 end
 

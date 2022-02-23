@@ -101,7 +101,8 @@ if iscell(elecsOI),elecsOI = strjoin(elecsOI,'_');end
 % gather electrodes
 [AllSubElecNames,AllSubElecCoords] = gather_allelecsinfo(sbjs_elecs,coordName);
 
-if ~(sum(all_collapsed_comb(:,1)==0)==length(all_collapsed_comb(:,1))) % this is to skip those cases when there are no significant following
+if ~(sum(all_collapsed_comb(:,1)==0)==length(all_collapsed_comb(:,1))) ... % this is to skip those cases when there are no significant following
+        && ~(length(all_collapsed_comb(:,1))<3) % to skip those with only one electrode
     
 %     % just to remove outliers for once:
 %     rm_idx = all_collapsed_comb(:,2)<250;
