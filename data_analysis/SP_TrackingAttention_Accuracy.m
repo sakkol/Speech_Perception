@@ -1,4 +1,4 @@
-function SP_tracking_accuracy(sbj_block,elecsOI)
+function SP_TrackingAttention_Accuracy(sbj_block,elecsOI)
 % Idea: if neural tracking is higher during the attention sentence,
 % accuracy of the target word detection would be higher.
 
@@ -146,6 +146,9 @@ if iscell(elecsOI),elecsOI = strjoin(elecsOI,'_');end
 % gather electrodes
 [AllSubElecNames,AllSubElecCoords] = gather_allelecsinfo(sbjs_elecs,coordName);
 
+
+if ~(size(all_entr_accr_corr,1)<3) % to skip those with only one electrode
+
 % plot the correlation values
 color_elecs_wData(Sbj_Metadata,mean(all_entr_accr_corr,2),AllSubElecNames,AllSubElecCoords,'continuous',[],'r-values','inferno')
 text(gca,.5,1.07,['Correlation of accuracy and max HFA-envelope correlation in all conditions'],'Units','normalized','FontSize',18,'FontWeight','bold','HorizontalAlignment','center')
@@ -159,6 +162,7 @@ for c=1:length(conds)
     print(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' erase(tmp{1},' ') '_' elecsOI '.jpg']),'-djpeg','-r300')
 end
 close all
+end
 
 save(fullfile(save_folder,[strjoin(sbjs_elecs(:,1),'_') '_' elecsOI '_output.mat']),'entr_accr_corr','sbjs_elecs','best_delay','all_corr_res','all_pvals')
 
