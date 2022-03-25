@@ -6,6 +6,7 @@ project_name = 'IsochronousListening';
 
 % preallocation
 sbjs_elecs = cell(size(subject_block,1),2);
+sbjs_elecs_classes = cell(size(subject_block,1),3);
 all_classes=[];
 for sb = 1:size(subject_block,1)
     sbj_ID = subject_block{sb,1};
@@ -31,6 +32,9 @@ for sb = 1:size(subject_block,1)
     nons = ~cellfun(@(x)isequal(x,1),cellfun(@(x)strcmp(x,'Non-resp/Other'),classes,'UniformOutput',0));
     classes = classes(nons);
     sbjs_elecs{sb,2} = sbjs_elecs{sb,2}(nons);
+    sbjs_elecs_classes{sb,1} = Sbj_Metadata.fsname;
+    sbjs_elecs_classes{sb,2} = sbjs_elecs{sb,2};
+    sbjs_elecs_classes{sb,3} = classes;
     
     all_classes = [all_classes;classes];
 end
@@ -52,5 +56,6 @@ text(gca,.5,1.07,['Any combiation of ' totitle],'Units','normalized','FontSize',
 toname = char(join(string(cellfun(@(x)join(x,'&'),comparison,'UniformOutput',0)),'_'));
 save_folder = '/media/sakkol/HDD1/HBML/PROJECTS_DATA/IsochronousListening/Collected_Results';
 print(fullfile(save_folder,[toname '_signElecs.jpg']),'-djpeg','-r300')
+save(fullfile(save_folder,[toname '_signElecs.mat']),'sbjs_elecs_classes')
 
 end

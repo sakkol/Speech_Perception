@@ -187,7 +187,7 @@ cfg.title='';
 cfg.ignoreDepthElec = 'n';
 cfg.pullOut = 0;
 cfg.showLabels = 'n';
-cfg.opaqueness = .25;
+cfg.opaqueness = .35;
 cfg.fsurfSubDir = fsDir;
 % cfg.surfType = 'inflated';
 plotPialSurf(sub,cfg);

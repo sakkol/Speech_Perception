@@ -18,7 +18,7 @@ ncomb = prod(cellfun(@length,comparison(to_comp)));
 all_comb = strcat(cellcomparison{1}(Ax(:)),repmat({'_'},ncomb,1),cellcomparison{2}(Bx(:)),...
     repmat({'_'},ncomb,1),cellcomparison{3}(Cx(:)),repmat({'_'},ncomb,1),cellcomparison{4}(Dx(:)));
 
-% remove the significant classes
+% find the significant classes of that are compared
 for c = 1:size(classes,1)
     if strcmp(classes{c},'Non-resp/Other')
         continue
