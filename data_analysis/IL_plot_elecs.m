@@ -22,7 +22,7 @@ for sb = 1:size(subject_block,1)
     
     % loop the electrodes to get significant classifications
     for el = 1:length(sbjs_elecs{sb,2})
-        elec = info.channelinfo.Label{el};
+        elec = sbjs_elecs{sb,2}{el};
         load(fullfile(save_folder,[elec , '_' curr_block '_' ERP_HFA_TF '_powerstats.mat']),'ranksumresults')
         t = IL_ranksum_SignClass(ranksumresults);
         if ~isempty(t),classes{el} = t;end
