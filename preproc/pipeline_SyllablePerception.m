@@ -6,7 +6,7 @@ sbj_ID = 'NS163';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{1}
+curr_block = Sbj_Metadata.BlockLists{2}
 params = AllBlockInfo2params(Sbj_Metadata,curr_block)
 
 %% Prepare ecog
@@ -679,10 +679,12 @@ for el = 1:length(epoched_data.label)
         c.Label.String = 'Power (relative)';
     end
     
-     colormap(master_ColorMaps('plasma'));
+    colormap(master_ColorMaps('plasma'));
     
-     % main title
-    sgtitle(['Elec: ' epoched_data.label{el} ' - Location: ' info.channelinfo.Desikan_Killiany{el}], 'FontSize',16,'FontWeight','bold')
+    % main title
+    ax = axes;
+    text(gca,.5,1.07,['Elec: ' epoched_data.label{el} ' - Location: ' info.channelinfo.Desikan_Killiany{el}], 'FontSize',16,'FontWeight','bold')
+    ax.Visible = 'off';
     
     % Save the figure
     fprintf('\t-Saving electrode %s, out of %d\n',epoched_data.label{el},length(epoched_data.label))

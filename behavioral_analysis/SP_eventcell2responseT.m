@@ -1,6 +1,5 @@
-% function eventcell2responseT(Sbj_Metadata,curr_block)
 % To quickly create the response table with empty cells. Optionally to
-% write the table here in the function.
+% write the table here in the script.
 
 % load event_cell
 load(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '.mat']),'events_cell')

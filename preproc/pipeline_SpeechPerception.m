@@ -9,7 +9,7 @@ curr_block = Sbj_Metadata.BlockLists{3}
 Sbj_Metadata.params = AllBlockInfo2params(Sbj_Metadata,curr_block)
 
 %% if response table hasn't been filled, fill it here
-eventcell2responseT
+SP_eventcell2responseT
 
 %% Run quick behavioral analysis
 SP_beh_analysis(Sbj_Metadata,curr_block)
