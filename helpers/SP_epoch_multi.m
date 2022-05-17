@@ -1,7 +1,12 @@
 function [all_output,freq,time] = SP_epoch_multi(ft_data_TF,trial_nos,onsets,before,after)
 % this is to get segments from ERP or time-frequency data where some
 % segments can be in different time points and trials.
+%
+% Serdar Akkol, Human Brain Mapping Lab, Feinstein Institutes for Medical
+% Research
+% April 2022
 
+%% Epoch on
 if isfield(ft_data_TF,'fourierspctrm')
     lchan = size(ft_data_TF.fourierspctrm,2);
     fieldOI = 'fourierspctrm';
@@ -15,7 +20,7 @@ else % probably time domain ERP
     lchan = size(ft_data_TF.trial,2);
 end
 
-% loop trial_nos
+%% loop trials
 fprintf('Extracting data from %d trials\n',length(trial_nos))
 for t = 1:length(trial_nos)
     % get -before and +after relative to onsets use ft_selectdata

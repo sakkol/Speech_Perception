@@ -1,5 +1,9 @@
 % select_bad_chans
 % To be able to easily select the bad electrodes and a handful others from a nice table
+%
+% Serdar Akkol, Human Brain Mapping Lab, Feinstein Institutes for Medical
+% Research
+% June 2020
 
 soz_id = ismember(ecog.ftrip.label,ecog.szr_onset_chans);
 spike_id = ismember(ecog.ftrip.label,ecog.spike_chans);

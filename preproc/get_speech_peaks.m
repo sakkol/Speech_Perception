@@ -8,6 +8,12 @@ function [peakRate, peakEnv, amp_env, deriv_amp_env] = get_speech_peaks(speech,F
 % implemented in NSL toolbox with critical filters (CF) = 440*2.^((-31:97)/24)).
 % peakRate and peakEnv calculations are based on Oganian and Chang, 2019
 % (Science Advances).
+%
+% Serdar Akkol, Human Brain Mapping Lab, Feinstein Institutes for Medical
+% Research
+% June 2020
+
+%% Calculations
 if nargin == 2, ifPlot=1;end
 
 % remove zeros in the end

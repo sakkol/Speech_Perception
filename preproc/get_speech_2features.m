@@ -2,7 +2,10 @@ function [amp_env,deriv_amp_env,spectrogram,CF] = get_speech_2features(speech,Fs
 % intermediary function for get_speech_peaks.m and also can be used to
 % directly get the amplitude envelope and the first derivative of the
 % amplitude envelope (no rectification).
-% Serdar Akkol, June 2020, HBML.
+%
+% Serdar Akkol, Human Brain Mapping Lab, Feinstein Institutes for Medical
+% Research
+% June 2020
 
 if ~exist('scale', 'var') || isempty(scale) || strcmpi(scale,'cochlear')
     CF = 440 * 2 .^ ((-31:97)/24);

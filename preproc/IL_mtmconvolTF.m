@@ -4,10 +4,15 @@ function [epoched_data, epoched_wlt] = IL_mtmconvolTF(Sbj_Metadata,curr_block,ft
 % produced. ftrip is the fieldtrip structure of continuous data (probably
 % common average referenced); events_sec is the onsets of where to epoch
 % data (=time zero); pre and post are positive values of epoching seconds.
+%
 % Example code:
 % pre  = 1;
 % post = 4;
 % [epoched_data, epoched_wlt] = master_TF(ecog_avg.ftrip,events.Click1,pre,post);
+%
+% Serdar Akkol, Human Brain Mapping Lab, Feinstein Institutes for Medical
+% Research
+% January 2022
 
 %% Set the stage
 if ~exist('event_secs','var') || isempty(event_secs)
