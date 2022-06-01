@@ -1,11 +1,11 @@
 %% Prepare
 data_root = '/media/sakkol/HDD1/HBML/';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS174_2';
+sbj_ID = 'NS179';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
-curr_block = Sbj_Metadata.BlockLists{3}
+curr_block = Sbj_Metadata.BlockLists{1}
 Sbj_Metadata.params = AllBlockInfo2params(Sbj_Metadata,curr_block)
 
 %% if response table hasn't been filled, fill it here

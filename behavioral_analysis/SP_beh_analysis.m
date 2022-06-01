@@ -3,12 +3,12 @@ function SP_beh_analysis(Sbj_Metadata,curr_block)
 
 %% Administrative part
 % Load response table
-% response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
-response_cell = readcell(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
-
-opts = detectImportOptions(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
-opts = setvartype(opts, response_cell(1,4:8), 'string');
-response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']), opts);
+response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
+% response_cell = readcell(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
+% 
+% opts = detectImportOptions(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']));
+% opts = setvartype(opts, response_cell(1,4:8), 'string');
+% response_table = readtable(fullfile(Sbj_Metadata.behavioral_root, curr_block, [curr_block '_response_table.xlsx']), opts);
 
 % convert code column into double
 if iscell(response_table.Condition_Code)
@@ -128,7 +128,8 @@ set(gca,'FontSize',13)
 title('Correct responses as block continues (separated for each condition)','FontSize',15)
 xlabel('');ylabel('');
 % legend(all_cond_names(:),'FontSize',13,'Location','best')
-sgtitle(['Stimulation type: ' stim_type],'FontSize',15)
+% sgtitle(['Stimulation type: ' stim_type],'FontSize',15)
+text(gca,.5,1.07,['Stimulation type: ' stim_type],'FontSize',15)
 print(fullfile(res_dir,[curr_block '_change.jpg']),'-djpeg','-r300')
 
 
