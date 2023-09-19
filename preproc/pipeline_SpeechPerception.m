@@ -1,7 +1,7 @@
 %% Prepare
-data_root = '/media/sakkol/HDD1/HBML/';
+data_root = 'C:\Users\serda\Desktop\PROJECT MANAGEMENT\PhD\Electrical_Stimulation\DATA_ROOT';
 project_name = 'Speech_Perception';
-sbj_ID = 'NS179';
+sbj_ID = 'NS193';
 Sbj_Metadata = makeSbj_Metadata(data_root, project_name, sbj_ID); % 'SAkkol_Stanford'
 
 % Get params directly from BlockList excel sheet
