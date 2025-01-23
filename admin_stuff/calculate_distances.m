@@ -52,12 +52,12 @@ dist_cathode = norm(mid_cathode - POI)
 distances = [distances; [cell2table({'NS148_02'},"VariableNames",{'Session'}),array2table([dist_anode,dist_cathode],'VariableNames',{'dist_anode','dist_cathode'})]];
 
 %% NS150 (S4)
-anode = []; % RIp_bolt1
+anode = [38.9582  -48.0964   53.7647]; % RIp_bolt1
 
-cathode = []; % RDh_bolt1
+cathode = [81.9089   -5.2299   -4.8790]; % RDh_bolt1
 
 % distances to point of interest
-POI = []; % XX
+POI = [61.973000 -0.490000 8.128000]; % RTs14
 
 dist_anode = norm(anode - POI)
 dist_cathode = norm(cathode - POI)
@@ -84,18 +84,18 @@ dist_cathode = norm(mid_cathode - POI)
 distances = [distances; [cell2table({'NS170'},"VariableNames",{'Session'}),array2table([dist_anode,dist_cathode],'VariableNames',{'dist_anode','dist_cathode'})]];
 
 %% NS174_02 (S6)
-anode1 = []; % Ref1
-anode2 = []; % Ref2
+anode1 = [-70.043000 -1.006000 -9.784000]; % Ref1
+anode2 = [-70.019000 -7.115000 -1.683000]; % Ref2
 
-cathode1 = []; % Ref5
-cathode2 = []; % Ref6
+cathode1 = [-72.593000 -17.074000 25.241000]; % Ref5
+cathode2 = [-67.726000 -19.630000 33.205500]; % Ref6
 
 % calculate mid points of stim electrodes
 mid_anode = mean([anode1;anode2],1);
 mid_cathode = mean([cathode1;cathode2],1);
 
 % distances to point of interest
-POI = []; % XX
+POI = [-62.571000 -4.857000 5.286000]; % LTs16
 
 dist_anode = norm(mid_anode - POI)
 dist_cathode = norm(mid_cathode - POI)
@@ -103,19 +103,15 @@ dist_cathode = norm(mid_cathode - POI)
 distances = [distances; [cell2table({'NS174_02'},"VariableNames",{'Session'}),array2table([dist_anode,dist_cathode],'VariableNames',{'dist_anode','dist_cathode'})]];
 
 
+%%
+%%
+%% Interpolating
+RTs15 = [53.666600 1.333500 -4.417000];
+RTs16 = [55.333300 2.000000 -4.667000];
+RTsbolt = [62.000000 5.000000 -5.000000];
+k = (RTsbolt-RTs16) ./ (RTs16-RTs15);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+last_one = [62.142800 -3.785000 -6.925000];
+last_minone = [57.201200 -3.464000 -8.461000];
+last_one + (k .* (last_one-last_minone))
 
